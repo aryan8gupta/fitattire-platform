@@ -1,0 +1,804 @@
+/* Base Styles */
+:root {
+    --primary-color: #8a2be2;
+    --primary-light: #9d4edd;
+    --primary-dark: #6a0dad;
+    --accent-color: #ffd700;
+    --text-color: #333;
+    --text-light: #666;
+    --bg-color: #fff;
+    --bg-light: #f8f9fa;
+    --border-color: #e0e0e0;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color);
+    background-color: var(--bg-light);
+    line-height: 1.6;
+  }
+  
+  a {
+    text-decoration: none;
+    color: var(--primary-color);
+  }
+  
+  ul {
+    list-style: none;
+  }
+  
+  button {
+    cursor: pointer;
+    font-family: inherit;
+  }
+  
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+    font-size: 1rem;
+  }
+  
+  /* Layout */
+  .app-container {
+    display: flex;
+    min-height: 100vh;
+  }
+  
+  .main-content {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+  }
+  
+  .admin-info {
+    display: flex;
+    align-items: center;
+  }
+  
+  .admin-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 0.75rem;
+  }
+  
+  .admin-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  
+  .admin-email {
+    font-size: 0.8rem;
+    color: var(--text-light);
+  }
+  
+  /* Content Header */
+  .content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  
+  .content-header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+  }
+  
+  .add-btn {
+    background-color: #000;
+    color: var(--accent-color);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+  }
+  
+  .add-btn:hover {
+    background-color: #222;
+    transform: translateY(-2px);
+  }
+  
+  /* Search Container */
+  .search-container {
+    margin-bottom: 2rem;
+  }
+  
+  .search-container h3 {
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+  }
+  
+  .search-box {
+    display: flex;
+    background-color: var(--bg-color);
+    border-radius: 50px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  
+  .search-box input {
+    flex: 1;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    outline: none;
+  }
+  
+  .search-btn {
+    background-color: var(--bg-color);
+    border: none;
+    padding: 0 1.5rem;
+    color: var(--text-light);
+  }
+  
+  /* Content Section */
+  .content-section {
+    background-color: var(--bg-color);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .section-header {
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-title {
+    display: flex;
+    align-items: center;
+  }
+  
+  .yellow-bar {
+    width: 4px;
+    height: 24px;
+    background-color: var(--accent-color);
+    margin-right: 0.75rem;
+    border-radius: 2px;
+  }
+  
+  /* Table */
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .data-table th,
+  .data-table td {
+    padding: 1rem;
+    text-align: left;
+  }
+  
+  .data-table th {
+    font-weight: 600;
+    color: var(--text-light);
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .data-table tbody tr {
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .data-table tbody tr:last-child {
+    border-bottom: none;
+  }
+  
+  .user-id {
+    display: flex;
+    align-items: center;
+  }
+  
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 0.75rem;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .edit-btn,
+  .delete-btn {
+    background: none;
+    border: none;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .edit-btn {
+    color: var(--primary-color);
+  }
+  
+  .delete-btn {
+    color: var(--danger-color);
+  }
+  
+  .edit-btn:hover,
+  .delete-btn:hover {
+    transform: scale(1.2);
+  }
+  
+  /* Pagination */
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+  }
+  
+  .pagination-buttons {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .prev-btn,
+  .next-btn {
+    background-color: #000;
+    color: var(--accent-color);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .prev-btn:hover,
+  .next-btn:hover {
+    background-color: #222;
+  }
+  
+  /* Registration Page */
+  .registration-page {
+    flex-direction: column;
+    background-color: var(--bg-color);
+  }
+  
+  .registration-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-color);
+  }
+  
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+  }
+  
+  .nav-links a {
+    color: var(--text-color);
+  }
+  
+  .signup-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 500;
+  }
+  
+  .registration-content {
+    display: flex;
+    justify-content: center;
+    padding: 2rem;
+  }
+  
+  .registration-form-container {
+    max-width: 800px;
+    width: 100%;
+  }
+  
+  .registration-form-container h1 {
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+  
+  .registration-form-container h1 span {
+    color: var(--primary-color);
+  }
+  
+  .form-subtitle {
+    text-align: center;
+    color: var(--text-light);
+    margin-bottom: 2rem;
+  }
+  
+  .registration-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .form-section h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .form-row {
+    display: flex;
+    gap: 1.5rem;
+  }
+  
+  .form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: relative;
+  }
+  
+  .date-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  
+  .date-input-container input {
+    width: 100%;
+    padding-right: 40px; /* Make room for the calendar icon */
+  }
+  
+  .calendar-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-light);
+    z-index: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    width: 24px;
+  }
+  
+  /* Enhanced Date picker styling */
+  .datepicker {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    box-shadow: var(--shadow);
+    padding: 1rem;
+    position: absolute;
+    z-index: 1000;
+    width: 300px;
+    display: none;
+    top: calc(100% + 5px);
+    left: 0;
+  }
+  
+  .datepicker.active {
+    display: block;
+  }
+  
+  .datepicker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .datepicker-selectors {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    gap: 0.5rem;
+  }
+  
+  .datepicker-selectors select {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--bg-color);
+    cursor: pointer;
+  }
+  
+  .datepicker-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .datepicker-day-header {
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--text-light);
+  }
+  
+  .datepicker-day {
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .datepicker-day:hover {
+    background-color: var(--primary-light);
+    color: white;
+  }
+  
+  .datepicker-day.today {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .datepicker-day.selected {
+    background-color: var(--primary-dark);
+    color: white;
+  }
+  
+  .datepicker-day.disabled {
+    color: var(--border-color);
+    cursor: not-allowed;
+  }
+  
+  .form-group label {
+    font-weight: 500;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    width: 100%;
+  }
+  
+  .form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  .input-with-button {
+    display: flex;
+    position: relative;
+  }
+  
+  .input-with-button input {
+    flex: 1;
+    padding-right: 110px;
+  }
+  
+  .verify-btn {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.9rem;
+  }
+  
+  /* Password input */
+  .password-input {
+    position: relative;
+  }
+  
+  .toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-light);
+    z-index: 1;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    width: 24px;
+  }
+  
+  .password-input input {
+    padding-right: 40px; /* Make room for the eye icon */
+  }
+  
+  /* Password validation */
+  .password-requirements {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-light);
+  }
+  
+  .password-requirement {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .password-requirement i {
+    font-size: 0.8rem;
+  }
+  
+  .requirement-met {
+    color: var(--success-color);
+  }
+  
+  .requirement-not-met {
+    color: var(--danger-color);
+  }
+  
+  .salary-input {
+    position: relative;
+  }
+  
+  .currency-symbol {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+  }
+  
+  .salary-input input {
+    padding-left: 25px;
+  }
+  
+  .submit-btn {
+    background-color: #000;
+    color: var(--accent-color);
+    border: none;
+    padding: 1rem;
+    border-radius: 5px;
+    font-weight: 600;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .submit-btn:hover {
+    background-color: #222;
+  }
+  
+  .terms-text,
+  .login-link {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-light);
+  }
+  
+  /* OTP Verification */
+  .otp-container {
+    margin-top: 0.75rem;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: #f9f9f9;
+  }
+  
+  .otp-container.hidden {
+    display: none;
+  }
+  
+  .otp-timer {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+  }
+  
+  .otp-timer-expired {
+    color: var(--danger-color);
+    font-weight: 500;
+  }
+  
+  .otp-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  
+  .verify-otp-btn,
+  .resend-otp-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    font-size: 0.9rem;
+  }
+  
+  .resend-otp-btn {
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+  }
+  
+  .resend-otp-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .resend-countdown {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-left: 0.5rem;
+  }
+  
+  /* Responsive */
+  
+  @media (max-width: 768px) {
+    .app-container {
+      flex-direction: column;
+    }
+  
+    .form-row {
+      flex-direction: column;
+      gap: 1rem;
+    }
+  
+    .registration-header {
+      flex-direction: column;
+      gap: 1rem;
+      text-align: center;
+    }
+  
+    .nav-links {
+      justify-content: center;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .content-header {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+  
+    .pagination {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+  }
+  
+
+/*--------------------------------------------------------------
+  # Select Section
+--------------------------------------------------------------*/
+.custom-select-wrapper {
+  position: relative;
+  width: 100%;
+  font-family: sans-serif;
+}
+
+.custom-select {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background-color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.custom-select .arrow {
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+
+.custom-select.open .arrow {
+  transform: rotate(180deg);
+}
+
+.custom-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  border: 1px solid #ccc;
+  background-color: white;
+  display: none;
+  z-index: 1000;
+}
+
+.custom-options div{
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.custom-options div:hover {
+  background-color: #f0f0f0;
+}
+
+.label-style {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
+}
+
+
+/*--------------------------------------------------------------
+  # Select Job Section
+--------------------------------------------------------------*/
+.custom-select-job {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background-color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.custom-select-job .arrow {
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+
+.custom-select-job.open .arrow {
+  transform: rotate(180deg);
+}
+
+.custom-options-job {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  border: 1px solid #ccc;
+  background-color: white;
+  display: none;
+  z-index: 1000;
+}
+
+.custom-options-job div{
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.custom-options-job div:hover {
+  background-color: #f0f0f0;
+}

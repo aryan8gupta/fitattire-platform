@@ -1,0 +1,147 @@
+.qr-card {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 24px;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+
+  .qr-card h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+  }
+
+  #reader {
+    width: 100%;
+    max-width: 600px;
+    height: 80vh;
+    margin: 10px auto;
+    display: none;
+  }
+
+  .btn {
+    display: block;
+    margin: 15px auto;
+    padding: 14px 28px;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    width: 80%;
+    max-width: 300px;
+  }
+
+  #scan-btn {
+    background-color: #000;
+    color: #ffd700;
+  }
+
+  #scan-btn:hover {
+    background-color: #524905;
+  }
+
+  #cancel-btn {
+    background-color: #f44336;
+    color: white;
+    display: none;
+  }
+
+  #cancel-btn:hover {
+    background-color: #d73833;
+  }
+
+  @media (max-width: 768px) {
+    .qr-card {
+      margin: 20px 10px;
+      padding: 16px;
+    }
+
+    #reader {
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+
+    .btn {
+      font-size: 16px;
+      width: 90%;
+      max-width: none;
+    }
+  }
+
+
+  .explore-card {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 50px;
+    border-radius: 16px;
+    background: url('/static/img/Men_T_shirts.png') no-repeat center center;
+    background-size: cover;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .explore-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    z-index: 0;
+  }
+
+  .explore-card-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .explore-card h2 {
+    font-size: 28px;
+    margin-bottom: 24px;
+  }
+
+  .explore-btn {
+    padding: 14px 26px;
+    font-size: 16px;
+    background-color: #ff9800;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  .explore-btn:hover {
+    background-color: #e68900;
+    transform: translateY(-2px);
+  }
+
+  .explore-btn span {
+    margin-left: 8px;
+    transition: margin-left 0.2s ease;
+  }
+
+  .explore-btn:hover span {
+    margin-left: 12px;
+  }
+
+  @media (max-width: 768px) {
+    .explore-card {
+      margin: 20px 10px;
+      padding: 24px;
+    }
+
+    .explore-card h2 {
+      font-size: 22px;
+    }
+
+    .explore-btn {
+      width: 100%;
+    }
+  }
