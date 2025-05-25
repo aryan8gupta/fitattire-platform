@@ -91,9 +91,10 @@ data_list = [
 # create_vertical_qr_pdf(data_list)
 # --------------------------------------------------------------------->
 
+my_var = os.getenv('Pincel_API_Key', 'Default Value')
 
 PINCEL_API_URL = "https://pincel.app/api/clothes-swap"
-PINCEL_API_KEY = "d7982ad0-58e5-4899-b0db-e063a8e70448"
+PINCEL_API_KEY = my_var
 
 product_list1 = []
 
