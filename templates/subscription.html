@@ -5,8 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>FitAttire</title>
         <!-- Favicons -->
-        <link href="../static/img/logo.png" rel="icon">
-        <link href="../static/img/logo.png" rel="apple-touch-icon">
+        <link href="{% static 'img/logo.png' %}" rel="icon">
+        <link href="{% static 'img/logo.png' %}" rel="apple-touch-icon">
         
         <link
             href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
@@ -19,7 +19,7 @@
             crossorigin="anonymous"
             referrerpolicy="no-referrer"
         />
-        <link rel="stylesheet" href="../static/css/subscription.css" />
+        <link rel="stylesheet" href="{% static 'css/subscription.css' %}" />
     </head>
     <body>
         <button class="aside-button">
@@ -39,7 +39,7 @@
                 >
             </nav>
             <div class="profile">
-                <img src="../static/assets/profile.jpg" alt="Profile picture" />
+                <img src="{% static 'assets/profile.jpg' %}" alt="Profile picture" />
                 <div class="profile_info">
                     <p class="name">Alex Morgan</p>
                     <p class="designation">Manager</p>

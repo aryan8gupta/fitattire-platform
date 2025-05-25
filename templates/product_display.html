@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block contain %}
-    <link rel="stylesheet" href="../static/css/product-display.css">
+    <link rel="stylesheet" href="{% static 'css/product-display.css' %}">
 
     <!-- prduct details -->
     <main id="main" class="main">
@@ -219,6 +219,6 @@
         </div>
     </main>
 
-    <script src="../static/js/product-display.js"></script>
+    <script src="{% static 'js/product-display.js' %}"></script>
 
 {% endblock %}

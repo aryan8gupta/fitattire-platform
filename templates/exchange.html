@@ -3,9 +3,9 @@
 {% block contain %}
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../static/css/style2.css">
-    <link rel="stylesheet" href="../static/css/responsive2.css">
-    <link rel="stylesheet" href="../static/css/utility2.css">
+    <link rel="stylesheet" href="{% static 'css/style2.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive2.css' %}">
+    <link rel="stylesheet" href="{% static 'css/utility2.css' %}">
 
     <main id="main" class="main">
         <header class="page-header mt-3">
@@ -179,6 +179,6 @@
         </div>
     </div>
 
-    <script src="../static/js/exchange.js"></script>
+    <script src="{% static 'js/exchange.js' %}"></script>
 
 {% endblock %}

@@ -2,9 +2,9 @@
 
 {% block contain %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../static/css/style2.css">
-    <link rel="stylesheet" href="../static/css/responsive2.css">
-    <link rel="stylesheet" href="../static/css/utility2.css">
+    <link rel="stylesheet" href="{% static 'css/style2.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive2.css' %}">
+    <link rel="stylesheet" href="{% static 'css/utility2.css' %}">
     <style>
         .add_products {
           display: flex; justify-content: start;
@@ -348,6 +348,6 @@
       </div>
         
     </main> <!-- End #main -->
-    <script src="../static/js/add-products.js" defer></script>
+    <script src="{% static 'js/add-products.js' %}" defer></script>
 
 {% endblock %}

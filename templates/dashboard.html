@@ -2,7 +2,7 @@
 
 {% block contain %}
 
-  <link rel="stylesheet" href="../static/css/scan-qrcode.css">
+  <link rel="stylesheet" href="{% static 'css/scan-qrcode.css' %}">
 
   {% if user_type == 'Shop Owners' %}
   <main id="main" class="main">
@@ -251,35 +251,35 @@
                     </thead>
                     <tbody>
                       <tr>
-                        <th scope="row"><a href="#"><img src="../static/img/models/women/suits/a-line-suits/a-line-suits-4.png" style="height: 10vh; width: 4vw; object-fit: contain;" alt=""></a></th>
+                        <th scope="row"><a href="#"><img src="{% static 'img/models/women/suits/a-line-suits/a-line-suits-4.png' %}" style="height: 10vh; width: 4vw; object-fit: contain;" alt=""></a></th>
                         <td><a href="#" class="text-primary fw-bold">Women A-line Suits</a></td>
                         <td>₹ 20</td>
                         <td class="fw-bold">40</td>
                         <td>₹ 280</td>
                       </tr>
                       <tr>
-                        <th scope="row"><a href="#"><img src="../static/img/models/women/suits/straight-suits/straight-suits-1.png" style="height: 10vh; width: 4vw; object-fit: contain;" alt=""></a></th>
+                        <th scope="row"><a href="#"><img src="{% static 'img/models/women/suits/straight-suits/straight-suits-1.png' %}" style="height: 10vh; width: 4vw; object-fit: contain;" alt=""></a></th>
                         <td><a href="#" class="text-primary fw-bold">Women Straight Suits</a></td>
                         <td>₹ 10</td>
                         <td class="fw-bold">30</td>
                         <td>₹ 90</td>
                       </tr>
                       <tr>
-                        <th scope="row"><a href="#"><img src="../static/img/models/men/t-shirts/half-sleeve-t-shirts/round neck t-shirts/round neck t-shirts-1.png" style="height: 10vh; width: 4vw; object-fit: contain;" alt=""></a></th>
+                        <th scope="row"><a href="#"><img src="{% static 'img/models/men/t-shirts/half-sleeve-t-shirts/round neck t-shirts/round neck t-shirts-1.png' %}" style="height: 10vh; width: 4vw; object-fit: contain;" alt=""></a></th>
                         <td><a href="#" class="text-primary fw-bold">Men Round Neck T-shirt</a></td>
                         <td>₹ 60</td>
                         <td class="fw-bold">20</td>
                         <td>₹ 1200</td>
                       </tr>
                       <tr>
-                        <th scope="row"><a href="#"><img src="../static/img/models/women/crop-top/Model-1.png" style="height: 10vh; width: 4vw; object-fit: contain;" alt=""></a></th>
+                        <th scope="row"><a href="#"><img src="{% static 'img/models/women/crop-top/Model-1.png' %}" style="height: 10vh; width: 4vw; object-fit: contain;" alt=""></a></th>
                         <td><a href="#" class="text-primary fw-bold">Women Crop Top</a></td>
                         <td>₹ 60</td>
                         <td class="fw-bold">20</td>
                         <td>₹ 1200</td>
                       </tr>
                       <tr>
-                        <th scope="row"><a href="#"><img src="../static/img/models/men/t-shirts/half-sleeve-t-shirts/polo-t-shirts/polo-t-shirts-1.png" style="height: 10vh; width: 4vw; object-fit: contain;" alt=""></a></th>
+                        <th scope="row"><a href="#"><img src="{% static 'img/models/men/t-shirts/half-sleeve-t-shirts/polo-t-shirts/polo-t-shirts-1.png' %}" style="height: 10vh; width: 4vw; object-fit: contain;" alt=""></a></th>
                         <td><a href="#" class="text-primary fw-bold">Men Polo T-shirt</a></td>
                         <td>₹ 60</td>
                         <td class="fw-bold">20</td>
@@ -316,7 +316,7 @@
                 <div id="reader"></div>
               </div>
             <script src="https://unpkg.com/html5-qrcode"></script>
-            <script src="../static/js/scan-qrcode.js" defer></script>
+            <script src="{% static 'js/scan-qrcode.js' %}" defer></script>
 
 
             <!-- </div> -->
@@ -722,35 +722,35 @@
                     </thead>
                     <tbody>
                       <tr>
-                        <th scope="row"><a href="#"><img src="static/img/product-1.jpg" alt=""></a></th>
+                        <th scope="row"><a href="#"><img src="{% static 'img/product-1.jpg' %}" alt=""></a></th>
                         <td><a href="#" class="text-primary fw-bold">Ut inventore ipsa voluptas nulla</a></td>
                         <td>$64</td>
                         <td class="fw-bold">124</td>
                         <td>$5,828</td>
                       </tr>
                       <tr>
-                        <th scope="row"><a href="#"><img src="static/img/product-2.jpg" alt=""></a></th>
+                        <th scope="row"><a href="#"><img src="{% static 'img/product-2.jpg' %}" alt=""></a></th>
                         <td><a href="#" class="text-primary fw-bold">Exercitationem similique doloremque</a></td>
                         <td>$46</td>
                         <td class="fw-bold">98</td>
                         <td>$4,508</td>
                       </tr>
                       <tr>
-                        <th scope="row"><a href="#"><img src="static/img/product-3.jpg" alt=""></a></th>
+                        <th scope="row"><a href="#"><img src="{% static 'img/product-3.jpg' %}" alt=""></a></th>
                         <td><a href="#" class="text-primary fw-bold">Doloribus nisi exercitationem</a></td>
                         <td>$59</td>
                         <td class="fw-bold">74</td>
                         <td>$4,366</td>
                       </tr>
                       <tr>
-                        <th scope="row"><a href="#"><img src="static/img/product-4.jpg" alt=""></a></th>
+                        <th scope="row"><a href="#"><img src="{% static 'img/product-4.jpg' %}" alt=""></a></th>
                         <td><a href="#" class="text-primary fw-bold">Officiis quaerat sint rerum error</a></td>
                         <td>$32</td>
                         <td class="fw-bold">63</td>
                         <td>$2,016</td>
                       </tr>
                       <tr>
-                        <th scope="row"><a href="#"><img src="static/img/product-5.jpg" alt=""></a></th>
+                        <th scope="row"><a href="#"><img src="{% static 'img/product-5.jpg' %}" alt=""></a></th>
                         <td><a href="#" class="text-primary fw-bold">Sit unde debitis delectus repellendus</a></td>
                         <td>$79</td>
                         <td class="fw-bold">41</td>

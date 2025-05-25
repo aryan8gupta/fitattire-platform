@@ -7,8 +7,8 @@
   <title>FitAttire</title>
 
   <!-- Favicons -->
-  <link href="../static/img/logo.png" rel="icon">
-  <link href="../static/img/logo.png" rel="apple-touch-icon">
+  <link href="{% static 'img/logo.png' %}" rel="icon">
+  <link href="{% static 'img/logo.png' %}" rel="apple-touch-icon">
 
 </head>
 
@@ -44,7 +44,7 @@
       /* Desktop and above: full background image */
       @media (min-width: 768px) {
         .login-section {
-          background-image: url('../static/img/login.webp');
+          background-image: url('{% static 'img/login.webp' %}');
           background-size: 100% 100%; /* stretches exactly full width and height */
           background-position: center center;
           background-repeat: no-repeat;
@@ -194,7 +194,7 @@
       <div class="login-form-container">
         <div class="login-box">
           <div class="login-logo">
-            <img src="../static/img/logo.png" alt="Logo" />
+            <img src="{% static 'img/logo.png' %}" alt="Logo" />
             <span class="h1 mb-0" style="font-size: 32px;">FitAttire</span>
           </div>
   

@@ -3,9 +3,9 @@
 {% block contain %}
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../static/css/style2.css">
-    <link rel="stylesheet" href="../static/css/responsive2.css">
-    <link rel="stylesheet" href="../static/css/utility2.css">
+    <link rel="stylesheet" href="{% static 'css/style2.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive2.css' %}">
+    <link rel="stylesheet" href="{% static 'css/utility2.css' %}">
     <style>
         #numpad {
           display: none;
@@ -173,6 +173,6 @@
             </div>
         </section>
     </main>
-    <script src="../static/js/sales.js"></script>
+    <script src="{% static 'js/sales.js' %}"></script>
 
 {% endblock %}
