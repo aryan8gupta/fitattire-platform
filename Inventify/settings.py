@@ -92,18 +92,18 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 import pymongo
-CONNECTION = pymongo.MongoClient('mongodb://localhost:27017')
-# DB = CONNECTION.Inventory_Management
-DB = CONNECTION.fitattire
+# CONNECTION = pymongo.MongoClient('mongodb://localhost:27017')
+# # DB = CONNECTION.Inventory_Management
+# DB = CONNECTION.fitattire
 
 
-# my_var = os.getenv('Azure_Cosmos_Conn', 'Default Value')
+my_var = os.getenv('Azure_Cosmos_Conn', 'Default Value')
 
-# # CONNECTION = pymongo.MongoClient('mongodb://inventory-management-app-server:{my_var}@inventory-management-app-server.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@inventory-management-app-server@', serverSelectionTimeoutMS=30000, retryWrites=True)
-# CONNECTION = pymongo.MongoClient(my_var, serverSelectionTimeoutMS=30000, retryWrites=True)
-# logger.info(CONNECTION)
+# CONNECTION = pymongo.MongoClient('mongodb://inventory-management-app-server:{my_var}@inventory-management-app-server.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@inventory-management-app-server@', serverSelectionTimeoutMS=30000, retryWrites=True)
+CONNECTION = pymongo.MongoClient(my_var, serverSelectionTimeoutMS=30000, retryWrites=True)
+logger.info(CONNECTION)
 
-# DB = CONNECTION['inventory-management']
+DB = CONNECTION['inventory-management']
 
 
 
@@ -142,19 +142,19 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 # RUN for Locally :- --------->
-STATIC_URL = '/static/'
+# STATIC_URL = '/static/'
 
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+# STATICFILES_DIRS = [
+#     BASE_DIR / "static",
+# ]
 # ------------------------------>
 
 # Run During Production  =------------------------------->
-# STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, "static")
-# ]
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static")
+]
 
-# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # ----------------------------------------------------->
 
 # Default primary key field type
