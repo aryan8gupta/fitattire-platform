@@ -484,5 +484,68 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1000)
       })
     }
-  })
+
+
+  /*--------------------------------------------------------------
+  # Select Gender Section
+  --------------------------------------------------------------*/
+  const select = document.getElementById("fake-select");
+  const options = document.getElementById("custom-options");
+  const hiddenInput = document.getElementById("employee_gender");
+  const selectedValue = select.querySelector(".selected-value");
+
+  select.addEventListener("click", () => {
+    const isOpen = options.style.display === "block";
+    options.style.display = isOpen ? "none" : "block";
+    select.classList.toggle("open", !isOpen);
+  });
+
+  options.querySelectorAll("div").forEach(option => {
+    option.addEventListener("click", () => {
+        selectedValue.textContent = option.textContent;
+        hiddenInput.value = option.getAttribute("data-value");
+        options.style.display = "none";
+        select.classList.remove("open");
+    });
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!select.contains(e.target) && !options.contains(e.target)) {
+        options.style.display = "none";
+        select.classList.remove("open");
+    }
+  });
+
+
+  /*--------------------------------------------------------------
+  # Select Job Section
+  --------------------------------------------------------------*/
+  const selectJob = document.getElementById("fake-select-job");
+  const optionsJob = document.getElementById("custom-options-job");
+  const hiddenInputJob = document.getElementById("employee_job");
+  const selectedValueJob = selectJob.querySelector(".selected-value-job");
+
+  selectJob.addEventListener("click", () => {
+    const isOpen = optionsJob.style.display === "block";
+    optionsJob.style.display = isOpen ? "none" : "block";
+    selectJob.classList.toggle("open", !isOpen);
+  });
+
+  optionsJob.querySelectorAll("div").forEach(option => {
+    option.addEventListener("click", () => {
+        selectedValueJob.textContent = option.textContent;
+        hiddenInputJob.value = option.getAttribute("data-value");
+        optionsJob.style.display = "none";
+        selectJob.classList.remove("open");
+    });
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!selectJob.contains(e.target) && !optionsJob.contains(e.target)) {
+        optionsJob.style.display = "none";
+        selectJob.classList.remove("open");
+    }
+  });
+
+});
   

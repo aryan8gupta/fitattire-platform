@@ -28,90 +28,143 @@ const statsData = {
 
   
 // Populate StatCard
+
 function updateStats(range) {
     const data = statsData[range];
     if (!data) return;
+
+    const arrowUpSVG = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgb(14, 207, 14)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-up-right">
+        <path d="M7 7h10v10"></path>
+        <path d="M7 17 17 7"></path>
+        </svg>`;
+    const arrowDownSVG = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="red" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-down-right">
+        <path d="m7 7 10 10"></path>
+        <path d="M17 7v10H7"></path>
+        </svg>`;
+  
+    const update = (id, value, change, label = '') => {
+        const valueEl = document.getElementById(id + 'Value');
+        const changeEl = document.getElementById(id + 'Change');
     
-    // Revenue
-    document.getElementById('revenueValue').textContent = data.revenue.value;
-    document.getElementById('revenueChange').textContent = `(${data.revenue.change}%)`;
+        valueEl.textContent = value;
+        valueEl.style.fontSize = '1.25rem';  // Set the font size
+        valueEl.style.fontWeight = 'bold';   // Make the font bold
 
-    // Customers
-    document.getElementById('customersValue').textContent = data.customers.value;
-    document.getElementById('customersChange').textContent = `(${data.customers.change}%)`;
+        const isPositive = change >= 0;
+        const arrowSVG = isPositive ? arrowUpSVG : arrowDownSVG;
+        const colorClass = isPositive ? 'positive' : 'negative';
 
-    // Transactions
-    document.getElementById('transactionsValue').textContent = data.transactions.value;
-    document.getElementById('transactionsChange').textContent = `(${data.transactions.change}%)`;
+        // changeEl.innerHTML = `${arrowSVG} <span>${Math.abs(change)}%${label}</span>`;
+        // changeEl.className = colorClass;
+        changeEl.className = `change ${colorClass}`;
+        changeEl.innerHTML = `
+            ${arrowSVG}
+            <span class="change-value">${Math.abs(change)}%</span>
+            <span class="period-label">${label}</span>`;
+    };
+  
+    update('revenue', data.revenue.value, data.revenue.change, ` vs ${range}`);
+    update('customers', data.customers.value, data.customers.change, ` vs ${range}`);
+    update('transactions', data.transactions.value, data.transactions.change, ` vs ${range}`);
+    update('products', data.products.value, data.products.change, ` vs ${range}`);
+  }
+  
+// Initial load
+updateStats('Last 24 hour');
+  
 
-    // Products
-    document.getElementById('productsValue').textContent = data.products.value;
-    document.getElementById('productsChange').textContent = `(${data.products.change}%)`;
-}
 
+//Top Transactions:-
 
-// Customer Growth
-const customerGrowthData = [
-    { name: "United States", percentage: 35, flag: "🇺🇸" },
-    { name: "United Kingdom", percentage: 27, flag: "🇬🇧" },
+const transactions = [
+    {
+      customer: { id: '#23492', name: 'Jenny Wilson' },
+      item: 'Leather case bag & wallet',
+      date: '12 Jan',
+      purchase: '$2,548',
+      status: 'live order',
+    },
+    {
+      customer: { id: '#23492', name: 'Jenny Wilson' },
+      item: 'Simple Tote Bag',
+      date: '3 Jan',
+      purchase: '$548',
+      status: 'completed',
+    },
 ];
-const customerGrowthElement = document.getElementById('customerGrowth');
-customerGrowthData.forEach(country => {
-    const countryDiv = document.createElement('div');
-    countryDiv.className = 'country-bar';
-    countryDiv.innerHTML = `
-    <span>${country.flag} ${country.name}</span>
-    <div class="country-bar-fill" style="width: ${country.percentage}%"></div>
-    <span>${country.percentage}%</span>
-    `;
-    customerGrowthElement.appendChild(countryDiv);
-});
-
-// Top Transactions
-const topTransactionsData = [
-    { customer: "Jenny Wilson", item: "Leather case bag & wallet", date: "12 Jan", purchase: "$2,548", status: "live order" },
-    { customer: "John Doe", item: "Simple Tote Bag", date: "3 Jan", purchase: "$548", status: "completed" },
-];
-const topTransactionsElement = document.getElementById('topTransactions');
-topTransactionsData.forEach(transaction => {
-    const transactionDiv = document.createElement('div');
-    transactionDiv.className = 'transaction-card';
-    transactionDiv.innerHTML = `
-    <div class="transaction-user">
-        <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="${transaction.customer}" />
-        <div class="transaction-details">
-        <p>${transaction.customer}</p>
-        <p>${transaction.item}</p>
+  
+function createTransactionCard(transaction) {
+    const div = document.createElement('div');
+    div.className = 'transaction';
+  
+    div.innerHTML = `
+      <div class="avatar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="7" r="4" />
+          <path d="M5.5 21a7.5 7.5 0 0 1 13 0" />
+        </svg>
+      </div>
+      <div class="transaction-details">
+        <div class="transaction-row">
+          <div>
+            <p class="customer-name">${transaction.customer.name}</p>
+            <p class="item-name">${transaction.item}</p>
+          </div>
+          <div class="purchase">
+            <p class="customer-name">${transaction.purchase}</p>
+            <p class="item-name">${transaction.date}</p>
+          </div>
         </div>
-    </div>
-    <div>
-        <p>${transaction.purchase}</p>
-        <p>${transaction.date}</p>
-        <span class="transaction-status">${transaction.status}</span>
-    </div>
+        ${
+          transaction.status === 'live order'
+            ? `<span class="live-badge">Live Order</span>`
+            : ''
+        }
+      </div>
     `;
-    topTransactionsElement.appendChild(transactionDiv);
-});
+  
+    return div;
+}
+  
+const container = document.getElementById('transactions');
+transactions.forEach(tx => container.appendChild(createTransactionCard(tx)));
+  
+
 
 // Top Products
-const topProductsData = [
-    { name: "Denim Jacket with White Feathers", image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=200&h=200", sales: "240+" },
-    { name: "Black Leather Jacket", image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=200&h=200", sales: "180+" },
-];
-const topProductsElement = document.getElementById('topProducts');
-topProductsData.forEach(product => {
-    const productCard = document.createElement('div');
-    productCard.className = 'product-card';
-    productCard.innerHTML = `
-    <img src="${product.image}" alt="${product.name}" />
-    <div class="product-overlay">
+
+const products = [
+    {
+      name: 'Denim Jacket with White Feathers',
+      image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=200&h=200',
+      sales: '240+',
+    },
+    {
+      name: 'Black Leather Jacket',
+      image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=200&h=200',
+      sales: '180+',
+    },
+  ];
+
+  const productGrid = document.getElementById('productGrid');
+
+  products.forEach((product) => {
+    const card = document.createElement('div');
+    card.className = 'product-card';
+
+    card.innerHTML = `
+      <img src="${product.image}" alt="${product.name}" />
+      <div class="product-overlay">
         <div class="product-info">
-        <h4>${product.name}</h4>
-        <p>Sales: ${product.sales}</p>
+          <p class="name">${product.name}</p>
+          <p class="sales">Sales: ${product.sales}</p>
         </div>
-    </div>
+      </div>
     `;
-    topProductsElement.appendChild(productCard);
+
+    productGrid.appendChild(card);
 });
 
 
@@ -202,6 +255,74 @@ function renderRevenueChart(timeRange) {
     }
     });
 }
+
+
+// Customer Growth
+
+const instagramInsightsData = {
+    "Last 24 hour": {
+      profileVisits: 140,
+      videoViews: 320,
+      postLikes: 230,
+      followersGained: 22
+    },
+    "Last week": {
+      profileVisits: 1240,
+      videoViews: 2780,
+      postLikes: 1980,
+      followersGained: 155
+    },
+    "Last month": {
+      profileVisits: 4850,
+      videoViews: 11230,
+      postLikes: 8890,
+      followersGained: 410
+    },
+    "Last year": {
+      profileVisits: 52100,
+      videoViews: 138000,
+      postLikes: 101200,
+      followersGained: 6100
+    }
+};
+  
+let instagramChart;
+
+function updateDonutChart(range) {
+    const data = instagramInsightsData[range];
+    if (!data || !instagramChart) return;
+
+    document.getElementById("customerGrowth-period").textContent = `${range} customer growth with in percentage`;
+
+    instagramChart.data.datasets[0].data = [
+        data.profileVisits,
+        data.videoViews,
+        data.postLikes,
+        data.followersGained
+    ];
+    instagramChart.update();
+}
+
+const ctx = document.getElementById('instagramDonutChart').getContext('2d');
+instagramChart = new Chart(ctx, {
+type: 'doughnut',
+data: {
+    labels: ['Profile Visits', 'Video Views', 'Post Likes', 'Followers Gained'],
+    datasets: [{
+    data: Object.values(instagramInsightsData["Last 24 hour"]),
+    backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726', '#AB47BC']
+    }]
+},
+options: {
+    plugins: {
+    legend: { position: 'bottom' }
+    },
+    cutout: '70%'
+}
+});
+
+
+
 // Add event listeners to time range buttons
 document.querySelectorAll('.time-button').forEach(button => {
     button.addEventListener('click', () => {
@@ -209,8 +330,10 @@ document.querySelectorAll('.time-button').forEach(button => {
     button.classList.add('active');
     renderRevenueChart(button.dataset.range);
     updateStats(button.dataset.range);
+    updateDonutChart(button.dataset.range);
     });
 });
 
 renderRevenueChart('Last 24 hour'); // Default
 updateStats("Last 24 hour");
+updateDonutChart("Last 24 hour")

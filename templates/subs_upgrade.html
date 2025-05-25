@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>FitAttire</title>
+        <!-- Favicons -->
+        <link href="../static/img/logo.png" rel="icon">
+        <link href="../static/img/logo.png" rel="apple-touch-icon">
+        
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+            integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        />
+        <link rel="stylesheet" href="../static/css/subscription.css" />
+    </head>
+    <body>
+        <button class="aside-button">
+            <i class="fa-solid fa-burger"></i>
+        </button>
+        <button class="aside-cross-button">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <aside>
+            <h2>ClothesInventory</h2>
+            <nav>
+                <a href="/subscription/" 
+                    ><i class="fa-solid fa-qrcode"></i> Dashboard</a
+                >
+                <a href="#" class="focused"
+                    ><i class="fa-solid fa-clipboard-check"></i> Upgrade</a
+                >
+            </nav>
+            <div class="profile">
+                <img src="../static/assets/profile.jpg" alt="Profile picture" />
+                <div class="profile_info">
+                    <p class="name">Alex Morgan</p>
+                    <p class="designation">Manager</p>
+                </div>
+            </div>
+        </aside>
+        <main>
+            <div class="main_content">
+                <h1>Upgrade Your Plan</h1>
+                <p class="plan_CTA">
+                    Select a new plan to unlock more features and credits.
+                </p>
+                <h2>Available Plans</h2>
+                <div class="available_plans_card_cluster">
+                    <div class="available_plans_card card">
+                        <div class="icon_container">
+                            <i class="fa-solid fa-star"></i>
+                        </div>
+                        <h3>Basic</h3>
+                        <p>$19/month</p>
+                        <ul>
+                            <li>1,000 Credits</li>
+                            <li>1 User</li>
+                            <li>Email Support</li>
+                            <li>2 Integrations</li>
+                        </ul>
+                        <button>Choose Basic</button>
+                    </div>
+                    <div class="available_plans_card card">
+                        <div class="icon_container">
+                            <i class="fa-solid fa-award"></i>
+                        </div>
+                        <h3>Pro</h3>
+                        <p>$49/month</p>
+                        <ul>
+                            <li>10,000 Credits</li>
+                            <li>5 Users</li>
+                            <li>Priority Support</li>
+                            <li>10 Integrations</li>
+                        </ul>
+                        <button>Current Plan</button>
+                    </div>
+                    <div class="available_plans_card card">
+                        <div class="icon_container">
+                            <i class="fa-solid fa-infinity"></i>
+                        </div>
+                        <h3>Unlimited</h3>
+                        <p>$99/month</p>
+                        <ul>
+                            <li>Unlimited Credits</li>
+                            <li>Unlimited Users</li>
+                            <li>24/7 Support</li>
+                            <li>All Integrations</li>
+                        </ul>
+                        <button>Choose Unlimited</button>
+                    </div>
+                </div>
+                <h2>Plan Comparison</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Plan</th>
+                            <th>Credits</th>
+                            <th>Users</th>
+                            <th>Support</th>
+                            <th>Integrations</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Basic</td>
+                            <td>1,000</td>
+                            <td>1</td>
+                            <td>Email</td>
+                            <td>2</td>
+                        </tr>
+                        <tr>
+                            <td>Pro</td>
+                            <td>10,000</td>
+                            <td>5</td>
+                            <td>Priority</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>Unlimited</td>
+                            <td>Unlimited</td>
+                            <td>Unlimited</td>
+                            <td>24/7</td>
+                            <td>All</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <h2>Need Help?</h2>
+                <div class="need_help">
+                    <div class="need_help_left_icon">
+                        <div class="icon_container">
+                            <i class="fa-solid fa-headset"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="#">Contact Support</a>
+                        <p>Chat ot visit Help Center</p>
+                    </div>
+                    <div class="need_help_right_icons">
+                        <a href="#"><i class="fa-solid fa-message"></i></a>
+                        <a href="#"><i class="fa-solid fa-question"></i></a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FitAttire</title>
+    <!-- Favicons -->
+    <link href="../static/img/logo.png" rel="icon">
+    <link href="../static/img/logo.png" rel="apple-touch-icon">
+    
+    <link rel="stylesheet" href="../static/css/settings.css">
+    <!-- Optional: Link to an icon library like Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-top">
+          <h1 class="logo">FitAttire <span class="logo-plus">+</span></h1>
+          <nav class="sidebar-nav">
+            <ul>
+              <li>
+                <a
+                  href="#"
+                  class="nav-link active"
+                  data-target="profile-settings"
+                  ><i class="fas fa-user-circle"></i> Profile Settings</a
+                >
+              </li>
+              <li>
+                <a href="#" class="nav-link" data-target="change-password"
+                  ><i class="fas fa-lock"></i> Change Password</a
+                >
+              </li>
+              <li>
+                <a href="#" class="nav-link" data-target="default-settings"
+                  ><i class="fas fa-sliders-h"></i> Default Settings</a
+                >
+              </li>
+              <li>
+                <a href="#" class="nav-link" data-target="notification-settings"
+                  ><i class="fas fa-bell"></i> Notification Settings</a
+                >
+              </li>
+              <li>
+                <a href="#" class="nav-link" data-target="data-privacy"
+                  ><i class="fas fa-database"></i> Data and Privacy</a
+                >
+              </li>
+              <li>
+                <a href="#" class="nav-link" data-target="integration-settings"
+                  ><i class="fas fa-plug"></i> Integration Settings</a
+                >
+              </li>
+            </ul>
+          </nav>
+        </div>
+        <div class="sidebar-bottom">
+          <img
+            src="https://via.placeholder.com/40"
+            alt="Admin Avatar"
+            class="admin-avatar"
+          />
+          <div class="admin-info">
+            <span class="admin-name">Admin User</span>
+            <span class="admin-email">admin@techai.com</span>
+          </div>
+        </div>
+        <button id="menu-toggle" class="menu-toggle">
+          <i class="fas fa-bars"></i>
+        </button>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="content-area">
+        <!-- Breadcrumbs (Dynamic) -->
+        <div class="breadcrumbs" id="breadcrumbs">
+          Settings <i class="fas fa-chevron-right"></i>
+          <span id="breadcrumb-page">Profile Settings</span>
+        </div>
+
+        <!-- ============================ -->
+        <!-- == Profile Settings (img-6) == -->
+        <!-- ============================ -->
+        <section id="profile-settings" class="content-section active">
+          <h2 class="section-title">Profile Settings</h2>
+
+          <div class="settings-card profile-details-card">
+            <div class="card-header">
+              <i class="fas fa-user card-icon"></i>
+              <h3>Profile Details</h3>
+            </div>
+            <p class="card-description">
+              Manage your personal information and how it appears on your
+              profile.
+            </p>
+            <form>
+              <div class="form-group">
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" value="Admin User" />
+              </div>
+              <div class="form-group">
+                <label for="emailAddress">Email Address</label>
+                <div class="input-with-icon">
+                  <input
+                    type="email"
+                    id="emailAddress"
+                    value="admin@techai.com"
+                    readonly
+                  />
+                  <i class="fas fa-envelope input-icon-right"></i>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="jobTitle">Job Title</label>
+                <input type="text" id="jobTitle" value="System Administrator" />
+              </div>
+              <div class="form-group">
+                <label for="bio">Bio</label>
+                <textarea id="bio" rows="3">
+Experienced system administrator with expertise in AI technologies and platform management.</textarea
+                >
+              </div>
+            </form>
+          </div>
+
+          <div class="settings-card profile-picture-card">
+            <h3>Profile Picture</h3>
+            <div class="profile-picture-area">
+              <img
+                src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80"
+                alt="Profile Picture"
+                class="profile-img"
+              />
+              <button class="button button-secondary">Upload New Photo</button>
+            </div>
+          </div>
+
+          <div class="settings-card contact-info-card">
+            <div class="card-header">
+              <i class="fas fa-address-book card-icon"></i>
+              <h3>Contact Information</h3>
+            </div>
+            <p class="card-description">
+              Manage your contact information for account notifications and
+              recovery.
+            </p>
+            <form>
+              <div class="form-group">
+                <label for="phoneNumber">Phone Number</label>
+                <div class="input-with-icon">
+                  <input
+                    type="tel"
+                    id="phoneNumber"
+                    value="+1 (555) 123-4567"
+                  />
+                  <i class="fas fa-phone input-icon-right"></i>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="altEmail">Alternative Email</label>
+                <div class="input-with-icon">
+                  <input
+                    type="email"
+                    id="altEmail"
+                    value="admin.backup@techai.com"
+                  />
+                  <i class="fas fa-at input-icon-right"></i>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <div class="settings-card account-prefs-card">
+            <div class="card-header">
+              <i class="fas fa-cog card-icon"></i>
+              <h3>Account Preferences</h3>
+            </div>
+            <form>
+              <div class="form-group form-group-inline">
+                <label for="language">Language</label>
+                <select id="language">
+                  <option selected>Select</option>
+                  <option>English (US)</option>
+                  <option>Spanish</option>
+                  <option>French</option>
+                </select>
+              </div>
+              <div class="form-group form-group-inline">
+                <label for="timezone-profile">Time Zone</label>
+                <select id="timezone-profile">
+                  <option selected>Select</option>
+                  <option>UTC-08:00 Pacific Time</option>
+                  <option>UTC-05:00 Eastern Time</option>
+                  <option>UTC+00:00 GMT</option>
+                </select>
+              </div>
+              <div class="form-group form-group-inline">
+                <label for="dateFormat-profile">Date Format</label>
+                <select id="dateFormat-profile">
+                  <option selected>Select</option>
+                  <option>MM/DD/YYYY</option>
+                  <option>DD/MM/YYYY</option>
+                  <option>YYYY-MM-DD</option>
+                </select>
+              </div>
+            </form>
+          </div>
+
+          <div class="form-actions">
+            <button class="button button-primary">Save Changes</button>
+            <button class="button button-link">Cancel</button>
+          </div>
+        </section>
+
+        <!-- ============================= -->
+        <!-- == Change Password (img-5) == -->
+        <!-- ============================= -->
+        <section id="change-password" class="content-section">
+          <h2 class="section-title">Password Security</h2>
+
+          <div class="settings-card update-password-card">
+            <div class="card-header">
+              <i class="fas fa-key card-icon"></i>
+              <h3>Update Password</h3>
+            </div>
+            <p class="card-description">
+              Change your password to maintain account security. We recommend
+              using a strong, unique password.
+            </p>
+            <form>
+              <div class="form-group">
+                <label for="currentPassword">Current Password</label>
+                <div class="input-with-icon">
+                  <input
+                    type="password"
+                    id="currentPassword"
+                    placeholder="Enter your current password"
+                  />
+                  <i class="fas fa-eye-slash input-icon-right"></i>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="newPassword">New Password</label>
+                <div class="input-with-icon">
+                  <input
+                    type="password"
+                    id="newPassword"
+                    placeholder="Enter new password"
+                  />
+                  <i class="fas fa-eye-slash input-icon-right"></i>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="confirmNewPassword">Confirm New Password</label>
+                <div class="input-with-icon">
+                  <input
+                    type="password"
+                    id="confirmNewPassword"
+                    placeholder="Confirm new password"
+                  />
+                  <i class="fas fa-eye-slash input-icon-right"></i>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <div class="settings-card password-reqs-card">
+            <h3>Password Requirements</h3>
+            <ul>
+              <li><i class="fas fa-check-circle"></i> Minimum 8 characters</li>
+              <li>
+                <i class="fas fa-check-circle"></i> At least one uppercase
+                letter
+              </li>
+              <li><i class="fas fa-check-circle"></i> At least one number</li>
+              <li>
+                <i class="fas fa-check-circle"></i> At least one special
+                character
+              </li>
+            </ul>
+          </div>
+
+          <div class="settings-card security-options-card">
+            <div class="card-header">
+              <i class="fas fa-shield-alt card-icon"></i>
+              <h3>Security Options</h3>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <label for="twoFactorAuth">Two-Factor Authentication</label>
+                <span>Add an extra layer of security</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="twoFactorAuth" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <label for="passwordExpiration">Password Expiration</label>
+                <span>Require password change every 90 days</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="passwordExpiration" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <label for="loginNotifications">Login Notifications</label>
+                <span>Get alerts for new login attempts</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="loginNotifications" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="button button-primary">Update Password</button>
+            <button class="button button-link">Cancel</button>
+          </div>
+        </section>
+
+        <!-- ============================= -->
+        <!-- == Default Settings (img-4) == -->
+        <!-- ============================= -->
+        <section id="default-settings" class="content-section">
+          <h2 class="section-title">System Preferences</h2>
+
+          <div class="settings-card default-settings-card">
+            <div class="card-header">
+              <i class="fas fa-cogs card-icon"></i>
+              <h3>Default Settings</h3>
+            </div>
+            <p class="card-description">
+              Configure system-wide defaults for your TechAI experience. These
+              settings apply across all features.
+            </p>
+          </div>
+
+          <div class="settings-card display-settings-card">
+            <h3>Display Settings</h3>
+            <div class="setting-item">
+              <div class="setting-text">
+                <label for="theme">Theme</label>
+                <span>Choose your preferred visual theme</span>
+              </div>
+              <select id="theme">
+                <option selected>Select</option>
+                <option>Light</option>
+                <option>Dark</option>
+                <option>System</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <label for="darkMode">Dark Mode</label>
+                <span>Enable dark mode for low-light environments</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="darkMode" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <label for="compactView">Compact View</label>
+                <span>Display more content with reduced spacing</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="compactView" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-card language-region-card">
+            <h3>Language & Region</h3>
+            <div class="setting-item">
+              <div class="setting-text">
+                <label for="language-default">Language</label>
+                <span>Set your preferred language</span>
+              </div>
+              <select id="language-default">
+                <option selected>Select</option>
+                <option>English (US)</option>
+                <option>Spanish</option>
+                <option>French</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <label for="timezone-default">Time Zone</label>
+                <span>Set your local time zone</span>
+              </div>
+              <select id="timezone-default">
+                <option selected>Select</option>
+                <option>UTC-08:00 Pacific Time</option>
+                <option>UTC-05:00 Eastern Time</option>
+                <option>UTC+00:00 GMT</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <label for="dateFormat-default">Date Format</label>
+                <span>Choose how dates are displayed</span>
+              </div>
+              <select id="dateFormat-default">
+                <option selected>Select</option>
+                <option>MM/DD/YYYY</option>
+                <option>DD/MM/YYYY</option>
+                <option>YYYY-MM-DD</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="settings-card ai-defaults-card">
+            <h3>AI Processing Defaults</h3>
+            <div class="setting-item">
+              <div class="setting-text">
+                <label for="defaultResolution">Default Resolution</label>
+                <span>Set default output resolution for AI processing</span>
+              </div>
+              <select id="defaultResolution">
+                <option selected>Select</option>
+                <option>1080p</option>
+                <option>720p</option>
+                <option>480p</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <label for="processingQuality">Processing Quality</label>
+                <span>Balance between speed and quality</span>
+              </div>
+              <select id="processingQuality">
+                <option selected>Select</option>
+                <option>High</option>
+                <option>Medium</option>
+                <option>Low</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <label for="autoSaveResults">Auto-Save Results</label>
+                <span>Automatically save processed images</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="autoSaveResults" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-card performance-card">
+            <h3>System Performance</h3>
+            <div class="setting-item">
+              <div class="setting-text">
+                <label for="hardwareAcceleration">Hardware Acceleration</label>
+                <span>Use GPU for faster processing</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="hardwareAcceleration" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <label for="backgroundProcessing">Background Processing</label>
+                <span>Continue processing when app is minimized</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="backgroundProcessing" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="button button-primary">Save Changes</button>
+            <button class="button button-link">Reset to Defaults</button>
+          </div>
+        </section>
+
+        <!-- ================================= -->
+        <!-- == Notification Settings (img-3) == -->
+        <!-- ================================= -->
+        <section id="notification-settings" class="content-section">
+          <h2 class="section-title">Notification Preferences</h2>
+
+          <div class="settings-card notification-settings-card">
+            <div class="card-header">
+              <i class="fas fa-bell card-icon"></i>
+              <h3>Notification Settings</h3>
+            </div>
+            <p class="card-description">
+              Manage how and when you receive notifications from TechAI.
+              Customize alerts for different activities and channels.
+            </p>
+          </div>
+
+          <div class="settings-card email-notifications-card">
+            <h3>Email Notifications</h3>
+            <div class="setting-item">
+              <div class="setting-text">
+                <i class="fas fa-envelope setting-icon"></i>
+                <label for="emailProcessingCompleted"
+                  >Processing Completed</label
+                >
+                <span>Receive email when AI processing is complete</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="emailProcessingCompleted" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <i class="fas fa-star setting-icon"></i>
+                <label for="emailNewFeatures">New Features</label>
+                <span>Updates about new TechAI capabilities</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="emailNewFeatures" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <i class="fas fa-user-shield setting-icon"></i>
+                <label for="emailAccountUpdates">Account Updates</label>
+                <span>Security and account-related notifications</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="emailAccountUpdates" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-card inapp-notifications-card">
+            <h3>In-App Notifications</h3>
+            <div class="setting-item">
+              <div class="setting-text">
+                <i class="fas fa-tasks setting-icon"></i>
+                <label for="inAppProcessingStatus">Processing Status</label>
+                <span>Show real-time processing updates</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="inAppProcessingStatus" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <i class="fas fa-exclamation-triangle setting-icon"></i>
+                <label for="inAppSystemAlerts">System Alerts</label>
+                <span>Important system messages and warnings</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="inAppSystemAlerts" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <i class="fas fa-lightbulb setting-icon"></i>
+                <label for="inAppTips">Tips & Suggestions</label>
+                <span>Helpful tips for better results</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="inAppTips" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-card mobile-push-card">
+            <h3>Mobile Push Notifications</h3>
+            <div class="setting-item">
+              <div class="setting-text">
+                <i class="fas fa-mobile-alt setting-icon"></i>
+                <label for="pushEnable">Enable Push Notifications</label>
+                <span>Master toggle for mobile notifications</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="pushEnable" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <i class="far fa-check-circle setting-icon"></i>
+                <label for="pushProcessingCompleted"
+                  >Processing Completed</label
+                >
+                <span>Alert when tasks are finished</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="pushProcessingCompleted" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <i class="fas fa-exclamation-circle setting-icon"></i>
+                <label for="pushCriticalAlerts">Critical Alerts</label>
+                <span>Important security and system alerts</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="pushCriticalAlerts" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-card schedule-card">
+            <h3>Notification Schedule</h3>
+            <div class="setting-item">
+              <div class="setting-text">
+                <i class="far fa-clock setting-icon"></i>
+                <label for="quietHours">Quiet Hours</label>
+                <span>Don't send notifications during selected hours</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="quietHours" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <i class="fas fa-calendar-alt setting-icon"></i>
+                <label for="timeRange">Time Range</label>
+                <span>Set your quiet hours time period</span>
+              </div>
+              <select id="timeRange">
+                <option selected>Select</option>
+                <option>10:00 PM - 7:00 AM</option>
+                <option>11:00 PM - 8:00 AM</option>
+              </select>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <i class="fas fa-history setting-icon"></i>
+                <label for="notificationFrequency"
+                  >Notification Frequency</label
+                >
+                <span>How often to receive batched notifications</span>
+              </div>
+              <select id="notificationFrequency">
+                <option selected>Select</option>
+                <option>Immediately</option>
+                <option>Hourly</option>
+                <option>Daily</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="button button-primary">Save Changes</button>
+            <button class="button button-link">Reset to Defaults</button>
+          </div>
+        </section>
+
+        <!-- ============================= -->
+        <!-- == Data and Privacy (img-2) == -->
+        <!-- ============================= -->
+        <section id="data-privacy" class="content-section">
+          <h2 class="section-title">Security & Privacy Settings</h2>
+
+          <div class="settings-card data-management-card">
+            <div class="card-header">
+              <i class="fas fa-server card-icon"></i>
+              <h3>Data Management</h3>
+            </div>
+            <p class="card-description">
+              Control your data and download or clear information associated
+              with your account.
+            </p>
+
+            <div class="action-item">
+              <div class="action-text">
+                <i class="fas fa-download action-icon"></i>
+                <label>Download All Data</label>
+                <span>Export all your account data as a ZIP file</span>
+              </div>
+              <button class="action-button">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+            <div class="action-item">
+              <div class="action-text">
+                <i class="fas fa-history action-icon"></i>
+                <label>Clear Activity Logs</label>
+                <span>Remove all activity history from your account</span>
+              </div>
+              <button class="action-button">
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="settings-card privacy-controls-card">
+            <div class="card-header">
+              <i class="fas fa-user-secret card-icon"></i>
+              <h3>Privacy Controls</h3>
+            </div>
+            <p class="card-description">
+              Manage how your information is used and shared within the
+              platform.
+            </p>
+            <div class="setting-item">
+              <div class="setting-text">
+                <i class="fas fa-share-alt setting-icon"></i>
+                <label for="dataSharing">Data Sharing</label>
+                <span>Control how your data is shared with third parties</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="dataSharing" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <i class="fas fa-chart-line setting-icon"></i>
+                <label for="analyticsTracking">Analytics Tracking</label>
+                <span>Allow usage data collection for service improvement</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="analyticsTracking" checked />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="setting-item">
+              <div class="setting-text">
+                <i class="fas fa-cookie-bite setting-icon"></i>
+                <label for="cookiePreferences">Cookie Preferences</label>
+                <span>Manage cookie settings for your account</span>
+              </div>
+              <button class="action-button"><i class="fas fa-cog"></i></button>
+              <!-- Icon button -->
+            </div>
+          </div>
+
+          <div class="settings-card account-deletion-card">
+            <div class="card-header">
+              <i class="fas fa-trash-alt card-icon"></i>
+              <h3>Account Deletion</h3>
+            </div>
+            <p class="card-description">
+              Permanently remove your account and all associated data from our
+              systems.
+            </p>
+            <button class="button button-danger">Delete Account</button>
+          </div>
+        </section>
+
+        <!-- ================================= -->
+        <!-- == Integration Settings (img-1) == -->
+        <!-- ================================= -->
+        <section id="integration-settings" class="content-section">
+          <h2 class="section-title">Integration Settings</h2>
+
+          <div class="settings-card integration-setup-card">
+            <div class="integration-item">
+              <div class="integration-icon-bg">
+                <i class="fas fa-envelope integration-icon"></i>
+              </div>
+              <div class="integration-text">
+                <h3>Email SMTP Setup</h3>
+                <span>Configure email server settings</span>
+              </div>
+              <button class="action-button"><i class="fas fa-edit"></i></button>
+            </div>
+          </div>
+
+          <div class="settings-card webhook-card">
+            <h3>Webhook URL</h3>
+            <div class="form-group">
+              <div class="input-with-icon">
+                <input
+                  type="text"
+                  id="webhookUrl"
+                  value="https://api.techai.com/webhooks/incoming"
+                  readonly
+                />
+                <button class="icon-button copy-button">
+                  <i class="fas fa-copy"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="button button-primary">Save Integrations</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="../static/js/settings.js"></script>
+  </body>
+</html>

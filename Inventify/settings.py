@@ -93,7 +93,8 @@ logger = logging.getLogger(__name__)
 
 import pymongo
 CONNECTION = pymongo.MongoClient('mongodb://localhost:27017')
-DB = CONNECTION.Inventory_Management
+# DB = CONNECTION.Inventory_Management
+DB = CONNECTION.fitattire
 
 
 # my_var = os.getenv('Azure_Cosmos_Conn', 'Default Value')

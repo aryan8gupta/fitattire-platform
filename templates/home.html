@@ -3,16 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fashion Landing Page</title>
+  <title>FitAttire</title>
+  <!-- Favicons -->
+  <link href="../static/img/logo.png" rel="icon">
+  <link href="../static/img/logo.png" rel="apple-touch-icon">
+  
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../static/css/home.css">
 </head>
+
 <body>
 
   <header>
     <div class="container nav">
-      <div class="logo">FASHION</div>
+      <div class="logo">FitAttire</div>
       <nav>
     <button>Catalogue</button>
     <button>Fashion</button>
@@ -30,72 +35,41 @@
       <h1>LET'S <br><span>EXPLORE</span> <br>
         <strong>UNIQUE</strong> <br> CLOTHES.</h1>
       <p>Live for influential and innovative fashion!</p>
-      <button>Shop Now</button>
+      <a href="/login/">
+        <button class="sign-up">Shop Now</button>
+      </a>
     </div>
     <div class="hero-img">
       <img src="../static/img/home/hero-woman.png" alt="Fashion Model">
     </div>
   </section>
 
-  <!-- brand section -->
-  <!-- <section class="brands">
-    <div class="brand-logos">
-      <img src="../static/img/home/hm.png" alt="H&M">
-      <img src="../static/img/home/obey.png" alt="Obey">
-      <img src="../static/img/home/shopify.png" alt="Shopify">
-      <img src="../static/img/home/lacoste.png" alt = "Lacoste">
-      <img src="../static/img/home/levis.png" alt="Levi's">
-      <img src="../static/img/home/amazon.png" alt="Amazon">
-    </div>
-  </section> -->
-
   <section class="brand-logos-scroll">
-      <div class="logos-track">
-        <div class="logo-slide">
-          <img src="../static/img/home/hm.png" alt="H&M">
-          <img src="../static/img/home/obey.png" alt="Obey">
-          <img src="../static/img/home/shopify.png" alt="Shopify">
-          <img src="../static/img/home/lacoste.png" alt = "Lacoste">
-          <img src="../static/img/home/levis.png" alt="Levi's">
-          <img src="../static/img/home/amazon.png" alt="Amazon">
-          <img src="../static/img/home/hm.png" alt="H&M">
-          <img src="../static/img/home/obey.png" alt="Obey">
-          <img src="../static/img/home/shopify.png" alt="Shopify">
-          <img src="../static/img/home/lacoste.png" alt = "Lacoste">
-          <img src="../static/img/home/levis.png" alt="Levi's">
-          <img src="../static/img/home/amazon.png" alt="Amazon">
-          <img src="../static/img/home/hm.png" alt="H&M">
-          <img src="../static/img/home/obey.png" alt="Obey">
-          <img src="../static/img/home/shopify.png" alt="Shopify">
-          <img src="../static/img/home/lacoste.png" alt = "Lacoste">
-          <img src="../static/img/home/levis.png" alt="Levi's">
-          <img src="../static/img/home/amazon.png" alt="Amazon">
-        </div>
-      </div>
-    </section>
-
- <!-- New Arrivals section-->
-  <section class="new-arrivals">
-    <h1>New Arrivals</h1>
-    <div class="cards">
-      <div class="card">
-        <img src="../static/img/home/Hoodie.png" alt="Hoodie">
-        <h3>Hoodies & Sweatshirts</h3>
-        <p>Explore Now!</p>
-      </div>
-      <div class="card">
-        <img src="../static/img/home/Coat.png" alt="Coat">
-        <h3>Coats & Parkas</h3>
-        <p>Explore Now!</p>
-      </div>
-      <div class="card">
-        <img src="../static/img/home/tea.png" alt="Tee">
-        <h3>Tees & T-Shirts</h3>
-        <p>Explore Now!</p>
+    <div class="logos-track">
+      <div class="logo-slide">
+        <img src="../static/img/home/hm.png" alt="H&M">
+        <img src="../static/img/home/obey.png" alt="Obey">
+        <img src="../static/img/home/shopify.png" alt="Shopify">
+        <img src="../static/img/home/lacoste.png" alt = "Lacoste">
+        <img src="../static/img/home/levis.png" alt="Levi's">
+        <img src="../static/img/home/amazon.png" alt="Amazon">
+        <img src="../static/img/home/hm.png" alt="H&M">
+        <img src="../static/img/home/obey.png" alt="Obey">
+        <img src="../static/img/home/shopify.png" alt="Shopify">
+        <img src="../static/img/home/lacoste.png" alt = "Lacoste">
+        <img src="../static/img/home/levis.png" alt="Levi's">
+        <img src="../static/img/home/amazon.png" alt="Amazon">
+        <img src="../static/img/home/hm.png" alt="H&M">
+        <img src="../static/img/home/obey.png" alt="Obey">
+        <img src="../static/img/home/shopify.png" alt="Shopify">
+        <img src="../static/img/home/lacoste.png" alt = "Lacoste">
+        <img src="../static/img/home/levis.png" alt="Levi's">
+        <img src="../static/img/home/amazon.png" alt="Amazon">
       </div>
     </div>
   </section>
 
+  <!-- New Arrivals section-->
   <section class="new-arrivals-2">
     <h2 class="arrivals-title">New <span>Arrivals</span></h2>
     <div class="arrivals-grid">
@@ -147,22 +121,6 @@
       <button>Shop Now</button>
     </div>
   </section>
-
-  <!-- Young’s Favourite Starts ----------------------------------------->
-    <!-- old Version below -->
-  <!-- <section class="favourites container">
-    <h2>Young’s Favourite</h2>
-    <div class="young_cards">
-      <div class="young_card">
-        <img src="../static/img/home/Under.png" alt="Trending on Instagram">
-        <p>Trending on Instagram</p>
-      </div>
-      <div class="young_card">
-        <img src="../static/img/home/Trending.png" alt="All Under $40">
-        <p>All Under $40</p>
-      </div>
-    </div>
-  </section> -->
 
   <!-- New Version below -->
   <section class="favourite">
@@ -261,87 +219,161 @@
     </div>
     <button class="view-all">View All Products</button>
   </section>
-<!-- email section -->
-<section class="newsletter">
-  <h2>JOIN SHOPPING COMMUNITY TO GET MONTHLY PROMO</h2>
-  <p>Type your email down below and be young wild generation</p>
-  <div class="email-container">
-    <input type="email" placeholder="Add your email here">
-    <button>SEND</button>
-  </div>
-</section>
 
-<footer>
-  <div class="footer-content">
-    <div class="footer-branding">
-      <h1 style="color: white;">FASHION</h1>
-      <p>Complete your style with awesome clothes from us.</p>
-      <div class="social-icons">
-        <a href="#" class="social-icon">
-          <img src="../static/img/home/social1.png" alt="Social Icon">
-        </a>
-        <a href="#" class="social-icon">
-          <img src="../static/img/home/social2.png" alt="Social Icon">
-        </a>
-        <a href="#" class="social-icon">
-          <img src="../static/img/home/social3.png" alt="Social Icon">
-        </a>
-        <a href="#" class="social-icon">
-          <img src="../static/img/home/social4.png" alt="Social Icon">
-        </a>
+  <!-- Pricing Section -->
+  <section id="pricing" class="pricing section">
+    <div class="container section-title">
+      <h2>Pricing</h2>
+      <p>Check Our Affordable Pricing</p>
+    </div>
+
+    <div class="pricing-row">
+      <!-- Plan 1 -->
+      <div class="pricing-item">
+        <h3 style="color: #20c997;">Free Plan</h3>
+        <div class="price"><sup>₹</sup>500<span> / mo</span></div>
+        <div class="icon"><i class="bi bi-box" style="color: #20c997;"></i></div>
+        <ul>
+          <li>✔ &nbsp; + 50 credits each month</li>
+          <li>✔ &nbsp; AI Instagram Access</li>
+          <li>✔ &nbsp; AI Whatsapp Access</li>
+          <li>✔ &nbsp; POS Systems</li>
+          <li>✔ &nbsp; QR-Code Facility</li>
+          <li>✔ &nbsp; Cancel Anytime</li>
+        </ul>
+        <a href="#" class="btn-buy">Buy Now</a>
+      </div>
+
+      <!-- Plan 2 -->
+      <div class="pricing-item">
+        <h3 style="color: #0dcaf0;">Starter Plan</h3>
+        <div class="price"><sup>₹</sup>1000<span> / mo</span></div>
+        <div class="icon"><i class="bi bi-send" style="color: #0dcaf0;"></i></div>
+        <ul>
+          <li>✔ &nbsp; + 100 credits each month</li>
+          <li>✔ &nbsp; AI Instagram Access</li>
+          <li>✔ &nbsp; AI Whatsapp Access</li>
+          <li>✔ &nbsp; POS Systems</li>
+          <li>✔ &nbsp; QR-Code Facility</li>
+          <li>✔ &nbsp; Cancel Anytime</li>
+        </ul>
+        <a href="#" class="btn-buy">Buy Now</a>
+      </div>
+
+      <!-- Plan 3 -->
+      <div class="pricing-item">
+        <h3 style="color: #fd7e14;">Business Plan</h3>
+        <div class="price"><sup>₹</sup>1500<span> / mo</span></div>
+        <div class="icon"><i class="bi bi-airplane" style="color: #fd7e14;"></i></div>
+        <ul>
+          <li>✔ &nbsp; + 150 credits each month</li>
+          <li>✔ &nbsp; AI Instagram Access</li>
+          <li>✔ &nbsp; AI Whatsapp Access</li>
+          <li>✔ &nbsp; POS Systems</li>
+          <li>✔ &nbsp; QR-Code Facility</li>
+          <li>✔ &nbsp; Cancel Anytime</li>
+        </ul>
+        <a href="#" class="btn-buy">Buy Now</a>
+      </div>
+
+      <!-- Plan 4 -->
+      <div class="pricing-item">
+        <h3 style="color: #0d6efd;">Ultimate Plan</h3>
+        <div class="price"><sup>₹</sup>2000<span> / mo</span></div>
+        <div class="icon"><i class="bi bi-rocket" style="color: #0d6efd;"></i></div>
+        <ul>
+          <li>✔ &nbsp; + 200 credits each month</li>
+          <li>✔ &nbsp; AI Instagram Access</li>
+          <li>✔ &nbsp; AI Whatsapp Access</li>
+          <li>✔ &nbsp; POS Systems</li>
+          <li>✔ &nbsp; QR-Code Facility</li>
+          <li>✔ &nbsp; Cancel Anytime</li>
+        </ul>
+        <a href="#" class="btn-buy">Buy Now</a>
       </div>
     </div>
-    
-    <div class="footer-links">
-      <div class="footer-column">
-        <h4>Company</h4>
-        <a href="#">About</a>
-        <a href="#">Contact us</a>
-        <a href="#">Support</a>
-        <a href="#">Careers</a>
+  </section>
+
+  <!-- email section -->
+  <section class="newsletter">
+    <h2>JOIN SHOPPING COMMUNITY TO GET MONTHLY PROMO</h2>
+    <p>Type your email down below and be young wild generation</p>
+    <div class="email-container">
+      <input type="email" placeholder="Add your email here">
+      <button>SEND</button>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-branding">
+        <h1 style="color: white;">FASHION</h1>
+        <p>Complete your style with awesome clothes from us.</p>
+        <div class="social-icons">
+          <a href="#" class="social-icon">
+            <img src="../static/img/home/social1.png" alt="Social Icon">
+          </a>
+          <a href="#" class="social-icon">
+            <img src="../static/img/home/social2.png" alt="Social Icon">
+          </a>
+          <a href="#" class="social-icon">
+            <img src="../static/img/home/social3.png" alt="Social Icon">
+          </a>
+          <a href="#" class="social-icon">
+            <img src="../static/img/home/social4.png" alt="Social Icon">
+          </a>
+        </div>
       </div>
       
-      <div class="footer-column">
-        <h4>Quick Link</h4>
-        <a href="#">Share Location</a>
-        <a href="#">Orders Tracking</a>
-        <a href="#">Size Guide</a>
-        <a href="#">FAQs</a>
-      </div>
-      
-      <div class="footer-column">
-        <h4>Legal</h4>
-        <a href="#">Terms & conditions</a>
-        <a href="#">Privacy Policy</a>
+      <div class="footer-links">
+        <div class="footer-column">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Contact us</a>
+          <a href="#">Support</a>
+          <a href="#">Careers</a>
+        </div>
+        
+        <div class="footer-column">
+          <h4>Quick Link</h4>
+          <a href="#">Share Location</a>
+          <a href="#">Orders Tracking</a>
+          <a href="#">Size Guide</a>
+          <a href="#">FAQs</a>
+        </div>
+        
+        <div class="footer-column">
+          <h4>Legal</h4>
+          <a href="#">Terms & conditions</a>
+          <a href="#">Privacy Policy</a>
+        </div>
       </div>
     </div>
-  </div>
-</footer>
-<script defer>
-    const heartBtns = document.querySelectorAll('.heart-btn');
-    const signUpBtn = document.querySelector('.sign-up'); // select the Sign Up button
+  </footer>
+  <script defer>
+      const heartBtns = document.querySelectorAll('.heart-btn');
+      const signUpBtn = document.querySelector('.sign-up'); // select the Sign Up button
 
-    heartBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            btn.classList.toggle('active');
+      heartBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+              btn.classList.toggle('active');
 
-            // Check if this button is now active
-            if (btn.classList.contains('active')) {
-                signUpBtn.style.backgroundColor = 'white';
-                signUpBtn.style.color = 'black';
-            } else {
-                // Optional: Reset if no buttons are active
-                const anyActive = document.querySelector('.heart-btn.active');
-                if (!anyActive) {
-                    signUpBtn.style.backgroundColor = 'black';
-                    signUpBtn.style.color = 'white';
-                }
-            }
-        });
-    });
+              // Check if this button is now active
+              if (btn.classList.contains('active')) {
+                  signUpBtn.style.backgroundColor = 'white';
+                  signUpBtn.style.color = 'black';
+              } else {
+                  // Optional: Reset if no buttons are active
+                  const anyActive = document.querySelector('.heart-btn.active');
+                  if (!anyActive) {
+                      signUpBtn.style.backgroundColor = 'black';
+                      signUpBtn.style.color = 'white';
+                  }
+              }
+          });
+      });
 
-</script> 
-
+  </script> 
 
 </body>
 </html>

@@ -17,7 +17,14 @@ scanBtn.addEventListener("click", async () => {
       return;
     }
 
-    const cameraId = devices[0].id;
+    // 🔄 Choose rear camera if available
+    let cameraId = devices[0].id;
+    for (let device of devices) {
+      if (/back|rear/i.test(device.label)) {
+        cameraId = device.id;
+        break;
+      }
+    }
 
     await html5QrCode.start(
       cameraId,
@@ -29,13 +36,20 @@ scanBtn.addEventListener("click", async () => {
           readerDiv.style.display = "none";
           scanBtn.style.display = "block";
 
-          try {
-            const url = new URL(decodedText);
-            window.location.href = url.href;
-          } catch {
-            alert("Invalid QR code format.");
-            window.location.reload();
-          }
+          // ✅ Extract last 6 characters from the scanned URL
+          const shortCode = decodedText.slice(-6);
+
+          // ✅ Navigate to the backend route
+          window.location.href = `/product-display/${shortCode}`;
+
+
+          // try {
+          //   const url = new URL(decodedText);
+          //   window.location.href = url.href;
+          // } catch {
+          //   alert("Scanned: " + decodedText);
+          //   window.location.reload();
+          // }
         });
       }
     );

@@ -21,18 +21,31 @@
         <h1>Register Your <span>Shop</span></h1>
         <p class="form-subtitle">Complete the form below to create your shop account</p>
 
-        <form id="shopRegistrationForm" class="registration-form">
+        <form class="registration-form" action="" method="POST">
+          {% csrf_token %} 
+
+          {% if messages %}
+            {% for mes in messages %}
+              <div class="alert-danger text-danger" id="msg" role="alert"></div>
+              <script>
+                const mytimes = setTimeout(function(){
+                  document.getElementById("msg").innerHTML = '{{mes}}'
+                });
+              </script>
+            {% endfor %}
+          {% endif %}
+
           <!-- Personal Information -->
           <div class="form-section">
             <h2>Personal Information</h2>
             <div class="form-row">
               <div class="form-group">
                 <label for="firstName">First Name</label>
-                <input type="text" id="firstName" placeholder="Enter first name" required>
+                <input type="text" name="FirstName" id="firstName" placeholder="Enter first name" required>
               </div>
               <div class="form-group">
                 <label for="lastName">Last Name</label>
-                <input type="text" id="lastName" placeholder="Enter last name" required>
+                <input type="text" name="LastName" id="lastName" placeholder="Enter last name" required>
               </div>
             </div>
           </div>
@@ -42,20 +55,33 @@
             <h2>Shop Information</h2>
             <div class="form-group">
               <label for="shopName">Shop Name</label>
-              <input type="text" id="shopName" placeholder="Enter your shop name" required>
+              <input type="text" name="ShopName" id="shopName" placeholder="Enter your shop name" required>
             </div>
             <div class="form-group">
               <label for="shopAddress">Shop Address</label>
-              <textarea id="shopAddress" placeholder="Enter complete shop address" required></textarea>
+              <textarea id="shopAddress" name="ShopAddress" placeholder="Enter complete shop address" required></textarea>
             </div>
             <div class="form-group">
-              <label for="garmentsType">Garments Type</label>
-              <select id="garmentsType" required>
+              {% comment %} <label for="garmentsType">Garments Type</label>
+              <select name="GarmentsType" id="garmentsType" required>
                 <option value="" disabled selected>Select one</option>
                 <option value="men">Men Garments</option>
                 <option value="women">Women Garments</option>
                 <option value="both">Both</option>
-              </select>
+              </select> {% endcomment %}
+              <div class="custom-select-wrapper">
+                <label for="fake-select" class="label-style">Garments Type</label>
+                <div class="custom-select" id="fake-select">
+                    <span class="selected-value">Select Garments Type</span>
+                    <i class='arrow fas fa-angle-down' style='font-size:24px'></i>
+                </div>
+                <div class="custom-options" id="custom-options">
+                  <div data-value="Men-Garments">Men Garments</div>
+                  <div data-value="Women-Garments">Women Garments</div>
+                  <div data-value="Both">Both</div>
+                </div>
+                <input type="hidden" name="shop_type" id="shop_type">
+              </div>
             </div>
           </div>
 
@@ -65,8 +91,9 @@
             <div class="form-group">
               <label for="phoneNumber">Phone Number</label>
               <div class="input-with-button">
-                <input type="tel" id="phoneNumber" placeholder="Enter phone number" required>
+                <input type="tel" name="PhoneNumber" id="phoneNumber" placeholder="Enter phone number" required>
                 <button type="button" id="verifyPhoneBtn" class="verify-btn">Verify Phone</button>
+                <input type="hidden" name="StatusValue" id="status-value">
               </div>
               <!-- Phone OTP container with improved structure -->
               <div id="phoneOtpContainer" class="otp-container hidden">
@@ -84,11 +111,11 @@
             <div class="form-group">
               <label for="email">Email</label>
               <div class="input-with-button">
-                <input type="email" id="email" placeholder="Enter email address" required>
-                <button type="button" id="sendEmailOtpBtn" class="verify-btn">Send OTP</button>
+                <input type="email" id="email" name="Email" placeholder="Enter email address" required>
+                <!-- <button type="button" id="sendEmailOtpBtn" class="verify-btn">Send OTP</button> -->
               </div>
               <!-- Email OTP container with improved structure -->
-              <div id="emailOtpContainer" class="otp-container hidden">
+              <!-- <div id="emailOtpContainer" class="otp-container hidden">
                 <input type="text" id="emailOtp" placeholder="Enter OTP" maxlength="6">
                 <p class="otp-timer">Expires in: <span id="emailOtpTimer">02:00</span></p>
                 <div class="otp-actions">
@@ -98,13 +125,13 @@
                     <span id="resendEmailCountdown" class="resend-countdown"></span>
                   </button>
                 </div>
-              </div>
+              </div> -->
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label for="password">Password</label>
                 <div class="password-input">
-                  <input type="password" id="password" placeholder="Create password" required>
+                  <input type="password" name="Password" id="password" placeholder="Create password" required>
                   <button type="button" class="toggle-password"><i class="fas fa-eye"></i></button>
                 </div>
                 <div class="password-requirements">
@@ -121,7 +148,7 @@
               <div class="form-group">
                 <label for="confirmPassword">Confirm Password</label>
                 <div class="password-input">
-                  <input type="password" id="confirmPassword" placeholder="Confirm password" required>
+                  <input type="password" name="ConfirmPassword" id="confirmPassword" placeholder="Confirm password" required>
                   <button type="button" class="toggle-password"><i class="fas fa-eye"></i></button>
                 </div>
                 <div class="password-requirement" id="user-req-match">
@@ -132,12 +159,15 @@
             </div>
           </div>
 
-          <button type="submit" id="createShopAccountBtn" class="submit-btn">Create Shop Account</button>
+          <button type="submit"  class="submit-btn">Create Shop Account</button>
           <p class="terms-text">By registering, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></p>
-          <p class="login-link">Already have an account? <a href="#">Login</a></p>
+          <!-- <p class="login-link">Already have an account? <a href="#">Login</a></p> -->
         </form>
       </div>
     </main>
 
   </div>
   <script src="../static/js/user-registration.js"></script>
+  
+<body>
+</html>

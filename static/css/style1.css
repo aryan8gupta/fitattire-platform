@@ -14,9 +14,10 @@
   }
   
   body {
-    font-family: "Open Sans", sans-serif;
-    background: #f6f9ff;
-    color: #444444;
+    font-family: 'Roboto', sans-serif;
+    background: #fff;
+    color: #000;
+    line-height: 1.6;
   }
   
   a {
@@ -623,7 +624,7 @@
     scrollbar-width: thin;
     scrollbar-color: #aab7cf transparent;
     box-shadow: 0px 0px 20px rgba(1, 41, 112, 0.1);
-    background-color: #fff;
+    background-color: #F5F0FF;
   }
   
   @media (max-width: 1199px) {
@@ -698,8 +699,8 @@
     font-size: 15px;
     font-weight: 600;
     color: #4154f1;
+    background: #E6D8FF;
     transition: 0.3;
-    background: #f6f9ff;
     padding: 10px 15px;
     border-radius: 4px;
   }
@@ -720,12 +721,12 @@
   }
   
   .sidebar-nav .nav-link:hover {
-    color: #4154f1;
-    background: #f6f9ff;
+    color: #8A4AF3;
+    background: #fff;
   }
   
   .sidebar-nav .nav-link:hover i {
-    color: #4154f1;
+    color: #8A4AF3;
   }
   
   .sidebar-nav .nav-link .bi-chevron-down {
@@ -1244,3 +1245,29 @@
     font-size: 13px;
     color: #012970;
   }
+
+
+/* Sign Out - Modal */
+.custom-btn {
+  background-color: #000;
+  color: #FFFF00;
+  border: 1px solid #FFFF00;
+  transition: all 0.3s ease;
+}
+
+.custom-btn:hover {
+  background-color: #FFFF00;
+  color: white;
+  border-color: #000;
+  text-decoration: none;
+}
+
+@media (max-width: 576px) {
+  .modal-body h4 {
+    font-size: 1.1rem;
+  }
+  .custom-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}

@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Form elements
     const shopRegistrationForm = document.getElementById("shopRegistrationForm")
     const verifyPhoneBtn = document.getElementById("verifyPhoneBtn")
+    const hiddenInput = document.getElementById('status-value');
     const sendEmailOtpBtn = document.getElementById("sendEmailOtpBtn")
     const phoneOtpContainer = document.getElementById("phoneOtpContainer")
     const emailOtpContainer = document.getElementById("emailOtpContainer")
@@ -138,6 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
         mockVerifyOTP(otp, "phone")
           .then(() => {
             verifyPhoneBtn.textContent = "Verified"
+            hiddenInput.value = "Verified";
             verifyPhoneBtn.classList.add("verified")
             verifyPhoneBtn.style.backgroundColor = "var(--success-color)"
             phoneOtpContainer.classList.add("hidden")
@@ -374,5 +376,38 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1000)
       })
     }
-  })
+
+    
+  /*--------------------------------------------------------------
+  # Select GarmentsType Section
+  --------------------------------------------------------------*/
+  const select = document.getElementById("fake-select");
+  const options = document.getElementById("custom-options");
+  const hiddenInput1 = document.getElementById("shop_type");
+  const selectedValue = select.querySelector(".selected-value");
+
+  select.addEventListener("click", () => {
+    const isOpen = options.style.display === "block";
+    options.style.display = isOpen ? "none" : "block";
+    select.classList.toggle("open", !isOpen);
+  });
+
+  options.querySelectorAll("div").forEach(option => {
+    option.addEventListener("click", () => {
+        selectedValue.textContent = option.textContent;
+        hiddenInput1.value = option.getAttribute("data-value");
+        options.style.display = "none";
+        select.classList.remove("open");
+    });
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!select.contains(e.target) && !options.contains(e.target)) {
+        options.style.display = "none";
+        select.classList.remove("open");
+    }
+  });
+
+
+});
   

@@ -6,6 +6,19 @@
     <link rel="stylesheet" href="../static/css/style2.css">
     <link rel="stylesheet" href="../static/css/responsive2.css">
     <link rel="stylesheet" href="../static/css/utility2.css">
+    <style>
+        #numpad {
+          display: none;
+          margin-top: 10px;
+          max-width: 200px;
+          gap: 5px;
+        }
+        .numpad-btn {
+          width: 60px;
+          height: 60px;
+          font-size: 20px;
+        }
+    </style>
 
     <main id="main" class="main">
         <header class="page-header">
@@ -111,12 +124,36 @@
                     <div class="payment-details">
                         <div class="payment-row">
                             <div class="payment-label">Total Amount:</div>
-                            <div class="payment-value">$120.00</div>
+                            <div class="payment-value">₹<span id="amount">2120</span></div>
                         </div>
 
-                        <button class="btn secondary-btn mb-20">
+                        <button class="btn secondary-btn mb-20" onclick="showDiscountBox()">
                             <i class="fas fa-tag"></i> Apply Discount
                         </button>
+
+                        <!-- Discount input and result (initially hidden) -->
+                        <div id="discount-section" style="display: none; margin-top: 10px;">
+                            <label for="discount-input">Enter Discount (%): </label>
+                            <input type="number" id="discount-input" placeholder="e.g. 10" min="0" max="100">
+
+                            <!-- Custom Number Pad -->
+                            <div id="numpad">
+                                <button class="numpad-btn" onclick="appendNumber(1)">1</button>
+                                <button class="numpad-btn" onclick="appendNumber(2)">2</button>
+                                <button class="numpad-btn" onclick="appendNumber(3)">3</button><br>
+                                <button class="numpad-btn" onclick="appendNumber(4)">4</button>
+                                <button class="numpad-btn" onclick="appendNumber(5)">5</button>
+                                <button class="numpad-btn" onclick="appendNumber(6)">6</button><br>
+                                <button class="numpad-btn" onclick="appendNumber(7)">7</button>
+                                <button class="numpad-btn" onclick="appendNumber(8)">8</button>
+                                <button class="numpad-btn" onclick="appendNumber(9)">9</button><br>
+                                <button class="numpad-btn" onclick="clearInput()">C</button>
+                                <button class="numpad-btn" onclick="appendNumber(0)">0</button>
+                                <button class="numpad-btn" onclick="backspace()">←</button>
+                            </div>
+
+                            <p id="discounted-amount" style="font-weight: bold; margin-top: 10px;"></p>
+                        </div>
 
                         <div class="input-group mb-20">
                             <label for="customer-amount">Enter Customer Given Amount</label>
@@ -125,7 +162,7 @@
 
                         <div class="payment-row">
                             <div class="payment-label">Change to return:</div>
-                            <div class="payment-value">$0.00</div>
+                            <div class="payment-value" id="change-return">₹0.00</div>
                         </div>
 
                         <button class="btn primary-btn full-width mt-20">
@@ -136,7 +173,6 @@
             </div>
         </section>
     </main>
-    <script src="../static/js/main2.js"></script>
     <script src="../static/js/sales.js"></script>
 
 {% endblock %}

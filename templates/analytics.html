@@ -4,342 +4,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
     <link rel="stylesheet" href="../static/css/analytics.css">
 
-    <main id="main" class="main">
-        <div class="analytics_heading">
-            <h1 style="color: blue;">Analytics</h1>
-        </div>
-
-        <!-- Reports -->
-        <div class="col-12 mt-4">
-            <div class="card overflow-auto">
-
-              <div class="filter">
-                <button style="border: 0px solid black; background-color: white; float: inline-end; " id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="bi bi-three-dots"></i></button>
-                <ul>
-
-                  <div class="dropdown-menu">
-                    <li class="dropdown-header text-start"><h6>Filter</h6></li>
-                    <li><a class="dropdown-item" id="#" >Today</a></li>
-                    <li><a class="dropdown-item" href="#">This Month</a></li>
-                    <li><a class="dropdown-item" href="#">This Year</a></li>
-                  </div>
-
-                </ul>
-              </div>
-
-              <div class="card-body">
-                <h5 class="card-title">Reports <span>/Month</span></h5>
-
-                <!-- Bar Chart -->
-                <div id="reportsChart"></div>
-
-                <canvas id="myChart" style="max-height: 400px;"></canvas>
-
-                <script>
-                    var xValues = ["Jan", "Feb", "March", "April", "May", "June"];
-                    var yValues = [15, 24, 44, 49, 55, 80, 90];
-                    var barColors = [
-                      "blue",
-                      "green",
-                      "red",
-                      "yellow",
-                      "lightblue",
-                      "grey"
-                    ];
-                    
-                    new Chart("myChart", {
-                      type: "bar",
-                      data: {
-                        labels: xValues,
-                        datasets: [{
-                          backgroundColor: barColors,
-                          data: yValues
-                        }]
-                      },
-                      options: {
-                        legend: {display: false},
-                        scales: {
-                          yAxes: [{
-                            ticks: {
-                              beginAtZero: true
-                            }
-                          }],
-                        }
-                      }
-                    });
-                </script>
-
-              </div>
-
-            </div>
-        </div><!-- End Reports -->
-
-      <!-- Testing Phase -------------------------------------------------------->
-
-        <div>
-          <div class="flex min-h-screen bg-gray-50">
-            
-            <main class="flex-1 p-4 md:p-8 w-full">
-              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-
-                <div class="flex items-center gap-4 w-full sm:w-auto">
-                  <h1 class="text-xl md:text-2xl font-bold">Dashboard</h1>
-                </div>
-                
-                <div class="flex items-center gap-4 md:gap-6 w-full sm:w-auto justify-end">
-                  <div class="relative flex-1 sm:flex-none">
-                    <input
-                      type="text"
-                      placeholder="Search anything..."
-                      class="w-full sm:w-auto pl-10 pr-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                  </div>
-                  
-                  <div class="relative notifications-container">
-                    <button 
-                      class="relative bell-icon"
-                      onClick= "ShowNotifications()"
-                    >
-                      <Bell class="text-gray-600" />
-                      <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs flex items-center justify-center rounded-full">
-                        4
-                      </span>
-                    </button>
-                    
-                    <div class="show-hide" id="show-notifications" style="display: none;">
-                      <div class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg py-2 z-50">
-                        <h3 class="px-4 py-2 font-semibold border-b">Notifications</h3>
-                          <div key=1 class="px-4 py-3 hover:bg-gray-50">
-                            <p class="text-sm">New order received</p>
-                            <p class="text-xs text-gray-500 mt-1">5 minutes ago</p>
-                          </div>
-                          <div key=2 class="px-4 py-3 hover:bg-gray-50">
-                            <p class="text-sm">Payment confirmed</p>
-                            <p class="text-xs text-gray-500 mt-1">o1 hour ag</p>
-                          </div>
-                          <div key=3 class="px-4 py-3 hover:bg-gray-50">
-                            <p class="text-sm">New customer registration</p>
-                            <p class="text-xs tedxt-gray-500 mt-1">2 hours ago</p>
-                          </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="relative user-menu-container">
-                    <button 
-                      class="profile-icon"
-                      onClick="ShowUserMenu()"
-                    >
-                      <img
-                        src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=32&h=32"
-                        alt="Profile"
-                        class="w-8 h-8 rounded-full"
-                      />
-                    </button>
-                    
-                    <div class="show-hide" id="show-user-menu" style="display: none;">
-                      <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
-                        <button class="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2">
-                          <User size={16} />
-                          Profile
-                        </button>
-                        <button class="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2">
-                          <Settings size={16} />
-                          Settings
-                        </button>
-                        <button 
-                          class="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-red-600"
-                          onClick="ShowSignOutModal()"
-                        >
-                          <LogOut size={16} />
-                          Sign Out
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="flex flex-wrap gap-2 md:gap-4 mb-6 overflow-x-auto pb-2">
-                  <button
-                    key="1"
-                    onClick="SelectedTimeFilter(this.key)"
-                    class="px-3 md:px-4 py-2 rounded-lg text-sm md:text-base whitespace-nowrap">
-                    Last 24 hour
-                  </button>
-                  <button
-                    key="2"
-                    onClick="SelectedTimeFilter(this.key)"
-                    class="px-3 md:px-4 py-2 rounded-lg text-sm md:text-base whitespace-nowrap">
-                    Last week
-                  </button>
-                  <button
-                    key="3"
-                    onClick="SelectedTimeFilter(this.key)"
-                    class="px-3 md:px-4 py-2 rounded-lg text-sm md:text-base whitespace-nowrap">
-                    Last month
-                  </button>
-                  <button
-                    key="4"
-                    onClick="SelectedTimeFilter(this.key)"
-                    class="px-3 md:px-4 py-2 rounded-lg text-sm md:text-base whitespace-nowrap">
-                    Last year
-                  </button>
-                <button class="ml-auto px-3 md:px-4 py-2 text-gray-600 text-sm md:text-base whitespace-nowrap">
-                  Filter by date range
-                </button>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
-
-                <div class="card" style="width: 18rem;">
-                  <div class="card-body flex">
-                    <div class="card-icon">
-                      <i class="bi bi-currency-dollar mx-1"></i>
-                    </div>
-                    <div class="card-content">
-                      <h5 class="card-title">Total Revenue</h5>
-                      <h2 class="card-value">$152,839</h2>
-                      <p class="card-value">16%</p>
-                      <p class="card-value">vs last week</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="card" style="width: 18rem;">
-                  <div class="card-body flex">
-                    <div class="card-icon">
-                      <i class="bi bi-people mx-1"></i>
-                    </div>
-                    <div class="card-content">
-                      <h5 class="card-title">Total Customer</h5>
-                      <h2 class="card-value">$13,456</h2>
-                      <p class="card-value">0.45%</p>
-                      <p class="card-value">vs last week</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="card" style="width: 18rem;">
-                  <div class="card-body flex">
-                    <div class="card-icon">
-                      <i class="bi bi-cart mx-1"></i>
-                    </div>
-                    <div class="card-content">
-                      <h5 class="card-title">Total Transaction</h5>
-                      <h2 class="card-value">$37,902</h2>
-                      <p class="card-value">8%</p>
-                      <p class="card-value">vs last week</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="card" style="width: 18rem;">
-                  <div class="card-body flex">
-                    <div class="card-icon">
-                      <i class="bi bi-box mx-1"></i>
-                    </div>
-                    <div class="card-content">
-                      <h5 class="card-title">Total Product</h5>
-                      <h2 class="card-value">$256,600</h2>
-                      <p class="card-value">2%</p>
-                      <p class="card-value">vs last week</p>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6">
-                <RevenueChart selectedTimeFilter={selectedTimeFilter} />
-                <CustomerMap />
-              </div>
-
-              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-                <TopTransactions />
-                <TopProducts />
-              </div>
-
-
-              <!-- {/* Sign Out Modal */} -->
-
-              <div class="show-hide" id="sign-out-modal" style="display: none;">
-                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                  <div class="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
-                    <h3 class="text-lg font-semibold mb-4">Are you sure you want to Sign Out?</h3>
-                    <div class="flex justify-end gap-4">
-                      <button
-                        onClick="ShowSignOutModalCancel()"
-                        class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-                      >
-                        Cancel
-                      </button>
-                      <button class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                        <a class="nav-link collapsed" href="/logout/">Yes, Sign Out</a>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </main>
-          </div>
-        </div>
-
-        <script>
-          function ShowNotifications(){
-            var x = document.getElementById("show-notifications");
-            if (x.style.display === "none") {
-              x.style.display = "block";
-            } else {
-              x.style.display = "none";
-            }
-          }
-
-          function ShowUserMenu(){
-            var x = document.getElementById("show-user-menu");
-            if (x.style.display === "none") {
-              x.style.display = "block";
-            } else {
-              x.style.display = "none";
-            }
-          }
-
-          function SelectedTimeFilter(key){
-            var x = document.getElementById("show-user-menu");
-            key.style.text = "text-white"
-            key.style.backgroundColor = "bg-blue-600"
-            if (key != id){
-              key.style.text = "text-gray-600"
-              key.style.hover = "bg-gray-100"
-            }
-          }
-
-          // Sign Out Modal ----------------------------------------->
-
-          function ShowSignOutModal(){
-            var x = document.getElementById("sign-out-modal");
-            if (x.style.display === "none") {
-              x.style.display = "block";
-            } else {
-              x.style.display = "none";
-            }
-          }
-
-          function ShowSignOutModalCancel(){
-            var x = document.getElementById("sign-out-modal");
-            x.style.display = "none";
-          }
-
-          // Sign Out Modal ----------------------------------------->
-
-        </script>
-
-      <!-- Testing Phase -------------------------------------------------------->
-
-
-    </main> <!-- End #main -->
-
 
   <main id="main" class="main">
     
@@ -408,9 +72,8 @@
         
         <div class="chart-section">
           <!-- Revenue Chart Section -->
-          <!-- <div class="chart-box" id="revenueChart"></div> -->
           <div class="chart-box">
-            <div class="revenue-chart-header">
+            <div class="chart-header">
               <div>
                 <h3 class="chart-title">Revenue Growth</h3>
                 <p class="chart-subtitle" id="chart-period">Last 24 hour revenue growth with in percentage</p>
@@ -420,16 +83,52 @@
             <canvas id="revenueChartCanvas"></canvas>
           </div>
 
+
           <!-- Customer Growth Section -->
-          <div class="chart-box" id="customerGrowth"></div>
+          <div class="chart-box">
+            <div class="chart-header">
+              <div>
+                <h3 class="chart-title">Customer Growth</h3>
+                <p class="chart-subtitle" id="customerGrowth-period">Last 24 hour customer growth with in percentage</p>
+              </div>
+              <button class="view-detail-btn">View detail</button>
+            </div>
+            <canvas id="instagramDonutChart" width="300" height="300"></canvas>
+          </div>
+
         </div>
         
         <div class="chart-section">
+
           <!-- Top Transactions Section -->
-          <div class="chart-box" id="topTransactions"></div>
+           
+          <div class="chart-box">
+            <div class="chart-header">
+              <div>
+                <h3 class="chart-title">Top Transaction</h3>
+                <p class="chart-subtitle" id="chart-period">Last week's top transactions</p>
+              </div>
+              <button class="view-detail-btn">View detail</button>
+            </div>
+        
+            <div id="transactions" class="transactions-list"></div>
+          </div>
+
 
           <!-- Top Products Section -->
-          <div class="chart-box" id="topProducts"></div>
+
+          <div class="chart-box">
+            <div class="chart-header">
+              <div>
+                <h3 class="chart-title">Top Product</h3>
+                <p class="chart-subtitle" id="chart-period">Top 5 best selling products</p>
+              </div>
+              <button class="view-detail-btn">View detail</button>
+            </div>
+        
+            <div class="product-grid" id="productGrid"></div>
+          </div>
+
         </div>
 
       </div>

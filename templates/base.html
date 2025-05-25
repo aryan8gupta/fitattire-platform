@@ -5,7 +5,11 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Dashboard</title>
+  <title>FitAttire</title>
+  <!-- Favicons -->
+  <link href="../static/img/logo.png" rel="icon">
+  <link href="../static/img/logo.png" rel="apple-touch-icon">
+  
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -39,7 +43,7 @@
     <div class="d-flex align-items-center">
       <div class="logo d-flex">
         <img src="../static/img/logo.png" alt="">
-        <span class="d-none d-lg-block">AiS</span>
+        <span class="d-none d-lg-block">FitAttire</span>
       </div>
       {% comment %} <i class="bi bi-list toggle-sidebar-btn"></i> {% endcomment %}
       <i class="bi bi-arrow-bar-right toggle-sidebar-btn"></i>
@@ -48,7 +52,7 @@
     <nav class="header-nav ms-auto">
       <ul class="d-flex align-items-center">
 
-        <li class="nav-item dropdown">
+        {% comment %} <li class="nav-item dropdown">
 
           <div class="filter">
             <button style="border: 0px solid black; background-color: white; " id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -95,24 +99,28 @@
             </ul>
           </div>
 
-        </li><!-- End Notification Nav -->
+        </li><!-- End Notification Nav --> {% endcomment %}
 
         <li class="nav-item dropdown pe-3">
 
-          <!-- <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown"> -->
           <div class="filter">
-            <button style="border: 0px solid black; background-color: white; " id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <i style = "color:blue; font-size:20px;"  class="bi bi-person-circle"></i>
-              <span class="d-none d-md-block ps-2">{{first_name}}</span>
+            <button id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                style="border: 0px solid black; background-color: white; display: flex; align-items: center;">
+                <img src="../static/img/user-image.png" alt="User" style="width: 20px; height: 20px;">
+                <span class="d-none d-md-block ps-2">{{first_name}}</span>
             </button>
-
-            <!-- <img src="static/img/profile-img.jpg" alt="Profile" class="rounded-circle">  -->
 
             <ul>
               <div class="dropdown-menu">
 
                 <li class="nav-item">
-                  <a href="/settings/">Settings</a> 
+                  <a href="/subscription/">Billing</a> 
+                </li>
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+                <li class="nav-item">
+                  <a href="/app-settings/">Settings</a> 
                 </li>
                 <li>
                   <hr class="dropdown-divider">
@@ -176,11 +184,11 @@
         </a>
       </li>End Stock Sold Nav -->
 
-      <li class="nav-item">
+      {% comment %} <li class="nav-item">
         <a class="nav-link collapsed" data-bs-target="#charts-nav" data-bs-toggle="collapse" href="/products/">
           <i class="bi bi-layout-text-window-reverse"></i><span>Products</span><i class="ms-auto"></i>
         </a>
-      </li><!-- End Stock Left Nav -->
+      </li><!-- End Stock Left Nav --> {% endcomment %}
 
       <li class="nav-item">
         <a class="nav-link collapsed" data-bs-target="#charts-nav" data-bs-toggle="collapse" href="/exchange/">
@@ -191,6 +199,12 @@
       <li class="nav-item">
         <a class="nav-link collapsed" data-bs-target="#charts-nav" data-bs-toggle="collapse" href="/sales/">
           <i class="bi bi-layout-text-window-reverse"></i><span>Sales</span><i class="ms-auto"></i>
+        </a>
+      </li><!-- End Stock Sales Nav -->
+      
+      <li class="nav-item">
+        <a class="nav-link collapsed" data-bs-target="#charts-nav" data-bs-toggle="collapse" href="/product-display/">
+          <i class="bi bi-layout-text-window-reverse"></i><span>Product Display</span><i class="ms-auto"></i>
         </a>
       </li><!-- End Stock Sales Nav -->
 
@@ -266,19 +280,40 @@
     </ul>
 
   </aside><!-- End Sidebar-->
-  <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+
+  <!-- <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content border-2 border-dark">
         <div class="modal-body text-center">
           <h2>Are you sure you want to <br> sign out?</h2>
         </div>
         <div class="modal-body text-center">
-          <button type="button" class="btn btn-primary mx-2" data-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary"><a class="nav-link collapsed" href="/logout/">Confirm</a></button>
+          <button type="button" class="btn mx-2" style="background-color: #000; color: #FFFF00;" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn" style="background-color: #000; color: #FFFF00;"><a class="nav-link collapsed" href="/logout/">Confirm</a></button>
+        </div>
+      </div>
+    </div>
+  </div> -->
+
+  <!-- Sign Out Modal -->
+  <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content border-2 border-dark">
+        
+        <!-- Modal Body -->
+        <div class="modal-body text-center py-4">
+          <h4 class="mb-3">Are you sure you want to <br> sign out?</h4>
+          
+          <!-- Action Buttons -->
+          <div class="d-flex justify-content-center flex-wrap gap-2">
+            <button type="button" class="btn custom-btn mx-2" data-dismiss="modal">Cancel</button>
+            <a href="/logout/" class="btn custom-btn mx-2">Confirm</a>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
   {% block contain %}
 
   {% endblock %}
@@ -286,19 +321,6 @@
     <!-- Template Main JS File -->
     <script src="../static/vendor/apexcharts/apexcharts.min1.js"></script>
     <script src="../static/js/main.js"></script>
-    
-    <script>
-      function nav_blue_tag(a) {
-        console.log("1")
-        console.log(a);
-        console.log("2")
-      }
-      function reply_click(b) {
-        console.log(b);
-      }
-
-    </script>
 
 </body>
-    
 </html>

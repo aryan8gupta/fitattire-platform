@@ -1,3 +1,4 @@
+from django.conf import settings
 from bson import ObjectId
 from django.contrib import messages;
 from django.shortcuts import render, redirect;
@@ -7,17 +8,24 @@ import bcrypt
 import jwt
 from datetime import datetime, timedelta
 from django.views.decorators.csrf import csrf_exempt
-from Inventify.settings import DB, PUBLIC_KEY, MEDIA_URL, MEDIA_ROOT
+from Inventify.settings import DB, PUBLIC_KEY, MEDIA_ROOT
 # from Inventify.deployment import DB, PUBLIC_KEY
 from .models import YourModel
 
 from PIL import Image, ImageOps
 from io import BytesIO
 import os
+import re
 import requests
 import base64
+import json
 import time
+import random
+import string
 from django.http import JsonResponse
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+
 
 
 # QR-Code Generating / Template----------------------------------------------------------->
@@ -72,10 +80,10 @@ def create_vertical_qr_pdf(data_list, output_file="vertical_qr_labels.pdf"):
 
 # Example with product names
 data_list = [
-    {"name": "Black T-Shirt", "url": "https://example.com/item/1"},
-    {"name": "Denim Jeans", "url": "https://example.com/item/2"},
-    {"name": "Green Kurti", "url": "https://example.com/item/3"},
-    {"name": "Formal Shirt", "url": "https://example.com/item/4"},
+    {"name": "Black T-Shirt", "url": "http://127.0.0.1:8000/product-display/"},
+    {"name": "Denim Jeans", "url": "http://127.0.0.1:8000/product-display/"},
+    {"name": "Green Kurti", "url": "http://127.0.0.1:8000/product-display/"},
+    {"name": "Formal Shirt", "url": "http://127.0.0.1:8000/product-display/"},
     # Add more...
 ]
 
@@ -150,7 +158,7 @@ def products_2(request):
     return render(request, 'products-2.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
 
 
-def settings(request):
+def product_display(request):
     valid = False
     data = {}
     if request.COOKIES.get('t'):
@@ -162,7 +170,64 @@ def settings(request):
     user_type = data.get('user_type')
     user_name = data.get('first_name')
 
-    return render(request, 'settings.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
+    return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
+
+
+    # result = DB.products.find_one({"qrcode_ids": qr_id})
+    # product_discount = ((result.product_price - product.selling_price) / product.product_price) * 100
+
+    # if result:
+    #     return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, "product": result, 'discount': product_discount})
+    # else:
+    #     messages.warning(request, "Not Found")
+    #     return render(request, "dashboard.html")
+
+
+
+def subscription(request):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
+	
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+
+    return render(request, 'subscription.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
+
+
+def subs_upgrade(request):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
+	
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+
+    return render(request, 'subs_upgrade.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
+
+
+
+def app_settings(request):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
+	
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+
+    return render(request, 'app_settings.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
 
 
 def exchange(request):
@@ -216,6 +281,7 @@ def scan_qr(request):
 def upload_image(request):
 
     if request.method == 'POST':
+        clothes_category = request.POST.get("category")
         model_image = request.FILES.get('model_image')
         garment_image = request.FILES.get('garment_image')
 
@@ -347,7 +413,7 @@ def upload_image(request):
         payload1 = {
             "model_image": f"data:image/jpeg;base64,{model_image_base64}",
             "garment_image": f"data:image/jpeg;base64,{garment_image_base64}",
-            "category": "dresses", 
+            "category": clothes_category, 
             "action": "startPrediction"
         }
 
@@ -378,19 +444,40 @@ def upload_image(request):
                             else:
                                 print("Failed to download image. Status code:", response.status_code)
 
+
+
+                        def get_next_filename(directory, prefix, extension):
+                            # Ensure directory exists
+                            if not os.path.exists(directory):
+                                os.makedirs(directory)
+
+                            existing_files = os.listdir(directory)
+                            pattern = re.compile(rf"{re.escape(prefix)}-(\d+)\.{re.escape(extension)}")
+                            numbers = [int(match.group(1)) for f in existing_files if (match := pattern.match(f))]
+                            next_number = max(numbers) + 1 if numbers else 1
+                            return f"{prefix}-{next_number}.{extension}"
+
+                        # Set your subdirectory path
+                        subdir = os.path.join(MEDIA_ROOT, 'upscaled')
+                        filename = get_next_filename(subdir, 'final_upscaled', 'jpg')
+                        upscaled_path = os.path.join(subdir, filename)
+                        # Save the Upscaled image
+                        upscale_image(data2.get('output'), upscaled_path)
+
                         # First Saving the Result
                         output_path = os.path.join(MEDIA_ROOT, 'api_result.jpg')
                         save_api_result_from_url(data2.get('output'), output_path)
 
-                        # Then upscale
-                        upscaled_path = os.path.join(MEDIA_ROOT, 'final_upscaled-125.jpg')
-                        upscale_image(data2.get('output'), upscaled_path)
 
                         # Add path to the response
                         data2['upscaled_path'] = upscaled_path
 
-                        relative_path = '/media/final_upscaled-125.jpg'
-                        data2['upscaled_url'] = request.build_absolute_uri(relative_path)
+                        # Get the relative media URL from the file path
+                        relative_path = os.path.relpath(upscaled_path, MEDIA_ROOT)  # gives 'upscaled/final_upscaled-5.jpg'
+                        data2['upscaled_url'] = request.build_absolute_uri(os.path.join(settings.MEDIA_URL, relative_path))
+
+                        # relative_path = '/media/final_upscaled-125.jpg'
+                        # data2['upscaled_url'] = request.build_absolute_uri(relative_path)
 
                         return JsonResponse(data2)
                     
@@ -423,20 +510,97 @@ def add_products(request):
 	
     user_type = data.get('user_type')
     user_name = data.get('first_name')
-    plan = "premium"
 
-    # if request.method == 'POST':
-    #     try:
-    #         if request.POST.get("form_type") == 'add1':
-    #             original_image = request.POST.get("original_image")
-    #             print(original_image)
-    #     except:
-    #         return render(request, 'add_products.html',  { 'dashboard': 
-	# 												   dashboard, 'user_type': user_type, 'first_name': user_name})
+    print("✅ Add Product page started")
+
+    # def generate_products_id(category_name):
+    #     prefix = category_name.strip().upper()[:3]
+    #     random_part = ''.join(random.choices(string.digits, k=5))
+    #     return f"{prefix}-{random_part}"
+
+    if request.method == 'POST':
+        try:
+            print("🔍 Reading POST data...")
+
+            # ✅ Safely get the data sent as FormData
+            json_data1 = request.POST.get('document')
+            print("0")
+            json_data2 = request.POST.get('selectedmiddlebuttons')
+            print("1")
+
+            if not json_data1:
+                print("❌ 'document' is missing in POST")
+                return JsonResponse({'error': 'Missing product data'}, status=400)
+
+            parsed_data1 = json.loads(json_data1)
+            parsed_data2 = json.loads(json_data2) if json_data2 else {}
+
+            # Prepare to save uploaded garment images
+            saved_garment_urls = []
+
+            # garment_images in parsed_data1 are currently placeholders (filenames or base64 strings)
+            # We replace them with actual saved media URLs after saving files
+
+            # Loop through all garment image files sent with keys 'garment_0', 'garment_1', ...
+            for i in range(len(parsed_data1['product_colors'])):
+                file_key = f'garment_{i}'
+                uploaded_file = request.FILES.get(file_key)
+
+                if uploaded_file:
+                    # Save file to media directory
+                    path = default_storage.save(f'garments/{uploaded_file.name}', ContentFile(uploaded_file.read()))
+                    file_url = default_storage.url(path)  # URL to access the image later
+
+                    saved_garment_urls.append(file_url)
+                else:
+                    # No file sent for this variant, fallback or error handling
+                    saved_garment_urls.append('')  # or handle as you prefer
+
+
+
+            # Build the variants array
+            variants = []
+            for i in range(len(parsed_data1['product_colors'])):
+                variant = {
+                    "color": parsed_data1['product_colors'][i],
+                    "garment_image": saved_garment_urls[i],
+                    "result_images": parsed_data1['result_images'][i]  # this should be a list of images per color
+                }
+                variants.append(variant)
+
+            products_dict = {
+                "qrcode_ids": parsed_data1['qrcode_ids'],
+                "product_gender": parsed_data2['gender'],
+                "product_category": parsed_data2['category'],
+                "product_subCategory": parsed_data2['subCategory'],
+                "product_finalCategory": parsed_data2['finalCategory'],
+                "product_swapCategory": parsed_data2['swapCategory'],
+                "brand_name": parsed_data1['brand_name'],
+                "product_name": parsed_data1['product_name'],
+                "product_quantity": parsed_data1['product_quantity'],
+                "sizes": parsed_data1['product_sizes'],
+                "product_price": parsed_data1['product_price'],
+                "selling_price": parsed_data1['product_selling_price'],
+                "variants": variants
+            }
+            print("2")
+            DB.products.create_index({"qrcode_ids": 1})
+            print("3")
+            DB.products.insert_one(products_dict)
+            print("✅ Product inserted successfully")
+
+
+            return render(request, 'add_products.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
+
+
+        except:
+            messages.warning(request, "Already Registered")
+            return render(request, 'add_products.html',  { 'dashboard': 
+													   dashboard, 'user_type': user_type, 'first_name': user_name})
 
             
 
-    return render(request, 'add_products.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'plan': plan})
+    return render(request, 'add_products.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
 
 
 def analytics(request):
@@ -957,39 +1121,36 @@ def users_signup(request):
 
     if request.method == 'POST':
         try:
-            users_email = request.POST.get("email")
-            users_doc = DB.users.find_one({"email": users_email})
+            users_email = request.POST.get("Email")
+            users_doc = DB.users.find_one({"Email": users_email})
 
             if not users_doc:
-
-                users_firstname = request.POST.get("first_name")
-                users_lastname = request.POST.get("last_name")
-                users_mobile = request.POST.get("mobile")
-                users_age = request.POST.get("age")
-                users_shop_name = request.POST.get("shop_name")
-                users_shop_address = request.POST.get("shop_address")
-
-                users_password = request.POST.get("password")
-
+                users_firstname = request.POST.get("FirstName")
+                users_lastname = request.POST.get("LastName")
+                users_shop_name = request.POST.get("ShopName")
+                users_shop_address = request.POST.get("ShopAddress")
+                users_garments_type = request.POST.get("GarmentsType")
+                users_phone_number = request.POST.get("PhoneNumber")
+                users_status_value = request.POST.get("StatusValue")
+                users_password = request.POST.get("Password")
 
                 users_dict = {
 	                "first_name": users_firstname,
 	                "last_name": users_lastname,
-	                "mobile": users_mobile,
-	                "age": users_age,
+	                "mobile": users_phone_number,
+	                "status": users_status_value,
+	                "garments_type": users_garments_type,
 	                "shop_name": users_shop_name,
 	                "shop_address": users_shop_address,
 	                "email": users_email,
 	                "password": generate_password(users_password),
 	                "user_type": 'Shop Owners',
 	            }
-
                 DB.users.insert_one(users_dict)
 
                 shop_owners_details = list(DB.users.find({'user_type': 'Shop Owners'}))
-
                 return render(request, 'users_details.html', { 'dashboard': 
-													   dashboard, 'user_type': user_type, 'first_name': user_name,  'shop_owners_details': shop_owners_details})
+													   dashboard, 'user_type': user_type, 'first_name': user_name, 'shop_owners_details': shop_owners_details})
 
             else:
                 raise Exception

@@ -10,8 +10,11 @@ urlpatterns = [
 
     path('', views.index),
     path('products-2/', views.products_2),
+    path('product-display/', views.product_display),
+    # path('product-display/<str:qr_id>/', views.product_display, name='product_display'),
 
     path('login/', views.login),
+    path('login2/', views.login),
     path('logout/', views.logout, name='logout'),
 
 
@@ -52,6 +55,8 @@ urlpatterns = [
     path('delete/', views.delete),
     path('detail/', views.detail),
     path('update/', views.update),
-    path('settings/', views.settings),
+    path('app-settings/', views.app_settings),
+    path('subscription/', views.subscription),
+    path('subscription-upgrade/', views.subs_upgrade),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

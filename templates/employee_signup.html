@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Employee Registration</title>
+  <title>FitAttire</title>
+  <!-- Favicons -->
+  <link href="../static/img/logo.png" rel="icon">
+  <link href="../static/img/logo.png" rel="apple-touch-icon">
   
   <link rel="stylesheet" href="../static/css/employees.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -37,23 +40,23 @@
             <div class="form-row">
               <!-- Date of Birth field -->
               <div class="form-group">
-                <label for="dateOfBirth">Date of Birth</label>
-                <div class="date-input-container">
-                  <input type="text" id="dateOfBirth" placeholder="MM/DD/YYYY" readonly required>
-                  <button type="button" class="calendar-btn" id="dateOfBirthBtn">
-                    <i class="fas fa-calendar"></i>
-                  </button>
-                </div>
-                <div id="dateOfBirthPicker" class="datepicker"></div>
+                <label for="dateOfBirth">Age</label>
+                <input type="text" id="age" placeholder="Enter Age" required>
               </div>
               <div class="form-group">
-                <label for="gender">Gender</label>
-                <select id="gender" required>
-                  <option value="" disabled selected>Select one</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
+                <div class="custom-select-wrapper">
+                  <label for="fake-select" class="label-style">Gender</label>
+                  <div class="custom-select" id="fake-select">
+                      <span class="selected-value">Select Gender</span>
+                      <i class='arrow fas fa-angle-down' style='font-size:24px'></i>
+                  </div>
+                  <div class="custom-options" id="custom-options">
+                    <div data-value="male">Male</div>
+                    <div data-value="female">Female</div>
+                    <div data-value="other">Other</div>
+                  </div>
+                  <input type="hidden" name="employee_gender" id="employee_gender">
+                </div>
               </div>
             </div>
           </div>
@@ -62,15 +65,21 @@
           <div class="form-section">
             <h2>Employment Details</h2>
             <div class="form-group">
-              <label for="jobTitle">Job Title/Designation</label>
-              <select id="jobTitle" required>
-                <option value="" disabled selected>Select one</option>
-                <option value="store_manager">Store Manager</option>
-                <option value="sales_associate">Sales Associate</option>
-                <option value="inventory_manager">Inventory Manager</option>
-                <option value="cashier">Cashier</option>
-                <option value="tailor">Tailor</option>
-              </select>
+              <div class="custom-select-wrapper">
+                <label for="fake-select-job" class="label-style">Job Title/Designation</label>
+                <div class="custom-select-job" id="fake-select-job">
+                    <span class="selected-value-job">Select One</span>
+                    <i class='arrow fas fa-angle-down' style='font-size:24px'></i>
+                </div>
+                <div class="custom-options-job" id="custom-options-job">
+                  <div data-value="shop_manager">Store Manager</div>
+                  <div data-value="shop_worker">Shop Worker</div>
+                  <div data-value="shop_tailor">Tailor</div>
+                  <div data-value="shop_cashier">Cashier</div>
+                  <div data-value="shop_inventory_manager">Inventory Manager</div>
+                </div>
+                <input type="hidden" name="employee_job" id="employee_job">
+              </div>
             </div>
             <div class="form-row">
               <!-- Date of Joining field -->
@@ -87,7 +96,7 @@
               <div class="form-group">
                 <label for="salary">Salary</label>
                 <div class="salary-input">
-                  <span class="currency-symbol">$</span>
+                  <span class="currency-symbol">₹</span>
                   <input type="text" id="salary" placeholder="Enter amount" required>
                 </div>
               </div>
@@ -154,7 +163,6 @@
 
           <button type="submit" id="createEmployeeAccountBtn" class="submit-btn">Create Employee Account</button>
           <p class="terms-text">By registering, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></p>
-          <p class="login-link">Already have an account? <a href="#">Login</a></p>
         </form>
       </div>
     </main> 

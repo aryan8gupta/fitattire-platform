@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>FitAttire</title>
+        <!-- Favicons -->
+        <link href="../static/img/logo.png" rel="icon">
+        <link href="../static/img/logo.png" rel="apple-touch-icon">
+        
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+            integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+        />
+        <link rel="stylesheet" href="../static/css/subscription.css" />
+    </head>
+    <body>
+        <button class="aside-button">
+            <i class="fa-solid fa-burger"></i>
+        </button>
+        <button class="aside-cross-button">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <aside>
+            <h2>ClothesInventory</h2>
+            <nav>
+                <a href="#" class="focused"
+                    ><i class="fa-solid fa-qrcode"></i> Dashboard</a
+                >
+                <a href="/subscription-upgrade/"
+                    ><i class="fa-solid fa-clipboard-check"></i> Upgrade</a
+                >
+            </nav>
+            <div class="profile">
+                <img src="../static/assets/profile.jpg" alt="Profile picture" />
+                <div class="profile_info">
+                    <p class="name">Alex Morgan</p>
+                    <p class="designation">Manager</p>
+                </div>
+            </div>
+        </aside>
+        <main>
+            <div class="main_content">
+                <h1>Your Subscription Plan</h1>
+                <p class="plan_status">Pro &bull; Active</p>
+                <a href="/subscription-upgrade/">
+                    <button>Upgrade Plan</button>
+                </a>
+                <h2>Current Subscription</h2>
+                <div class="current_plan_card card">
+                    <div class="icon_container">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <h3>Pro Plan</h3>
+                    <p class="current_plan_timeline">
+                        Start: Jan 1, 2024 &bull; Renews: Feb 1, 2024
+                    </p>
+                    <p class="current_plan_price">$49/month</p>
+                </div>
+                <div class="about_current_plan">
+                    <h3>Features in Use</h3>
+                    <ul>
+                        <li>Unlimited Projects</li>
+                        <li>5 Team Members</li>
+                        <li>API Access</li>
+                        <li>Priority Support</li>
+                    </ul>
+                    <h3>Usage Stats</h3>
+                    <div>
+                        <p>API Calls: 8,200 / 10,000</p>
+                        <p>Credits Remaining: 1,800</p>
+                    </div>
+                </div>
+                <h2>Pricing Plans</h2>
+                <div class="pricing_plans">
+                    <div class="pricing_card_cluster">
+                        <div class="pricing_plan_card card">
+                            <div class="icon_container">
+                                <i class="fa-solid fa-star"></i>
+                            </div>
+
+                            <h2>Basic</h2>
+                            <p>$19/month</p>
+                            <ul>
+                                <li>1,000 Credits</li>
+                                <li>1 User</li>
+                                <li>Email Support</li>
+                                <li>2 Integrations</li>
+                            </ul>
+                            <button>Choose Plan</button>
+                        </div>
+                        <div class="pricing_plan_card card">
+                            <div class="icon_container">
+                                <i class="fa-solid fa-award"></i>
+                            </div>
+                            <h2>Pro</h2>
+                            <p>$49/month</p>
+                            <ul>
+                                <li>10,000 Credits</li>
+                                <li>5 Users</li>
+                                <li>Priority Support</li>
+                                <li>10 Integrations</li>
+                            </ul>
+                            <button>Choose Plan</button>
+                        </div>
+                        <div class="pricing_plan_card card">
+                            <div class="icon_container">
+                                <i class="fa-solid fa-infinity"></i>
+                            </div>
+                            <h2>Unlimited</h2>
+                            <p>$99/month</p>
+                            <ul>
+                                <li>Unlimited Credits</li>
+                                <li>Unlimited Users</li>
+                                <li>24/7 Support</li>
+                                <li>All Integrations</li>
+                            </ul>
+                            <button>Choose Plan</button>
+                        </div>
+                    </div>
+                </div>
+                <h2>Subscription Stop</h2>
+                <div class="subscription_stop_card card">
+                    <div class="icon_container">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <h2>Warning</h2>
+                    <p>
+                        Stopping your subscription will remove all credits and
+                        access.
+                    </p>
+                    <button style="margin-top: 20px;">Stop Subscription</button>
+                </div>
+                <h2>Subscription Preferences</h2>
+                <h3>Payment Method</h3>
+                <input
+                    class="subscription_preferences_input"
+                    type="text"
+                    value="Card"
+                />
+                <div class="subscription_preferences_buttons">
+                    <button class="secondary_button">Billing History</button>
+                    <button class="secondary_button">Download Invoices</button>
+                </div>
+                <div class="auto_renewal_container">
+                    <div class="icon_container">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </div>
+                    <div>
+                        <h4>Auto-Renew</h4>
+                        <p>Automatically renew subscription</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" />
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <h2>Support</h2>
+                <div class="support_content">
+                    <div class="icon_container">
+                        <i class="fa-solid fa-question"></i>
+                    </div>
+                    <div>
+                        <a href="#">Need Help? Contact Support</a>
+                        <p>Chat or visit Help Center</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <script defer>
+            const button = document.querySelector("#upgrade_plan_button");
+
+            button.addEventListener("click", () => {
+                window.location.href = "./upgrade.html";
+            });
+
+            const aside = document.querySelector("aside");
+            const openBtn = document.querySelector(".aside-button");
+            const closeBtn = document.querySelector(".aside-cross-button");
+
+            openBtn.addEventListener("click", () => {
+                aside.style.display = "flex";
+                openBtn.style.display = "none";
+                closeBtn.style.display = "block";
+            });
+
+            closeBtn.addEventListener("click", () => {
+                aside.style.display = "none";
+                closeBtn.style.display = "none";
+                openBtn.style.display = "block";
+            });
+
+        </script>
+    </body>
+</html>

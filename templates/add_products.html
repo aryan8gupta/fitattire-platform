@@ -6,9 +6,6 @@
     <link rel="stylesheet" href="../static/css/responsive2.css">
     <link rel="stylesheet" href="../static/css/utility2.css">
     <style>
-        .con {
-            width: 70vw; display: flex; margin-bottom: 30px; margin-top: 20px;
-        }
         .add_products {
           display: flex; justify-content: start;
         }
@@ -100,7 +97,7 @@
     </style>
 
     <main id="main" class="main">
-      <div class="con row">
+      <div class="con-row">
         <div class="total_products col">
           <h1 style="color: blue;">Add Products</h1>
         </div>
@@ -113,17 +110,25 @@
               </div>
               <div class="card-body">
                   <div class="image-upload-container">
-                      <div class="image-preview">
-                          <img id="preview-image" src="https://via.placeholder.com/200x200?text=Product+Image" alt="Product Image">
-                      </div>
-                      <div class="upload-controls">
-                          <div class="file-upload">
-                              <input type="file" name="product-image" id="product-image" style="display: none;" accept="image/*">
-                              <label for="product-image" class="upload-image-button">
-                                  <i class="fas fa-cloud-upload-alt"></i> Upload Product Image
-                              </label>
-                          </div>
-                      </div>
+
+                      
+                        <div class="image-preview m-2">
+                            <img id="preview-image" src="https://via.placeholder.com/200x200?text=Product+Image" alt="Product Image">
+                        </div>
+                        <div class="upload-controls">
+                            <div class="file-upload mb-2">
+                                <input type="file" name="product-image-camera" id="product-image-camera" style="display: none;" accept="image/*">
+                                <label for="product-image-camera" class="upload-image-button">
+                                    <i class="fas fa-cloud-upload-alt"></i> Scan from Camera
+                                </label>
+                            </div>
+                            <div class="file-upload mb-2">
+                                <input type="file" name="product-image-upload" id="product-image-upload" style="display: none;" accept="image/*">
+                                <label for="product-image-upload" class="upload-image-button">
+                                    <i class="fas fa-cloud-upload-alt"></i> Upload Product Image
+                                </label>
+                            </div>
+                        </div>
                   </div>
               </div>
           </div>
@@ -170,7 +175,29 @@
 
                     <!-- Result Section Starts --------------------------->
                     <div id="result-image-box" style="display: none;">
-                        <button class="upload-image-button" onclick="uploadImages()">Generate Clothes Swap</button>
+                        <div style="display: flex; flex-direction: column; gap: 10px; width: 240px;">
+
+                            <div class="custom-select-wrapper">
+                                <label for="fake-select" class="label-style">Select clothing area</label>
+                                <div class="custom-select" id="fake-select">
+                                    <span class="selected-value">Select Category</span>
+                                    <i class='arrow fas fa-angle-down' style='font-size:24px'></i>
+                                </div>
+                                <div class="custom-options" id="custom-options">
+                                  <div data-value="upper_body">upper_body</div>
+                                  <div data-value="lower_body">lower_body</div>
+                                  <div data-value="dresses">dresses</div>
+                                </div>
+                                <input type="hidden" name="swap_category" id="swap_category" value="upper_body">
+                            </div>
+
+                            <button class="upload-image-button" onclick="uploadImages()">Generate Clothes Swap</button>
+
+                            <input type="file" name="product-result-image-upload" id="product-result-image-upload" style="display: none;" accept="image/*">
+                            <label for="product-result-image-upload" class="upload-image-button">
+                                <i class="fas fa-cloud-upload-alt"></i> Upload Result Image
+                            </label>
+                        </div>
                         <p class="mb-5" id="response"></p>
                         <h3 id="result-heading" style="display:none;">Result:-</h3>
                         <img width="300" height="370" id="resultImage" alt="Processed Image" style="display:none;"/>
@@ -192,37 +219,68 @@
                       <div class="form-row">
                           <div class="input-group">
                               <label for="brand-name">Brand Name</label>
-                              <input type="text" id="brand-name" placeholder="Enter brand name">
+                              <input type="text" id="brand-name" placeholder="Enter brand name" required>
                           </div>
                           <div class="input-group">
                               <label for="product-name">Product Name</label>
-                              <input type="text" id="product-name" placeholder="Enter product name">
+                              <input type="text" id="product-name" placeholder="Enter product name" required>
+                          </div>
+                          <div class="input-group">
+                              <label for="product-fabric">Fabric</label>
+                              <input type="text" id="product-fabric" placeholder="Enter Fabric name" required>
                           </div>
                       </div>
                       <div class="form-row">
+
                           <div class="input-group">
-                              <label for="product-color">Color</label>
-                              <select id="product-color">
-                                  <option value="">Select Color</option>
-                                  <option value="black">Black</option>
-                                  <option value="white">White</option>
-                                  <option value="silver">Silver</option>
-                                  <option value="gold">Gold</option>
-                                  <option value="blue">Blue</option>
-                                  <option value="red">Red</option>
-                              </select>
+                            <label for="color-select">Colors:</label>
+                            <!-- New manual color input field -->
+                            <input type="text" id="manual-color-input" placeholder="Enter Custom Color" style="margin-bottom: 8px;" required/>
+
+                            <div class="dropdown-wrapper">
+                                <div class="custom-dropdown" id="color-select">
+                                    <span class="selected-value-color">Select Color</span>
+                                    <i class='arrow fas fa-angle-down' style='font-size:24px'></i>
+                                </div>
+                                <div class="dropdown-options">
+                                    <div data-value="">Select Color</div>
+                                    <div data-value="black">Black</div>
+                                    <div data-value="white">White</div>
+                                    <div data-value="silver">Silver</div>
+                                    <div data-value="gold">Gold</div>
+                                    <div data-value="blue">Blue</div>
+                                    <div data-value="red">Red</div>
+                                </div>
+                            </div>
+
+                            <!-- Hidden field to hold the selected value for form submission -->
+                            <input type="hidden" name="product-color" id="product-color" value="">
+
                           </div>
-                          <div class="input-group">
-                              <label>Sizes</label>
+
+                          <div class="input-group-2">
+                              <label id="label-sizes">Sizes:</label>
                               <div class="checkbox-group">
                                   <label class="checkbox-label">
-                                      <input type="checkbox" name="size" value="small"> Small
+                                      <input style="margin-right: 5px;" type="checkbox" name="size" value="extra_small">Extra Small(XS)
                                   </label>
                                   <label class="checkbox-label">
-                                      <input type="checkbox" name="size" value="large"> Large
+                                      <input type="checkbox" name="size" value="Small">Small(S)
                                   </label>
                                   <label class="checkbox-label">
-                                      <input type="checkbox" name="size" value="xlarge"> Extra Large
+                                      <input type="checkbox" name="size" value="Medium">Medium(M)
+                                  </label>
+                                  <label class="checkbox-label">
+                                      <input type="checkbox" name="size" value="Large">Large(L)
+                                  </label>
+                                  <label class="checkbox-label">
+                                      <input type="checkbox" name="size" value="XL">Extra Large(XL)
+                                  </label>
+                                  <label class="checkbox-label">
+                                      <input type="checkbox" name="size" value="2XL">2XL
+                                  </label>
+                                  <label class="checkbox-label">
+                                      <input type="checkbox" name="size" value="3XL">3XL
                                   </label>
                               </div>
                           </div>
@@ -230,149 +288,66 @@
                       <div class="form-row">
                           <div class="input-group">
                               <label for="product-quantity">Quantity</label>
-                              <input type="number" id="product-quantity" placeholder="Enter quantity">
+                              <input type="number" id="product-quantity" placeholder="Enter quantity" required>
                           </div>
                           <div class="input-group">
                               <label for="product-price">Product Price</label>
-                              <input type="number" id="product-price" placeholder="Enter product price">
+                              <input type="number" id="product-price" placeholder="Enter product price" required>
                           </div>
                       </div>
                       <div class="form-row">
                           <div class="input-group">
                               <label for="selling-price">Selling Price</label>
-                              <input type="number" id="selling-price" placeholder="Enter selling price">
+                              <input type="number" id="selling-price" placeholder="Enter selling price" required>
                           </div>
                           <div class="input-group">
                               <!-- Empty for alignment -->
                           </div>
                       </div>
-                      <div class="form-actions">
-                          <button class="btn primary-btn">Submit</button>
+                      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px">
+                        <button type="button" id="submit-variant-btn" class="btn">Submit & Add Another Variant</button>
                       </div>
+                      <table>
+                        <thead>
+                        <tr>
+                            <th>S.No.</th>
+                            <th>Resulted Image</th>
+                            <th>Model Image</th>
+                            <th>Color</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        <!-- Dynamic rows will be inserted here -->
+                        </tbody>
+                    </table>
+                    <div class="qrcodes mt-2">
+                        <h3>Scan QR Codes</h3>
+
+                        <button id="scan-btn" class="btn">Start Scanning</button>
+                        <button id="cancel-btn" class="btn" style="display:none;">Stop Scanning</button>
+
+                        <div id="reader" style="display:none;"></div>
+
+                        <div id="scanned-list">
+                            <div id="scanned-items"></div>
+                        </div>
+
+                        <script src="https://unpkg.com/html5-qrcode"></script>
+                    </div>
+
+                    <div class="form-actions mt-4">
+                        <button type="button" class="submit-add-products-btn">Submit Form</button>
+                    </div>
+
                   </div>
               </div>
           </div>
         </section>
-  
-
-        <!-- {% if plan == "premium" %}
-            <div class="upscale-imageLink" style="margin-left: 7%;">
-                <h1>Upscale Your Images</h1>
-                <a href="https://www.pixelcut.ai/t/upscaler" target="_blank" rel="noopener noreferrer"><button class="bg-blue">Click here</button></a>
-            </div>
-
-            <div class="d-flex align-content-stretch flex-wrap mt-4" style="margin-left: 7%;">
-                <div class="row w-100 h-100">
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-1 text-center"  onclick="showItem('Men')" >Men</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Women')" >Women</div>
-                </div>
-            </div>
-
-            <div id="Men" class="d-flex align-content-stretch flex-wrap mt-4 d-none" style="margin-left: 7%;">
-                <div class="row">
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('T-shirts')" >T-shirts</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Shirts')" >Shirts</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Jeans')" >Jeans</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Lowers')" >Lowers</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Jackets')" >Jackets</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Hoodies')" >Hoodies</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Suits')" >Suits</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Sweater')" >Sweater</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Tank Top')" >Tank Top</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Shorts')" >Shorts</div>
-                </div>
-            </div>
-
-            <div id="Women" class="d-flex align-content-stretch flex-wrap mt-4 d-none" style="margin-left: 7%;">
-                <div class="row">
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Suits')" >Suits</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Gowns')" >Gowns</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Kurtis')" >Kurtis</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('T-shirts')" >T-shirts</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Shirts')" >Shirts</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Hoodies')" >Hoodies</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Suits')" >Suits</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Sweater')" >Sweater</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Tank Top')" >Tank Top</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Shorts')" >Shorts</div>
-                </div>
-            </div>
-
-            <div id="T-shirts" class="d-flex align-content-stretch flex-wrap mt-4 d-none" style="margin-left: 7%;">
-                <div class="row w-100 h-100">
-                    <div class="col col-sm-3 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Half-sleeve-T-shirts')" >Half Sleeve T-shirts</div>
-                    <div class="col col-sm-3 p-4 border border-primary mb-3 mx-2 text-center"  onclick="showItem('Full-sleeve-T-shirts')" >Full Sleeve T-shirts</div>
-                </div>
-            </div>
-
-            <div id="Half-sleeve-T-shirts" class="d-flex align-content-stretch flex-wrap mt-4 d-none" style="margin-left: 7%;">
-                <div class="row">
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center" onclick="showItem('Polo-T-shirts')" >Polo T-shirts</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center" onclick="showItem('Round-Neck-T-shirts')" >Round-Neck T-shirts</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center" onclick="showItem('V-Neck-T-shirts')" >V-Neck T-shirts</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center" onclick="showItem('Henley-T-shirts')" >Henley T-shirts</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center" onclick="showItem('Sweatshirts')" >Sweatshirts</div>
-                  <div class="col col-sm-2 p-4 border border-primary mb-3 mx-2 text-center" onclick="showItem('Sleeveless-T-shirts')" >Sleeveless T-shirts</div>
-                </div>
-            </div>
-
-            <div id="Polo-T-shirts" class="d-flex align-content-stretch flex-wrap mt-4 d-none" style="margin-left: 7%;">
-                <h1>Choose Models</h1>
-                <div class="row">
-                  <div class="col col-sm-2 border border-primary mb-3 mx-2 text-center" onclick="showItem('id-1')" ><img id="garmentImage" width="140" height="180" src="../static/img/models/women/crop-top/Model-1.png" alt="id-1">1</div>
-                  <div class="col col-sm-2 border border-primary mb-3 mx-2 text-center" onclick="showItem('id-2')" ><img width="140" height="180" src="../static/img/models/women/crop-top/Model-2.png" alt="id-2">2</div>
-                  <div class="col col-sm-2 border border-primary mb-3 mx-2 text-center" onclick="showItem('id-3')" ><img width="140" height="180" src="../static/img/models/women/crop-top/Model-8.png" alt="id-8">3</div>
-                  <div class="col col-sm-2 border border-primary mb-3 mx-2 text-center" onclick="showItem('id-4')" ><img width="140" height="180" src="../static/img/models/women/crop-top/Model-4.png" alt="id-4">4</div>
-                  <div class="col col-sm-2 border border-primary mb-3 mx-2 text-center" onclick="showItem('id-5')" ><img width="140" height="180" src="../static/img/models/women/crop-top/Model-7.png" alt="id-7">5</div>
-                  <div class="col col-sm-2 border border-primary mb-3 mx-2 text-center" onclick="showItem('id-6')" ><img width="140" height="180" src="../static/img/models/women/crop-top/Model-6.png" alt="id-6">6</div>
-                  <div class="col col-sm-2 border border-primary mb-3 mx-2 text-center" onclick="showItem('id-7')" ><img width="140" height="180" src="../static/img/models/women/crop-top/Model-9.png" alt="id-9">7</div>
-                </div>
-            </div>
-
-            <div id="id-1" class="upload_photo mt-5 d-none" style="margin-left: 7%;">
-                <h1>Upload Your Cloth Image</h1>
-                <input type="file" name="product-image" id="product-image" accept="image/*">
-                <figure class="cloth-image">
-                    <img id="chosen-image">
-                </figure>
-                <button class="bg-primary text-white" onclick="uploadImages()">Generate Clothes Swap</button>
-                <p class="mb-5" id="response"></p>
-                <h3>Result:-</h3>
-                <img width="340" height="400" id="resultImage" alt="Processed Image" style="display:none;"/>
-
-            </div>
-        {% endif %} -->
 
       </div>
         
     </main> <!-- End #main -->
-    <script src="../static/js/add-products-buttons.js"></script>
-    <script src="../static/js/main2.js"></script>
-    <script src="../static/js/add-products2.js"></script>
-    <script>
-        // let uploadButton = document.getElementById("product-image")
-        // let chosenImage = document.getElementById("chosen-image")
-        // let fileName = document.getElementById("file-name")
-
-        // uploadButton.onchange = () => {
-        //     let reader = new FileReader();
-        //     reader.readAsDataURL(uploadButton.files[0]);
-        //     reader.onload = () => {
-        //         chosenImage.setAttribute("src", reader.result);
-        //     }
-        //     fileName.textContent = uploadButton.files[0].name;
-        // }
-
-        // function showItem(itemId) {
-        //     if (itemId == "Women"){
-        //         document.getElementById("Men").classList.add('d-none');
-        //     }
-        //     else if (itemId == "Men"){
-        //         document.getElementById("Women").classList.add('d-none');
-        //     }
-        //     document.getElementById(itemId).classList.remove('d-none');
-        // }
-
-    </script>
+    <script src="../static/js/add-products.js" defer></script>
 
 {% endblock %}

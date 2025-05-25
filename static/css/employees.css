@@ -8,7 +8,6 @@
     --text-light: #666;
     --bg-color: #fff;
     --bg-light: #f8f9fa;
-    --bg-sidebar: #f5f0ff;
     --border-color: #e0e0e0;
     --success-color: #28a745;
     --danger-color: #dc3545;
@@ -60,73 +59,6 @@
     flex: 1;
     padding: 1.5rem;
     overflow-y: auto;
-  }
-  
-  /* Sidebar */
-  .sidebar {
-    width: 280px;
-    background-color: var(--bg-sidebar);
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    transition: width 0.3s ease;
-  }
-  
-  .sidebar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-  }
-  
-  .sidebar-header h2 {
-    font-size: 1.5rem;
-    color: var(--primary-dark);
-  }
-  
-  .toggle-btn {
-    background: none;
-    border: none;
-    color: var(--primary-color);
-    font-size: 1.2rem;
-  }
-  
-  .sidebar-nav {
-    flex: 1;
-    padding: 1rem 0;
-  }
-  
-  .sidebar-nav ul li {
-    margin-bottom: 0.5rem;
-  }
-  
-  .sidebar-nav ul li a {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1.5rem;
-    color: var(--text-color);
-    transition: all 0.3s ease;
-  }
-  
-  .sidebar-nav ul li a i {
-    margin-right: 0.75rem;
-    font-size: 1.1rem;
-  }
-  
-  .sidebar-nav ul li.active a,
-  .sidebar-nav ul li a:hover {
-    background-color: rgba(138, 43, 226, 0.1);
-    color: var(--primary-color);
-  }
-  
-  .sidebar-nav ul li.active {
-    border-left: 3px solid var(--primary-color);
-  }
-  
-  .sidebar-footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--border-color);
   }
   
   .admin-info {
@@ -736,21 +668,10 @@
   }
   
   /* Responsive */
-  @media (max-width: 992px) {
-    .sidebar {
-      width: 240px;
-    }
-  }
   
   @media (max-width: 768px) {
     .app-container {
       flex-direction: column;
-    }
-  
-    .sidebar {
-      width: 100%;
-      border-right: none;
-      border-bottom: 1px solid var(--border-color);
     }
   
     .form-row {
@@ -783,3 +704,101 @@
     }
   }
   
+
+/*--------------------------------------------------------------
+  # Select Section
+--------------------------------------------------------------*/
+.custom-select-wrapper {
+  position: relative;
+  width: 100%;
+  font-family: sans-serif;
+}
+
+.custom-select {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background-color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.custom-select .arrow {
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+
+.custom-select.open .arrow {
+  transform: rotate(180deg);
+}
+
+.custom-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  border: 1px solid #ccc;
+  background-color: white;
+  display: none;
+  z-index: 1000;
+}
+
+.custom-options div{
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.custom-options div:hover {
+  background-color: #f0f0f0;
+}
+
+.label-style {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
+}
+
+
+/*--------------------------------------------------------------
+  # Select Job Section
+--------------------------------------------------------------*/
+.custom-select-job {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background-color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.custom-select-job .arrow {
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+
+.custom-select-job.open .arrow {
+  transform: rotate(180deg);
+}
+
+.custom-options-job {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  border: 1px solid #ccc;
+  background-color: white;
+  display: none;
+  z-index: 1000;
+}
+
+.custom-options-job div{
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.custom-options-job div:hover {
+  background-color: #f0f0f0;
+}

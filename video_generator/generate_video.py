@@ -1,4 +1,4 @@
-from moviepy.editor import ImageClip, CompositeVideoClip, concatenate_videoclips, AudioFileClip
+from moviepy.editor import ImageClip, ColorClip, CompositeVideoClip, concatenate_videoclips, AudioFileClip
 from PIL import Image, ImageDraw, ImageFont
 from moviepy.audio.fx.all import audio_fadein
 import numpy as np
@@ -138,12 +138,171 @@ def generate_video(image_path1, image_path2, image_path3, output_path, title_tex
     )
 
 # Example usage
-generate_video(
-    image_path1="images/product1.png",
-    image_path2="images/product2.png",
-    image_path3="images/product3.png",
-    output_path="output/products_video.mp4",
-    title_text1="New Crop Top ₹499",
-    title_text2="New Set Available Now!",
-    audio_path="audio/Wahran.mp3"
+# generate_video(
+#     image_path1="images/product1.png",
+#     image_path2="images/product2.png",
+#     image_path3="images/product3.png",
+#     output_path="output/products_video.mp4",
+#     title_text1="New Crop Top ₹499",
+#     title_text2="New Set Available Now!",
+#     audio_path="audio/Wahran.mp3"
+# )
+
+# 1st Video part Ends ----------------------------------------------->
+
+# ----------------------------------------------------------------------->
+# ----------------------------------------------------------------------->
+# ----------------------------------------------------------------------->
+# ----------------------------------------------------------------------->
+
+# 2nd Video part Starts ----------------------------------------------->
+
+# --- CONFIGURATION ---
+IMAGE_PATHS = [
+    "images/product1.png",
+    "images/product2.png",
+    "images/product3.png",
+    "images/product1.png",
+    "images/product2.png",
+    "images/product3.png",
+    "images/product1.png",
+    "images/product2.png",
+    "images/product3.png",
+    "images/product1.png",
+]
+TEXTS = [
+    "New Crop Top ₹499",
+    "Stylish Summer Look",
+    "Trendy Sets ₹999",
+    "Limited Edition Now",
+    "Fresh Stock In",
+    "Best Seller Today",
+    "Top Rated Pick",
+    "Just Dropped",
+    "Shop This Look",
+    "Final Sale!"
+]
+
+
+VIDEO_WIDTH = 720
+VIDEO_HEIGHT = 1280
+DURATION_PER_IMAGE = 2
+SLIDE_DURATION = 0.5  # shorter transition for faster slide
+STILL_DURATION = DURATION_PER_IMAGE - SLIDE_DURATION
+TOTAL_DURATION = len(IMAGE_PATHS) * DURATION_PER_IMAGE
+BG_COLOR = (245, 245, 220)  # Beige
+FPS = 15
+IMAGE_SCALE = 0.70  # scale down image size
+
+
+def create_slide_clip(image_path, duration, text=None):
+    img_clip = (ImageClip(image_path)
+                .resize(height=int(1280 * IMAGE_SCALE))
+                .set_duration(duration))
+
+    bg = ColorClip(size=(VIDEO_WIDTH, VIDEO_HEIGHT), color=BG_COLOR, duration=duration)
+    centered_img = img_clip.set_position(("center", 220))
+    if text:
+        text_img = create_text_image(
+            text=text,
+            font_path="/Library/Fonts/DejaVuSans.ttf",  # or use a valid font path on your OS
+            fontsize=60,
+            box_size=(700, 70),
+            color=(101, 67, 33),  # Dark brown RGB
+            align="center",
+            padding=10
+        )
+        text_np = np.array(text_img)
+        # text_clip = ImageClip(text_np).set_position(("center", "bottom")).set_duration(duration)
+        text_clip = ImageClip(text_np).set_position(("center", 100)).set_duration(duration) 
+        return CompositeVideoClip([bg, centered_img, text_clip], size=(VIDEO_WIDTH, VIDEO_HEIGHT)).set_duration(duration)
+    else:
+        return CompositeVideoClip([bg, centered_img], size=(VIDEO_WIDTH, VIDEO_HEIGHT)).set_duration(duration)
+
+def create_slide_transition(prev_image, next_image):
+    img_prev = ImageClip(prev_image).resize(height=int(780 * IMAGE_SCALE)).set_duration(SLIDE_DURATION)
+    img_next = ImageClip(next_image).resize(height=int(780 * IMAGE_SCALE)).set_duration(SLIDE_DURATION)
+
+    def prev_pos(t):
+        dx = VIDEO_WIDTH * (t / SLIDE_DURATION)
+        return (VIDEO_WIDTH // 2 - dx - img_prev.w // 2, VIDEO_HEIGHT // 2 - img_prev.h // 2)
+
+    def next_pos(t):
+        dx = VIDEO_WIDTH * (1 - t / SLIDE_DURATION)
+        return (VIDEO_WIDTH // 2 + dx - img_next.w // 2, VIDEO_HEIGHT // 2 - img_next.h // 2)
+
+    bg = ColorClip(size=(VIDEO_WIDTH, VIDEO_HEIGHT), color=BG_COLOR, duration=SLIDE_DURATION)
+    return CompositeVideoClip([
+        bg,
+        img_prev.set_position(prev_pos),
+        img_next.set_position(next_pos)
+    ], size=(VIDEO_WIDTH, VIDEO_HEIGHT)).set_duration(SLIDE_DURATION)
+
+# --- MAIN ---
+clips = []
+num_images = len(IMAGE_PATHS)
+
+# Add first image without transition
+clips.append(create_slide_clip(IMAGE_PATHS[0], DURATION_PER_IMAGE, text=TEXTS[0]))
+
+# Add rest with transition + hold
+for i in range(1, num_images):
+    transition = create_slide_transition(IMAGE_PATHS[i - 1], IMAGE_PATHS[i])
+    hold = create_slide_clip(IMAGE_PATHS[i], STILL_DURATION, text=TEXTS[i])
+    clips.extend([transition, hold])
+
+final_video = concatenate_videoclips(clips, method="compose")
+
+# Stick Texts Starts ---------------------------------->
+fixed_text_img = create_text_image(
+    text="New Collections",
+    font_path="/Library/Fonts/DejaVuSans-Bold.ttf",
+    fontsize=80,
+    box_size=(700, 80),
+    color=(101, 67, 33),  # dark brown
+    align="center",
+    padding=10
 )
+fixed_text_np = np.array(fixed_text_img)
+fixed_text_clip = (
+    ImageClip(fixed_text_np, transparent=True)
+    .set_duration(final_video.duration)
+    .set_position(("center", 5))  # Top center
+)
+
+# Overlay the fixed text on the full video
+final_video = CompositeVideoClip([final_video, fixed_text_clip])
+# Stick Texts Ends ---------------------------------->
+
+
+# Load and trim audio
+audio = AudioFileClip("audio/Wahran.mp3").subclip(46, 46 + final_video.duration)
+audio = audio.fx(audio_fadein, 2)  # Optional fade-in
+final_video = final_video.set_audio(audio)
+final_video.write_videofile(
+    "output/final_reel.mp4",
+    fps=FPS,
+    # codec="libx264",
+    # audio_codec="aac",  # << this is important to run on QuickTime Player
+    bitrate="1000k"
+)
+
+# 2nd Video part Ends ----------------------------------------------->
+
+# ----------------------------------------------------------------------->
+# ----------------------------------------------------------------------->
+# ----------------------------------------------------------------------->
+# ----------------------------------------------------------------------->
+
+
+# 3rd Video part Starts ----------------------------------------------->
+
+
+
+
+# 3rd Video part Ends ----------------------------------------------->
+
+# ----------------------------------------------------------------------->
+# ----------------------------------------------------------------------->
+# ----------------------------------------------------------------------->
+# ----------------------------------------------------------------------->
