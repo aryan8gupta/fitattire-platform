@@ -464,7 +464,6 @@ resultImageInput.addEventListener('change', function () {
     product_quantity: 0,
     product_price: 0,
     product_selling_price: 0,
-    garment_images: [],
     result_images: [],
     product_colors: []
   };
@@ -498,10 +497,10 @@ resultImageInput.addEventListener('change', function () {
       return;
     }
 
-    productGarmentImages.push(garmentImages2);
+    const garmentImageURL = URL.createObjectURL(garmentImages2);
+    productGarmentImages.push(garmentImageURL);
     
     // Append variant data to arrays
-    productData.garment_images.push(garmentImages2);
     productData.result_images.push(resultImage);
     productData.product_colors.push(productColor);
 
@@ -533,7 +532,7 @@ resultImageInput.addEventListener('change', function () {
     const tableBody = document.getElementById("tableBody");
     tableBody.innerHTML = ""; // clear existing rows
 
-    for (let i = 0; i < productData.garment_images.length; i++) {
+    for (let i = 0; i < productData.product_colors.length; i++) {
       const row = document.createElement("tr");
       row.innerHTML = `
         <td>${i + 1}</td>
@@ -693,7 +692,6 @@ resultImageInput.addEventListener('change', function () {
               product_quantity: 0,
               product_price: 0,
               product_selling_price: 0,
-              garment_images: [],
               result_images: [],
               product_colors: []
             };
