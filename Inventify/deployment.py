@@ -9,6 +9,7 @@ DEBUG = False
 SECRET_KEY = 'django-insecure-$j$mcen!5kw_vxos#q9g)cm!@zflik7k3&nohn@rg_&qx!88hl'
 PUBLIC_KEY = 'Aryan971pass'
 
+ENVIRONMENT = "deployment"
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -81,3 +82,9 @@ STATICFILES_DIRS = [
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

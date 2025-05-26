@@ -39,6 +39,16 @@
       <a href="/login/">
         <button class="sign-up">Shop Now</button>
       </a>
+      {% if env == "local" %}
+        <div style="background: yellow; color: black; padding: 5px;">
+            🛠️ Local Development Mode
+        </div>
+      {% elif env == "deployment" %}
+        <div style="background: green; color: white; padding: 5px;">
+            🚀 Deployed on Azure (Production)
+        </div>
+      {% endif %}
+
     </div>
     <div class="hero-img">
       <img src="{% static 'img/home/hero-woman.png' %}" alt="Fashion Model">

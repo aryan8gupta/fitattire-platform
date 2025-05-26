@@ -141,7 +141,7 @@ def index(request):
     user_type = data.get('user_type')
     user_name = data.get('first_name')
 
-    return render(request, 'home.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
+    return render(request, 'home.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, "env": settings.ENVIRONMENT})
 
 
 def products_2(request):
