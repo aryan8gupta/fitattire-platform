@@ -74,7 +74,7 @@ let selectedCategory = "";
 let selectedSubCategory = "";
 let selectedFinalCategory = "";
 let selectedImagePath = "";
-let garmentImage = null; 
+let productGarmentImages = []; 
 
 let documentData = {
   gender: null,
@@ -490,16 +490,18 @@ resultImageInput.addEventListener('change', function () {
     const productColor = getSelectedColor();
     const cameraFile = document.getElementById("product-image-camera").files[0];
     const uploadFile = document.getElementById("product-image-upload").files[0];
-    garmentImage = uploadFile || cameraFile;
+    const garmentImages2 = uploadFile || cameraFile;
 
     // Validate images and color inputs for the variant
-    if (!garmentImage || !resultImage || resultImage === "about:blank" || !productColor) {
+    if (!garmentImages2 || !resultImage || resultImage === "about:blank" || !productColor) {
       alert("Please upload garment image, generate result image and select a color.");
       return;
     }
 
+    productGarmentImages.push(garmentImages2);
+    
     // Append variant data to arrays
-    productData.garment_images.push(garmentImage);
+    productData.garment_images.push(garmentImages2);
     productData.result_images.push(resultImage);
     productData.product_colors.push(productColor);
 
@@ -536,7 +538,7 @@ resultImageInput.addEventListener('change', function () {
       row.innerHTML = `
         <td>${i + 1}</td>
         <td><img src="${productData.result_images[i]}" alt="Result Image" width="60" height="95"></td>
-        <td><img src="${garmentImage}" alt="Garment Image" width="60" height="90"></td>
+        <td><img src="${productGarmentImages[i]}" alt="Garment Image" width="60" height="90"></td>
         <td>${productData.product_colors[i]}</td>
         <td class="action-buttons">
           <svg class="delete-icon" viewBox="0 0 24 24">
@@ -640,10 +642,7 @@ resultImageInput.addEventListener('change', function () {
         console.log("100002");
         productData.qrcode_ids = [...idsArray];
         console.log("100000");
-        console.log("idsArray:", idsArray);
-        console.log("productData.qrcode_ids:", productData.qrcode_ids);
-        console.log("Final productData:", productData);
-        console.log("Stringified:", JSON.stringify(productData));
+
 
         const formData = new FormData();
         formData.append('document', JSON.stringify(productData));
@@ -651,7 +650,7 @@ resultImageInput.addEventListener('change', function () {
         formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
         // ✅ Append each File from garment_images
-        productData.garment_images.forEach((file, index) => {
+        productGarmentImages.forEach((file, index) => {
           formData.append(`garment_${index}`, file);  // Use same key pattern to fetch on Django side
         });
 

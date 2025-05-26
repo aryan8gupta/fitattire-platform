@@ -8,8 +8,8 @@ import bcrypt
 import jwt
 from datetime import datetime, timedelta
 from django.views.decorators.csrf import csrf_exempt
-from Inventify.settings import DB, PUBLIC_KEY, MEDIA_ROOT
-# from Inventify.deployment import DB, PUBLIC_KEY
+# from Inventify.settings import DB, PUBLIC_KEY, MEDIA_ROOT
+from Inventify.deployment import DB, PUBLIC_KEY, MEDIA_ROOT
 from .models import YourModel
 
 from PIL import Image, ImageOps
@@ -25,7 +25,13 @@ import string
 from django.http import JsonResponse
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from .utils.blob_utils import upload_image_to_azure
 
+
+my_var = os.getenv('Pincel_API_Key', 'Default Value')
+
+PINCEL_API_URL = "https://pincel.app/api/clothes-swap"
+PINCEL_API_KEY = my_var
 
 
 # QR-Code Generating / Template----------------------------------------------------------->
@@ -90,11 +96,6 @@ data_list = [
 # Uncomment this to create pdf.
 # create_vertical_qr_pdf(data_list)
 # --------------------------------------------------------------------->
-
-my_var = os.getenv('Pincel_API_Key', 'Default Value')
-
-PINCEL_API_URL = "https://pincel.app/api/clothes-swap"
-PINCEL_API_KEY = my_var
 
 product_list1 = []
 
@@ -549,10 +550,10 @@ def add_products(request):
 
                 if uploaded_file:
                     # Save file to media directory
-                    path = default_storage.save(f'garments/{uploaded_file.name}', ContentFile(uploaded_file.read()))
-                    file_url = default_storage.url(path)  # URL to access the image later
-
-                    saved_garment_urls.append(file_url)
+                    # path = default_storage.save(f'garments/{uploaded_file.name}', ContentFile(uploaded_file.read()))
+                    # file_url = default_storage.url(path)  # URL to access the image later
+                    uploaded_url = upload_image_to_azure(uploaded_file)
+                    saved_garment_urls.append(uploaded_url)
                 else:
                     # No file sent for this variant, fallback or error handling
                     saved_garment_urls.append('')  # or handle as you prefer
@@ -590,9 +591,7 @@ def add_products(request):
             DB.products.insert_one(products_dict)
             print("✅ Product inserted successfully")
 
-
-            return render(request, 'add_products.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
-
+            return JsonResponse({'uploaded_urls': "uploaded"})
 
         except:
             messages.warning(request, "Already Registered")

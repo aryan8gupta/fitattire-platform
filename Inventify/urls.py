@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from Inventify import settings
+from Inventify import base
 from django.conf.urls.static import static
 
 from Inventify import views
@@ -59,4 +59,4 @@ urlpatterns = [
     path('subscription/', views.subscription),
     path('subscription-upgrade/', views.subs_upgrade),
 
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(base.MEDIA_URL, document_root=base.MEDIA_ROOT)
