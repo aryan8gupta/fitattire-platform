@@ -490,6 +490,8 @@ resultImageInput.addEventListener('change', function () {
     const cameraFile = document.getElementById("product-image-camera").files[0];
     const uploadFile = document.getElementById("product-image-upload").files[0];
     const garmentImages2 = uploadFile || cameraFile;
+    console.log("1500")
+    console.log(resultImage)
 
     // Validate images and color inputs for the variant
     if (!garmentImages2 || !resultImage || resultImage === "about:blank" || !productColor) {
@@ -636,11 +638,8 @@ resultImageInput.addEventListener('change', function () {
   if (submitButton) {
     submitButton.addEventListener('click', async function(e) {
         e.preventDefault();
-        console.log("100001");
         const idsArray = Array.from(scannedIds); // ✅ move it here
-        console.log("100002");
         productData.qrcode_ids = [...idsArray];
-        console.log("100000");
 
 
         const formData = new FormData();
@@ -653,15 +652,20 @@ resultImageInput.addEventListener('change', function () {
           formData.append(`garment_${index}`, file);  // Use same key pattern to fetch on Django side
         });
 
+        console.log(productGarmentImages)
+        console.log(formData)
         try {
+          console.log("1")
           const response = await fetch('/add-products/', {
               method: 'POST',
               body: formData
           });
+          console.log("2")
+          console.log(response)
   
           const result = await response.json();
   
-          if (result.status === 'success') {
+          if (result.uploaded_urls === 'uploaded') {
             alert('Product added successfully!');
             
             // Reset form
