@@ -38,6 +38,7 @@ const data = {
 
 // Image file mapping (real filenames)
 const images = {};
+const azureBaseUrl = "https://fitattirestorage.blob.core.windows.net/fitattire-assets"
 Object.keys(data).forEach(gender => {
   Object.keys(data[gender]).forEach(category => {
     const sub = data[gender][category];
@@ -47,13 +48,15 @@ Object.keys(data).forEach(gender => {
         const finalSub = sub[subCategory];
         if (Array.isArray(finalSub)) {
           finalSub.forEach(final => {
-          images[final] = Array.from({ length: 5 }, (_, i) => `/static/img/models/${gender.toLowerCase()}/${category.toLowerCase().replace(/\s/g,'-')}/${subCategory.toLowerCase().replace(/\s/g,'-')}/${final.toLowerCase().replace(/\s/g,'-')}/${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`);
+          images[final] = Array.from({ length: 5 }, (_, i) => 
+            `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${subCategory.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`);
           });
         }
       });
     } else if (Array.isArray(sub)){
       sub.forEach(final => {
-        images[final] = Array.from({ length: 5 }, (_, i) => `/static/img/models/${gender.toLowerCase()}/${category.toLowerCase().replace(/\s/g,'-')}/${final.toLowerCase().replace(/\s/g,'-')}/${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`);
+        images[final] = Array.from({ length: 5 }, (_, i) => 
+          `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`);
       });
     }
   });
@@ -269,9 +272,9 @@ async function uploadImages() {
   formData.append("category", clothes_swap_category);
   formData.append("garment_image", garmentImage);
 
-  const response2 = await fetch(modelImage);
-  const blob2 = await response2.blob();
-  formData.append("model_image", blob2, "model_image.jpg");
+  // const response2 = await fetch(modelImage);
+  // const blob2 = await response2.blob();
+  formData.append("model_image_url", modelImage);
 
   try {
     const response = await fetch('/upload', {
@@ -285,6 +288,10 @@ async function uploadImages() {
       document.getElementById("result-heading").style.display="block";
       document.getElementById('resultImage').src = result.upscaled_url;
       document.getElementById('resultImage').style.display = 'block';
+
+      // Set hidden input with actual URL
+      document.getElementById('resultImageURL').value = result.upscaled_url;
+
     } else {
       document.getElementById('response').innerText = result.error || 'Error processing image.';
     }
@@ -486,34 +493,47 @@ resultImageInput.addEventListener('change', function () {
       }
     }
     const resultImage = document.getElementById('resultImage').src;
+    const urlInput = document.getElementById('resultImageURL').value;
+    const uploadResultImage = document.getElementById('product-result-image-upload').files[0];
     const productColor = getSelectedColor();
     const cameraFile = document.getElementById("product-image-camera").files[0];
     const uploadFile = document.getElementById("product-image-upload").files[0];
+
     const garmentImages2 = uploadFile || cameraFile;
+    const productResult = urlInput || uploadResultImage;
 
     // Validate images and color inputs for the variant
-    if (!garmentImages2 || !resultImage || resultImage === "about:blank" || !productColor) {
+    if (!garmentImages2 || !productResult || resultImage === "about:blank" || !productColor) {
       alert("Please upload garment image, generate result image and select a color.");
       return;
     }
 
+    console.log(productResult)
     // Append variant data to arrays
 
     productData.product_colors.push(productColor);
 
-    if (resultImage && (resultImage.startsWith('http') || resultImage.startsWith('/'))) {
-      // It's likely a URL (absolute or relative)
-      console.log('resultImage is a URL:');
-      productResultImages.push(resultImage);
-    } else {
-      // Not a valid URL or empty
-      console.log('resultImage is not a URL or is empty:');
-      const resultImageURL = URL.createObjectURL(resultImage);
-      productResultImages.push(resultImageURL);
-    }
+    // if (productResult && typeof productResult === 'string' && 
+    //   (productResult.startsWith('http') || productResult.startsWith('/'))) {
 
-    const garmentImageURL = URL.createObjectURL(garmentImages2);
-    productGarmentImages.push(garmentImageURL);
+    //   // It's likely a URL (absolute or relative)
+    //   console.log('resultImage is a URL:');
+    //   productResultImages.push(productResult);
+
+    // } else if (productResult instanceof File) {
+    //   // Not a valid URL or empty
+    //   console.log('resultImage is not a URL or is empty:');
+    //   const resultImageURL = URL.createObjectURL(productResult);
+    //   productResultImages.push(resultImageURL);
+    // }
+
+    // const garmentImageURL = URL.createObjectURL(garmentImages2);
+
+    productGarmentImages.push(garmentImages2);
+
+    productResultImages.push(productResult);
+
+    console.log("10000");
 
     console.log(productGarmentImages)
     console.log(productResultImages)
@@ -540,6 +560,8 @@ resultImageInput.addEventListener('change', function () {
     document.getElementById('manual-color-input').value = "";
     document.getElementById('product-image-camera').value = "";
     document.getElementById('product-image-upload').value = "";
+    document.getElementById('product-result-image-upload').value = "";
+    document.getElementById('resultImageURL').value = "";
     selectedImagePath = "";
   }
 
@@ -660,13 +682,18 @@ resultImageInput.addEventListener('change', function () {
         formData.append('selectedmiddlebuttons', JSON.stringify(documentData));
         formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
-        // ✅ Append each File from garment_images
+        // ✅ Garment images - always files
         productGarmentImages.forEach((file, index) => {
-          formData.append(`garment_${index}`, file);  // Use same key pattern to fetch on Django side
+          formData.append(`garment_${index}`, file);
         });
-        // ✅ Append each File from result_images
-        productResultImages.forEach((file, index) => {
-          formData.append(`result_${index}`, file);  // Use same key pattern to fetch on Django side
+
+        // ✅ Result images - could be file or URL
+        productResultImages.forEach((item, index) => {
+          if (item instanceof File) {
+            formData.append(`result_file_${index}`, item); // File
+          } else if (typeof item === 'string') {
+            formData.append(`result_url_${index}`, item); // URL
+          }
         });
 
         try {

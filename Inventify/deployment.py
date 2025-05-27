@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 Blob_Key = os.getenv('Blob_Account_Key', 'Default Value-1')
 
 AZURE_STORAGE_ACCOUNT_NAME = "fitattirestorage"
-AZURE_STORAGE_ACCOUNT_KEY = "Blob_Key"
+AZURE_STORAGE_ACCOUNT_KEY = Blob_Key
 AZURE_CONTAINER_NAME = "fitattire-assets"
 
 AZURE_BLOB_URL = f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}"

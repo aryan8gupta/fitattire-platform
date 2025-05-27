@@ -39,7 +39,7 @@
       <a href="/login/">
         <button class="sign-up">Shop Now</button>
       </a>
-      {% if env == "local" %}
+      {% comment %} {% if env == "local" %}
         <div style="background: yellow; color: black; padding: 5px;">
             🛠️ Local Development Mode
         </div>
@@ -47,7 +47,7 @@
         <div style="background: green; color: white; padding: 5px;">
             🚀 Deployed on Azure (Production)
         </div>
-      {% endif %}
+      {% endif %} {% endcomment %}
 
     </div>
     <div class="hero-img">
@@ -222,7 +222,8 @@
         <div class="heart-btn">
           <i class="fas fa-heart"></i> <!-- Font Awesome Heart -->
         </div>
-        <img src="{% static 'img/models/women/suits/a-line-suits/a-line-suits-3.png' %}">
+        {% comment %} <img src="{% static 'img/models/women/suits/a-line-suits/a-line-suits-3.png' %}"> {% endcomment %}
+        <img src="https://fitattirestorage.blob.core.windows.net/fitattire-assets/Screenshot 2025-03-15 at 9.56.31 AM.png">
         <p>A-Line Suit</p>
         <span>$30</span>
       </div>

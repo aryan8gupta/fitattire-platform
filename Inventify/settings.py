@@ -23,9 +23,17 @@ CSRF_TRUSTED_ORIGINS = ['https://inventory-management-app-hnbvgqaag3g2hyde.centr
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
+
+Blob_Key = os.getenv('Blob_Account_Key', 'Default Value-1')
+
+AZURE_STORAGE_ACCOUNT_NAME = "fitattirestorage"
+AZURE_STORAGE_ACCOUNT_KEY = Blob_Key
+AZURE_CONTAINER_NAME = "fitattire-assets"
+
+AZURE_BLOB_URL = f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}"
 
 
 # Application definition

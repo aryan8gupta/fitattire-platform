@@ -9,10 +9,8 @@ def upload_image_to_azure(file_obj):
 
     # Connect to the container
     container_client = blob_service_client.get_container_client(settings.AZURE_CONTAINER_NAME)
-
     # Create a unique filename to avoid collisions
     unique_filename = f"{uuid.uuid4()}_{file_obj.name}"
-
     # Upload the blob
     blob_client = container_client.get_blob_client(unique_filename)
     blob_client.upload_blob(file_obj, overwrite=True)

@@ -8,8 +8,8 @@ import bcrypt
 import jwt
 from datetime import datetime, timedelta
 from django.views.decorators.csrf import csrf_exempt
-# from Inventify.settings import DB, PUBLIC_KEY, MEDIA_ROOT
-from Inventify.deployment import DB, PUBLIC_KEY, MEDIA_ROOT
+from Inventify.settings import DB, PUBLIC_KEY, MEDIA_ROOT
+# from Inventify.deployment import DB, PUBLIC_KEY, MEDIA_ROOT
 from .models import YourModel
 
 from PIL import Image, ImageOps
@@ -28,7 +28,7 @@ from django.core.files.base import ContentFile
 from .utils.blob_utils import upload_image_to_azure
 
 
-my_var = os.getenv('Pincel_API_Key', 'Default Value')
+my_var = os.getenv('New_Pincel_API_Key', 'Default Value')
 
 PINCEL_API_URL = "https://pincel.app/api/clothes-swap"
 PINCEL_API_KEY = my_var
@@ -284,7 +284,7 @@ def upload_image(request):
 
     if request.method == 'POST':
         clothes_category = request.POST.get("category")
-        model_image = request.FILES.get('model_image')
+        model_image = request.POST.get('model_image_url')
         garment_image = request.FILES.get('garment_image')
 
         if not model_image or not garment_image:
@@ -350,7 +350,13 @@ def upload_image(request):
 
         # Resize Image Start -------------------------------------------------------->
         def resize_image(input_path, output_path):
-            img = Image.open(input_path)
+            if input_path.startswith("http://") or input_path.startswith("https://"):
+                response = requests.get(input_path)
+                if response.status_code != 200:
+                    raise ValueError("Failed to download image from URL")
+                img = Image.open(BytesIO(response.content))
+            else:
+                img = Image.open(input_path)
 
             # Convert to RGB before saving as JPEG
             if img.mode in ("RGBA", "P"):
@@ -411,17 +417,16 @@ def upload_image(request):
             'X-API-Key': PINCEL_API_KEY,
             'Content-Type': 'application/json',
         }
-
         payload1 = {
             "model_image": f"data:image/jpeg;base64,{model_image_base64}",
             "garment_image": f"data:image/jpeg;base64,{garment_image_base64}",
             "category": clothes_category, 
             "action": "startPrediction"
         }
-
         try:
             response1 = requests.post(PINCEL_API_URL, json=payload1, headers=headers)
             data1 = response1.json()
+            print(data1)
 
             payload2 = {
                 "predictionId": data1['prediction'],
@@ -547,25 +552,50 @@ def add_products(request):
             # Loop through all garment image files sent with keys 'garment_0', 'garment_1', ...
             for i in range(len(parsed_data1['product_colors'])):
                 file_key1 = f'garment_{i}'
-                file_key2 = f'result_{i}'
                 uploaded_garment_file = request.FILES.get(file_key1)
-                uploaded_result_file = request.FILES.get(file_key2)
 
                 if uploaded_garment_file:
-                    # Save file to media directory
-                    # path = default_storage.save(f'garments/{uploaded_file.name}', ContentFile(uploaded_file.read()))
-                    # file_url = default_storage.url(path)  # URL to access the image later
+                    print("10")
                     uploaded_garment_url = upload_image_to_azure(uploaded_garment_file)
-                    uploaded_result_url = upload_image_to_azure(uploaded_result_file)
+                    print("30")
                     saved_garment_urls.append(uploaded_garment_url)
-                    saved_result_urls.append(uploaded_result_url)
+                    print("40")
+       
                 else:
                     # No file sent for this variant, fallback or error handling
                     saved_garment_urls.append('')  # or handle as you prefer
-                    saved_result_urls.append('')
+                    print("11")
+            
+            # Handle result images (mixed types)
+            index = 0
+            print(uploaded_garment_url)
+            while True:
+                print("90")
+                file_key = f'result_file_{index}'
+                print("70")
+                url_key = f'result_url_{index}'
+                print("80")
+
+                if file_key in request.FILES:
+                    print("90")
+                    result_file = request.FILES[file_key]
+                    print("60")
+                    result_url = upload_image_to_azure(result_file)
+                    print("50")
+                    saved_result_urls.append(result_url)
+                elif url_key in request.POST:
+                    print("90")
+                    saved_result_urls.append(request.POST[url_key])
+                else:
+                    print("40")
+                    break  # Stop when no more result_x keys found
+                print("100")
+                index += 1
 
 
 
+            print(saved_garment_urls)
+            print(saved_result_urls)
             # Build the variants array
             variants = []
             for i in range(len(parsed_data1['product_colors'])):
