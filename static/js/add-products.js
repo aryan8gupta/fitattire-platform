@@ -669,8 +669,6 @@ resultImageInput.addEventListener('change', function () {
           formData.append(`result_${index}`, file);  // Use same key pattern to fetch on Django side
         });
 
-        console.log(formData)
-
         try {
           console.log("1")
           const response = await fetch('/add-products/', {
@@ -678,7 +676,6 @@ resultImageInput.addEventListener('change', function () {
               body: formData
           });
           console.log("2")
-          console.log(response)
   
           const result = await response.json();
           console.log(result);

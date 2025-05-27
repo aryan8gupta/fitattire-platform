@@ -539,24 +539,30 @@ def add_products(request):
 
             # Prepare to save uploaded garment images
             saved_garment_urls = []
+            saved_result_urls = []
 
             # garment_images in parsed_data1 are currently placeholders (filenames or base64 strings)
             # We replace them with actual saved media URLs after saving files
 
             # Loop through all garment image files sent with keys 'garment_0', 'garment_1', ...
             for i in range(len(parsed_data1['product_colors'])):
-                file_key = f'garment_{i}'
-                uploaded_file = request.FILES.get(file_key)
+                file_key1 = f'garment_{i}'
+                file_key2 = f'result_{i}'
+                uploaded_garment_file = request.FILES.get(file_key1)
+                uploaded_result_file = request.FILES.get(file_key2)
 
-                if uploaded_file:
+                if uploaded_garment_file:
                     # Save file to media directory
                     # path = default_storage.save(f'garments/{uploaded_file.name}', ContentFile(uploaded_file.read()))
                     # file_url = default_storage.url(path)  # URL to access the image later
-                    uploaded_url = upload_image_to_azure(uploaded_file)
-                    saved_garment_urls.append(uploaded_url)
+                    uploaded_garment_url = upload_image_to_azure(uploaded_garment_file)
+                    uploaded_result_url = upload_image_to_azure(uploaded_result_file)
+                    saved_garment_urls.append(uploaded_garment_url)
+                    saved_result_urls.append(uploaded_result_url)
                 else:
                     # No file sent for this variant, fallback or error handling
                     saved_garment_urls.append('')  # or handle as you prefer
+                    saved_result_urls.append('')
 
 
 
@@ -566,7 +572,7 @@ def add_products(request):
                 variant = {
                     "color": parsed_data1['product_colors'][i],
                     "garment_image": saved_garment_urls[i],
-                    "result_images": parsed_data1['result_images'][i]  # this should be a list of images per color
+                    "result_image": saved_result_urls[i],
                 }
                 variants.append(variant)
 
