@@ -75,6 +75,7 @@ let selectedSubCategory = "";
 let selectedFinalCategory = "";
 let selectedImagePath = "";
 let productGarmentImages = []; 
+let productResultImages = []; 
 
 let documentData = {
   gender: null,
@@ -464,7 +465,6 @@ resultImageInput.addEventListener('change', function () {
     product_quantity: 0,
     product_price: 0,
     product_selling_price: 0,
-    result_images: [],
     product_colors: []
   };
 
@@ -490,8 +490,6 @@ resultImageInput.addEventListener('change', function () {
     const cameraFile = document.getElementById("product-image-camera").files[0];
     const uploadFile = document.getElementById("product-image-upload").files[0];
     const garmentImages2 = uploadFile || cameraFile;
-    console.log("1500")
-    console.log(resultImage)
 
     // Validate images and color inputs for the variant
     if (!garmentImages2 || !resultImage || resultImage === "about:blank" || !productColor) {
@@ -499,12 +497,27 @@ resultImageInput.addEventListener('change', function () {
       return;
     }
 
+    // Append variant data to arrays
+
+    productData.product_colors.push(productColor);
+
+    if (resultImage && (resultImage.startsWith('http') || resultImage.startsWith('/'))) {
+      // It's likely a URL (absolute or relative)
+      console.log('resultImage is a URL:');
+      productResultImages.push(resultImage);
+    } else {
+      // Not a valid URL or empty
+      console.log('resultImage is not a URL or is empty:');
+      const resultImageURL = URL.createObjectURL(resultImage);
+      productResultImages.push(resultImageURL);
+    }
+
     const garmentImageURL = URL.createObjectURL(garmentImages2);
     productGarmentImages.push(garmentImageURL);
+
+    console.log(productGarmentImages)
+    console.log(productResultImages)
     
-    // Append variant data to arrays
-    productData.result_images.push(resultImage);
-    productData.product_colors.push(productColor);
 
     console.log("Current productData:", productData);
 
@@ -538,7 +551,7 @@ resultImageInput.addEventListener('change', function () {
       const row = document.createElement("tr");
       row.innerHTML = `
         <td>${i + 1}</td>
-        <td><img src="${productData.result_images[i]}" alt="Result Image" width="60" height="95"></td>
+        <td><img src="${productResultImages[i]}" alt="Result Image" width="60" height="95"></td>
         <td><img src="${productGarmentImages[i]}" alt="Garment Image" width="60" height="90"></td>
         <td>${productData.product_colors[i]}</td>
         <td class="action-buttons">
@@ -651,9 +664,13 @@ resultImageInput.addEventListener('change', function () {
         productGarmentImages.forEach((file, index) => {
           formData.append(`garment_${index}`, file);  // Use same key pattern to fetch on Django side
         });
+        // ✅ Append each File from result_images
+        productResultImages.forEach((file, index) => {
+          formData.append(`result_${index}`, file);  // Use same key pattern to fetch on Django side
+        });
 
-        console.log(productGarmentImages)
         console.log(formData)
+
         try {
           console.log("1")
           const response = await fetch('/add-products/', {
@@ -664,6 +681,7 @@ resultImageInput.addEventListener('change', function () {
           console.log(response)
   
           const result = await response.json();
+          console.log(result);
   
           if (result.uploaded_urls === 'uploaded') {
             alert('Product added successfully!');
@@ -696,7 +714,6 @@ resultImageInput.addEventListener('change', function () {
               product_quantity: 0,
               product_price: 0,
               product_selling_price: 0,
-              result_images: [],
               product_colors: []
             };
             
