@@ -8,8 +8,8 @@ import bcrypt
 import jwt
 from datetime import datetime, timedelta
 from django.views.decorators.csrf import csrf_exempt
-from Inventify.settings import DB, PUBLIC_KEY, MEDIA_ROOT
-# from Inventify.deployment import DB, PUBLIC_KEY, MEDIA_ROOT
+# from Inventify.settings import DB, PUBLIC_KEY, MEDIA_ROOT
+from Inventify.deployment import DB, PUBLIC_KEY, MEDIA_ROOT
 from .models import YourModel
 
 from PIL import Image, ImageOps
