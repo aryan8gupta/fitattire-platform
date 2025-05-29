@@ -286,12 +286,14 @@ async function uploadImages() {
     console.log(result)
 
     if (result.output) {
+      console.log("Image path being used:", result.upscaled_path);
+      console.log("Image path being used:", result['upscaled_path']);
       document.getElementById("result-heading").style.display="block";
       document.getElementById('resultImage').src = result.upscaled_path;
       document.getElementById('resultImage').style.display = 'block';
 
       // Set hidden input with actual URL
-      document.getElementById('resultImageURL').value = result.upscaled_url;
+      document.getElementById('resultImageURL').value = result.upscaled_path;
 
     } else {
       document.getElementById('response').innerText = result.error || 'Error processing image.';
