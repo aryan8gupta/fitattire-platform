@@ -80,6 +80,9 @@ let selectedImagePath = "";
 let productGarmentImages = []; 
 let productResultImages = []; 
 
+let showGarmentImages = [];
+let showResultImages = [];
+
 let documentData = {
   gender: null,
   category: null,
@@ -510,22 +513,27 @@ resultImageInput.addEventListener('change', function () {
     // Append variant data to arrays
 
     productData.product_colors.push(productColor);
+    
+    // To show Images in Result Table Starts  ----------------------------------------->
+    if (productResult && typeof productResult === 'string' && 
+      (productResult.startsWith('http') || productResult.startsWith('/'))) {
 
-    // if (productResult && typeof productResult === 'string' && 
-    //   (productResult.startsWith('http') || productResult.startsWith('/'))) {
+      // It's likely a URL (absolute or relative)
+      console.log('resultImage is a URL:');
+      showResultImages.push(productResult);
 
-    //   // It's likely a URL (absolute or relative)
-    //   console.log('resultImage is a URL:');
-    //   productResultImages.push(productResult);
+    } else if (productResult instanceof File) {
+      // Not a valid URL or empty
+      console.log('resultImage is not a URL or is empty:');
+      const resultImageURL = URL.createObjectURL(productResult);
+      showResultImages.push(resultImageURL);
+    }
 
-    // } else if (productResult instanceof File) {
-    //   // Not a valid URL or empty
-    //   console.log('resultImage is not a URL or is empty:');
-    //   const resultImageURL = URL.createObjectURL(productResult);
-    //   productResultImages.push(resultImageURL);
-    // }
+    const garmentImageURL = URL.createObjectURL(garmentImages2);
+    showGarmentImages.push(garmentImageURL)
 
-    // const garmentImageURL = URL.createObjectURL(garmentImages2);
+    // To show Images in Result Table Ends  ----------------------------------------->
+
 
     productGarmentImages.push(garmentImages2);
 
@@ -572,7 +580,7 @@ resultImageInput.addEventListener('change', function () {
       row.innerHTML = `
         <td>${i + 1}</td>
         <td><img src="${productResultImages[i]}" alt="Result Image" width="60" height="95"></td>
-        <td><img src="${productGarmentImages[i]}" alt="Garment Image" width="60" height="90"></td>
+        <td><img src="${showGarmentImages[i]}" alt="Garment Image" width="60" height="90"></td>
         <td>${productData.product_colors[i]}</td>
         <td class="action-buttons">
           <svg class="delete-icon" viewBox="0 0 24 24">
