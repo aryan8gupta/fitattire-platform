@@ -7,6 +7,7 @@ from Inventify import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('health/', views.health_check),
 
     path('', views.index),
     path('products-2/', views.products_2),

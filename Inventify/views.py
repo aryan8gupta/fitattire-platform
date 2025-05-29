@@ -110,7 +110,6 @@ def generate_password(a):
     return hash
 
 
-
 def generate_token(user_dict):
     token = jwt.encode({"exp": datetime.now() + timedelta(days=7) , **user_dict}, PUBLIC_KEY, algorithm="HS256")
     return token
@@ -129,6 +128,8 @@ def verify_token(token):
     
     return True, decoded_token
 
+def health_check(request):
+    return JsonResponse({"status": "ok"})
 
 def index(request):
     valid = False
