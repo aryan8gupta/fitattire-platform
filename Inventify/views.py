@@ -640,11 +640,9 @@ def add_products(request):
 
             return JsonResponse({'uploaded_urls': "uploaded"})
 
-        except:
-            messages.warning(request, "Already Registered")
-            return render(request, 'add_products.html',  { 'dashboard': 
-													   dashboard, 'user_type': user_type, 'first_name': user_name})
-
+        except Exception as e:
+            print("❌ Exception:", str(e))
+            return JsonResponse({'error': 'Something went wrong', 'details': str(e)}, status=500)
             
 
     return render(request, 'add_products.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})

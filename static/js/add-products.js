@@ -285,12 +285,11 @@ async function uploadImages() {
     const result = await response.json();
     console.log(result)
 
-    if (result.output) {
-      console.log("Image path being used:", result.upscaled_path);
-      console.log("Image path being used:", result['upscaled_path']);
+    if (result && result.upscaled_path) {
       document.getElementById("result-heading").style.display="block";
-      document.getElementById('resultImage').src = result.upscaled_path;
-      document.getElementById('resultImage').style.display = 'block';
+      const imageElement = document.getElementById('resultImage');
+      imageElement.src = result.upscaled_path;
+      imageElement.style.display = 'block';
 
       // Set hidden input with actual URL
       document.getElementById('resultImageURL').value = result.upscaled_path;
@@ -712,8 +711,14 @@ resultImageInput.addEventListener('change', function () {
           });
           console.log("2")
   
-          const result = await response.json();
-          console.log(result);
+          const contentType = response.headers.get("content-type");
+          console.log("3")
+
+          if (contentType && contentType.includes("application/json")) {
+            console.log("4")
+            const result = await response.json();
+            console.log(result);
+          }
   
           if (result.uploaded_urls === 'uploaded') {
             alert('Product added successfully!');
