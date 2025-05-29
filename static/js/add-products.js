@@ -287,7 +287,7 @@ async function uploadImages() {
 
     if (result.output) {
       document.getElementById("result-heading").style.display="block";
-      document.getElementById('resultImage').src = result.upscaled_url;
+      document.getElementById('resultImage').src = result.upscaled_path;
       document.getElementById('resultImage').style.display = 'block';
 
       // Set hidden input with actual URL
