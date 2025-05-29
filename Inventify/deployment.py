@@ -42,7 +42,7 @@ AZURE_BLOB_URL = f"https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{A
 # Azure Database Connection
 my_var = os.getenv('Azure_Cosmos_Conn', 'Default Value-1')
 
-CONNECTION = pymongo.MongoClient(my_var, serverSelectionTimeoutMS=30000, retryWrites=True)
+CONNECTION = pymongo.MongoClient(my_var, serverSelectionTimeoutMS=30000)
 logger.info(CONNECTION)
 
 DB = CONNECTION['inventory-management']
