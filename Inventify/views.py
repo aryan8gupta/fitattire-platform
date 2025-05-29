@@ -475,13 +475,23 @@ def upload_image(request):
                         output_path = os.path.join(MEDIA_ROOT, 'api_result.jpg')
                         save_api_result_from_url(data2.get('output'), output_path)
 
+                        try:
+                            # Upload to Azure
+                            upscaled_azure_url = upload_image_to_azure(upscaled_path)
+                            data2['upscaled_path'] = upscaled_azure_url
+                        finally:
+                            # Always clean up the local file
+                            if os.path.exists(upscaled_path):
+                                os.remove(upscaled_path)
+                                os.remove(output_path)
+
 
                         # Add path to the response
-                        data2['upscaled_path'] = upscaled_path
+                        # data2['upscaled_path'] = upscaled_azure_url
 
                         # Get the relative media URL from the file path
-                        relative_path = os.path.relpath(upscaled_path, MEDIA_ROOT)  # gives 'upscaled/final_upscaled-5.jpg'
-                        data2['upscaled_url'] = request.build_absolute_uri(os.path.join(settings.MEDIA_URL, relative_path))
+                        # relative_path = os.path.relpath(upscaled_path, MEDIA_ROOT)  # gives 'upscaled/final_upscaled-5.jpg'
+                        # data2['upscaled_url'] = request.build_absolute_uri(os.path.join(settings.MEDIA_URL, relative_path))
 
                         # relative_path = '/media/final_upscaled-125.jpg'
                         # data2['upscaled_url'] = request.build_absolute_uri(relative_path)

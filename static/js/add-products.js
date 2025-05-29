@@ -271,9 +271,6 @@ async function uploadImages() {
   const formData = new FormData();
   formData.append("category", clothes_swap_category);
   formData.append("garment_image", garmentImage);
-
-  // const response2 = await fetch(modelImage);
-  // const blob2 = await response2.blob();
   formData.append("model_image_url", modelImage);
 
   try {
@@ -550,7 +547,7 @@ resultImageInput.addEventListener('change', function () {
 
 
   function resetVariantFields() {
-    document.getElementById('preview-image').src = "https://via.placeholder.com/200x200?text=Product+Image";
+    document.getElementById('preview-image').src = "https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png";
     document.getElementById('resultImage').src = "";
     document.getElementById('resultImage').style.display = "none";
     document.getElementById('product-color').value = "";
