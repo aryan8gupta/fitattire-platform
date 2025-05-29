@@ -280,6 +280,7 @@ async function uploadImages() {
     });   
 
     const result = await response.json();
+    console.log(result)
 
     if (result.output) {
       document.getElementById("result-heading").style.display="block";
