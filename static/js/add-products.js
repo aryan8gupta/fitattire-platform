@@ -581,7 +581,7 @@ resultImageInput.addEventListener('change', function () {
       const row = document.createElement("tr");
       row.innerHTML = `
         <td>${i + 1}</td>
-        <td><img src="${productResultImages[i]}" alt="Result Image" width="60" height="95"></td>
+        <td><img src="${showResultImages[i]}" alt="Result Image" width="60" height="95"></td>
         <td><img src="${showGarmentImages[i]}" alt="Garment Image" width="60" height="90"></td>
         <td>${productData.product_colors[i]}</td>
         <td class="action-buttons">
@@ -735,7 +735,7 @@ resultImageInput.addEventListener('change', function () {
               scannedIds.clear();
               
               // Reset image preview
-              previewImage.src = 'https://via.placeholder.com/200x200?text=Product+Image';
+              previewImage.src = 'https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png';
 
               // Reset other fields
               productData = {
