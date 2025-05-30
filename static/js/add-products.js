@@ -540,6 +540,7 @@ resultImageInput.addEventListener('change', function () {
 
     productResultImages.push(productResult);
 
+    console.log(showResultImages);
     console.log("10000");
 
     console.log(productGarmentImages)
@@ -704,67 +705,68 @@ resultImageInput.addEventListener('change', function () {
         });
 
         try {
-          console.log("1")
           const response = await fetch('/add-products/', {
               method: 'POST',
               body: formData
           });
-          console.log("2")
   
           const contentType = response.headers.get("content-type");
-          console.log("3")
 
           if (contentType && contentType.includes("application/json")) {
-            console.log("4")
             const result = await response.json();
             console.log(result);
-          }
   
-          if (result.uploaded_urls === 'uploaded') {
-            alert('Product added successfully!');
-            
-            // Reset form
-            document.getElementById('brand-name').value = '';
-            document.getElementById('product-name').value = '';
-            document.getElementById('product-fabric').value = '';
-            document.getElementById('product-color').value = '';
-            document.getElementById('product-quantity').value = '';
-            document.getElementById('product-price').value = '';
-            document.getElementById('selling-price').value = '';
-            document.getElementById("scanned-items").innerHTML = '';
-            
-            document.querySelectorAll('input[name="size"]:checked').forEach(checkbox => {
-                checkbox.checked = false;
-            });
-            scannedIds.clear();
-            
-            // Reset image preview
-            previewImage.src = 'https://via.placeholder.com/200x200?text=Product+Image';
+            if (result.uploaded_urls === 'uploaded') {
+              alert('Product added successfully!');
+              
+              // Reset form
+              document.getElementById('brand-name').value = '';
+              document.getElementById('product-name').value = '';
+              document.getElementById('product-fabric').value = '';
+              document.getElementById('product-color').value = '';
+              document.getElementById('product-quantity').value = '';
+              document.getElementById('product-price').value = '';
+              document.getElementById('selling-price').value = '';
+              document.getElementById("scanned-items").innerHTML = '';
+              
+              document.querySelectorAll('input[name="size"]:checked').forEach(checkbox => {
+                  checkbox.checked = false;
+              });
+              scannedIds.clear();
+              
+              // Reset image preview
+              previewImage.src = 'https://via.placeholder.com/200x200?text=Product+Image';
 
-            // Reset other fields
-            productData = {
-              qrcode_ids: [],
-              brand_name: '',
-              product_name: '',
-              product_fabric: '',
-              product_sizes: [],
-              product_quantity: 0,
-              product_price: 0,
-              product_selling_price: 0,
-              product_colors: []
-            };
-            
-            document.getElementById('resultImage').src = '';
-            document.getElementById('resultImage').style.display = 'none';
-            document.querySelector('.selected-value-color').textContent = 'Select Color';
-            document.getElementById('manual-color-input').value = '';
-            document.getElementById('product-color').value = '';
+              // Reset other fields
+              productData = {
+                qrcode_ids: [],
+                brand_name: '',
+                product_name: '',
+                product_fabric: '',
+                product_sizes: [],
+                product_quantity: 0,
+                product_price: 0,
+                product_selling_price: 0,
+                product_colors: []
+              };
+              
+              document.getElementById('resultImage').src = '';
+              document.getElementById('resultImage').style.display = 'none';
+              document.querySelector('.selected-value-color').textContent = 'Select Color';
+              document.getElementById('manual-color-input').value = '';
+              document.getElementById('product-color').value = '';
 
-            showSubCategories("None");
-            
-            updateVariantsTable();
+              showSubCategories("None");
+              
+              updateVariantsTable();
+            } else {
+              alert('Error: ' + (result.error || 'Something went wrong.'));
+            }
+
           } else {
-            alert('Error: ' + (result.error || 'Something went wrong.'));
+            const text = await response.text();
+            console.error("❌ Not JSON. Response was:", text);
+            alert("Server returned an unexpected response.");
           }
 
         } catch (error) {

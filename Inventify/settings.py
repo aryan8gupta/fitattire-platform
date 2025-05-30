@@ -91,7 +91,7 @@ import pymongo
 my_var = os.getenv('Azure_Cosmos_Conn', 'Default Value')
 
 # CONNECTION = pymongo.MongoClient('mongodb://inventory-management-app-server:{my_var}@inventory-management-app-server.mongo.cosmos.azure.com:10255/?ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000&appName=@inventory-management-app-server@', serverSelectionTimeoutMS=30000, retryWrites=True)
-CONNECTION = pymongo.MongoClient(my_var, serverSelectionTimeoutMS=30000)
+CONNECTION = pymongo.MongoClient(my_var, serverSelectionTimeoutMS=30000, retryWrites=False)
 logger.info(CONNECTION)
 
 DB = CONNECTION['inventory-management']
