@@ -13,7 +13,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    retention-days: 1
 
     steps:
       - uses: actions/checkout@v4
@@ -52,7 +51,8 @@ jobs:
           path: |
             release.zip
             !venv/
-
+          retention-days: 1
+          
   deploy:
     runs-on: ubuntu-latest
     needs: build
