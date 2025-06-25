@@ -48,6 +48,7 @@ my_var_1 = os.getenv('New_Pincel_API_Key', 'Default Value')
 PINCEL_API_URL = "https://pincel.app/api/clothes-swap"
 PINCEL_API_KEY = my_var_1
 
+print("Views Started")
 
 # QR-Code Generating / Template----------------------------------------------------------->
 import qrcode
