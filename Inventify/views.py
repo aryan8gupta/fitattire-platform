@@ -9,8 +9,8 @@ import bcrypt
 import jwt
 from datetime import datetime, timedelta
 from django.views.decorators.csrf import csrf_exempt
-from Inventify.settings import DB, JWT_SECRET_KEY, MEDIA_ROOT
-# from Inventify.deployment import DB, JWT_SECRET_KEY, MEDIA_ROOT
+# from Inventify.settings import DB, JWT_SECRET_KEY, MEDIA_ROOT
+from Inventify.deployment import DB, JWT_SECRET_KEY, MEDIA_ROOT
 from .models import YourModel
 from video_generator.generate_text_photos import create_dynamic_photo_with_auto_closeup, create_offer_photo_with_right_image 
 from video_generator.instagram_post_test import post_to_instagram, post_azure_video_to_instagram
@@ -40,13 +40,13 @@ from openai import OpenAI
 import secrets
 
 
-client = OpenAI(api_key='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')
+my_var_2 = os.getenv('Open_API_Key', 'Default Value')
+client = OpenAI(api_key=my_var_2)
 
-# my_var = os.getenv('New_Pincel_API_Key', 'Default Value')
+my_var_1 = os.getenv('New_Pincel_API_Key', 'Default Value')
 
 PINCEL_API_URL = "https://pincel.app/api/clothes-swap"
-PINCEL_API_KEY = 'f3baf7d0-2b34-47c7-bb60-5adf83ce09c4'
-# PINCEL_API_KEY = my_var
+PINCEL_API_KEY = my_var_1
 
 
 # QR-Code Generating / Template----------------------------------------------------------->

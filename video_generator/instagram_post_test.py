@@ -2,14 +2,11 @@ import requests
 import os
 import time
 
-# my_var1 = os.getenv('Instagram_Access_Token', 'Default Value')
-# my_var2 = os.getenv('Instagram_Business_Account_ID', 'Default Value')
+my_var1 = os.getenv('Instagram_Access_Token', 'Default Value')
+my_var2 = os.getenv('Instagram_Business_Account_ID', 'Default Value')
 
-# ACCESS_TOKEN = my_var1
-# INSTAGRAM_BUSINESS_ACCOUNT_ID = my_var2
-
-ACCESS_TOKEN = 'EAAO7ESXUNP0BO0473nW3auKIF7tTU1VDG4cZBcTllQ7SYD9EiTq8MwAoqAVFwjLZBFB9Tl33U3KWPoH5SAOZCZAUvQxuGfrIySEPSru5V5HBNMzbnOPuzm5mVZCRtELXKKRm9T5R8Cb6kscNEP2dKPl4YZA6yoi1Ov4JOynuxszaraVWZBosPvz'
-INSTAGRAM_BUSINESS_ACCOUNT_ID = '17841465081391593'
+ACCESS_TOKEN = my_var1
+INSTAGRAM_BUSINESS_ACCOUNT_ID = my_var2
 
 # Publicly accessible image URL and caption
 # image_url = 'https://upload.wikimedia.org/wikipedia/commons/0/09/India_Gate_in_New_Delhi_03-2016.jpg'
