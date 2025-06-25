@@ -7,8 +7,15 @@
     <!-- prduct details -->
     <main id="main" class="main">
         <section class="product-details">
+            {% if show_edit %}
+                <div style="text-align: right;">
+                    {% comment %} <a href="{% url 'edit_product' product_id %}" class="btn btn-warning"> {% endcomment %}
+                    ✏️ Edit Product
+                    </a>
+                </div>
+            {% endif %}
             <div class="labels">
-                <span class="tag">{{product.product_gender}}</span>
+                <span class="tag">{{product.product_name}}</span>
                 <span class="tag">{{product.product_category}}</span>
                 <span class="tag large">{{product.product_subCategory}}</span>
                 {%if product.product_quantity > 0 %}
@@ -24,7 +31,7 @@
                 </button>
 
                 <div class="product-image-scroll" id="imageContainer">
-                    <img id="mainResultImage" src="{{ product.variants.0.result_images.0 }}" class="main-image" />
+                    <img id="mainResultImage" src="{{ product.variants.0.result_image }}" class="main-image" />
                     <img id="mainGarmentImage" src="{{ product.variants.0.garment_image }}" class="main-image" />
                     <!-- Images will be dynamically inserted here -->
                 </div>
@@ -37,7 +44,7 @@
             <!-- product info -->
             <div class="info-grid">
                 <div class="info-item">
-                    <p><strong>Fabric:</strong> <span class="highlight">Cotton</span></p>
+                    <p><strong>Fabric:</strong> <span class="highlight">{{product.product_fabric}}</span></p>
                 </div>
 
                 <div class="info-item">
@@ -55,11 +62,11 @@
                     </div> {% endcomment %}
                     <!-- 2. THUMBNAILS (Default from first variant) -->
                     <div class="thumbnail-row">
-                        {% for image in product.variants.0.result_images %}
+                        {% for variant in product.variants %}
                             <img 
-                                src="{{ image }}" 
+                                src="{{ variant.result_image }}" 
                                 class="result-thumb {% if forloop.first %}active{% endif %}" 
-                                onclick="updateDisplay('{{ image }}', '{{ product.variants.0.garment_image }}', '{{ product.variants.0.color }}', this)"
+                                onclick="updateDisplay('{{ variant.result_image }}', '{{ variant.garment_image }}', '{{ variant.color }}', this, {{ forloop.counter0 }})"
                             />
                         {% endfor %}
                     </div>
@@ -79,8 +86,8 @@
                     <p>
                         <strong>Price:</strong> <span class="highlight price">₹{{product.selling_price}}</span>
                         <br>
-                        <span class="discount">-{{discount}}</span>
-                        <span class="mrp">M.R.P.: ₹{{product.product_product_price}}</span>
+                        <span class="discount">-{{discount}}%</span>
+                        <span class="mrp">M.R.P.: ₹{{product_price}}</span>
                     </p>
                 </div>
             </div>
@@ -89,7 +96,7 @@
 
 
         <!-- realated products -->
-        <section class="related-products-section">
+        {% comment %} <section class="related-products-section">
             <h2>Related Products</h2>
             <div class="scroll-area">
                 <button class="arrow-btn left" onclick="scrollLeftCarousel()">&#10094;</button>
@@ -116,7 +123,7 @@
 
                 <button class="arrow-btn right" onclick="scrollRightCarousel()">&#10095;</button>
             </div>
-        </section>
+        </section> {% endcomment %}
 
 
 

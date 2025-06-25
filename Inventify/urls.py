@@ -11,13 +11,16 @@ urlpatterns = [
 
     path('', views.index),
     path('products-2/', views.products_2),
-    path('product-display/', views.product_display),
-    # path('product-display/<str:qr_id>/', views.product_display, name='product_display'),
+    path('product-display/<str:qr_id>/', views.product_display),
+    path('invoice/<str:invoice_id>/', views.invoice),
+
+    path('download-images/', views.download_images_zip, name='download_images'),
+    path('download-videos/', views.download_videos_zip, name='download_videos'),
+    path('api/decrease-credits/', views.decrease_credits, name='decrease_credits'),
 
     path('login/', views.login),
     path('login2/', views.login),
     path('logout/', views.logout, name='logout'),
-
 
     path('dashboard/', views.dashboard),
 
@@ -39,7 +42,12 @@ urlpatterns = [
     path('barcode/', views.barcode),
 
     path('exchange/', views.exchange),
+    path("get-product/", views.get_product_by_qrcode),
+    path("get-garment/", views.get_garment_image),
+
     path('sales/', views.sales),
+    path("search-whatsapp-number/", views.search_whatsapp_number),
+    path("add-whatsapp-number/", views.add_whatsapp_number),
 
     # For scanning QR-codes
     path('scan/', views.scan_qr, name='scan_qr'),

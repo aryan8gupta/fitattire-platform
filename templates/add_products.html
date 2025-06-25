@@ -94,6 +94,17 @@
             background-color: #8A4AF3;
             color: white;
         }
+        .btn:hover {
+            background-color: #8A4AF3;
+            color: white;
+        }
+        .image-preview {
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+          
 
     </style>
 
@@ -108,6 +119,7 @@
           <div class="card">
               <div class="card-header">
                   <h2>Upload Image</h2>
+                  <button class="btn mt-0" id="load-previous-btn">Load Previous Data</button>
               </div>
               <div class="card-body">
                   <div class="image-upload-container">
@@ -117,12 +129,12 @@
                             <img width="200" height="200" id="preview-image" src="https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png" alt="Product Image">
                         </div>
                         <div class="upload-controls">
-                            <div class="file-upload mb-2">
+                            {% comment %} <div class="file-upload mb-2">
                                 <input type="file" name="product-image-camera" id="product-image-camera" style="display: none;" accept="image/*">
                                 <label for="product-image-camera" class="upload-image-button">
                                     <i class="fas fa-cloud-upload-alt"></i> Scan from Camera
                                 </label>
-                            </div>
+                            </div> {% endcomment %}
                             <div class="file-upload mb-2">
                                 <input type="file" name="product-image-upload" id="product-image-upload" style="display: none;" accept="image/*">
                                 <label for="product-image-upload" class="upload-image-button">
@@ -199,6 +211,9 @@
                             <label for="product-result-image-upload" class="upload-image-button">
                                 <i class="fas fa-cloud-upload-alt"></i> Upload Result Image
                             </label>
+                            <div class="spinner" id="spinner2" style="display: none;">
+                                <i class="fas fa-spinner fa-spin fa-3x"></i>
+                            </div>
                         </div>
                         <p class="mb-5" id="response"></p>
                         <h3 id="result-heading" style="display:none;">Result:-</h3>
@@ -246,12 +261,14 @@
                                 </div>
                                 <div class="dropdown-options">
                                     <div data-value="">Select Color</div>
-                                    <div data-value="black">Black</div>
-                                    <div data-value="white">White</div>
-                                    <div data-value="silver">Silver</div>
-                                    <div data-value="gold">Gold</div>
-                                    <div data-value="blue">Blue</div>
-                                    <div data-value="red">Red</div>
+                                    <div data-value="Black">Black</div>
+                                    <div data-value="White">White</div>
+                                    <div data-value="Silver">Silver</div>
+                                    <div data-value="Red">Red</div>
+                                    <div data-value="Yellow">Yellow</div>
+                                    <div data-value="Blue">Blue</div>
+                                    <div data-value="Green">Green</div>
+                                    <div data-value="Gold">Gold</div>
                                 </div>
                             </div>
 
@@ -264,16 +281,16 @@
                               <label id="label-sizes">Sizes:</label>
                               <div class="checkbox-group">
                                   <label class="checkbox-label">
-                                      <input style="margin-right: 5px;" type="checkbox" name="size" value="extra_small">Extra Small(XS)
+                                      <input type="checkbox" name="size" value="XS">Extra Small(XS)
                                   </label>
                                   <label class="checkbox-label">
-                                      <input type="checkbox" name="size" value="Small">Small(S)
+                                      <input type="checkbox" name="size" value="S">Small(S)
                                   </label>
                                   <label class="checkbox-label">
-                                      <input type="checkbox" name="size" value="Medium">Medium(M)
+                                      <input type="checkbox" name="size" value="M">Medium(M)
                                   </label>
                                   <label class="checkbox-label">
-                                      <input type="checkbox" name="size" value="Large">Large(L)
+                                      <input type="checkbox" name="size" value="L">Large(L)
                                   </label>
                                   <label class="checkbox-label">
                                       <input type="checkbox" name="size" value="XL">Extra Large(XL)
@@ -289,7 +306,7 @@
                       </div>
                       <div class="form-row">
                           <div class="input-group">
-                              <label for="product-quantity">Quantity</label>
+                              <label for="product-quantity">Total Pieces Available</label>
                               <input type="number" id="product-quantity" placeholder="Enter quantity" required>
                           </div>
                           <div class="input-group">
@@ -309,7 +326,7 @@
                       <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px">
                         <button type="button" id="submit-variant-btn" class="btn">Submit & Add Another Variant</button>
                       </div>
-                      <table>
+                    <table>
                         <thead>
                         <tr>
                             <th>S.No.</th>
@@ -339,7 +356,10 @@
                     </div>
 
                     <div class="form-actions mt-4">
-                        <button type="button" class="submit-add-products-btn">Submit Form</button>
+                        <button type="button" class="submit-add-products-btn">
+                            <span class="btn-text">Submit Form</span>
+                            <span class="btn-spinner loader" style="display: none; margin-left: 8px;"></span>
+                        </button>
                     </div>
 
                   </div>

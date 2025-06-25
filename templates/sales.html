@@ -19,6 +19,17 @@
           height: 60px;
           font-size: 20px;
         }
+        table {
+            width: 100%;               /* Full width table */
+            table-layout: fixed;       /* Evenly distributes column widths */
+        }
+    
+        th, td {
+            width: 80px;              /* Set your desired width */
+            padding: 10px;             /* Optional: for spacing */
+            word-wrap: break-word;     /* Prevent overflow */
+        }
+        
     </style>
 
     <main id="main" class="main">
@@ -34,18 +45,44 @@
                 <div class="card-body">
                     
                     <div class="search-form">
-                        <div class="search-input-container">
-                            <label for="mobile-number">Enter Customer Mobile Number</label>
-                            <div class="search-input-group">
-                                <input type="text" id="mobile-number" placeholder="10-digit mobile number" maxlength="10">
-                                <button id="search-btn" class="btn primary-btn">Search</button>
+                        <div class="search-input-container m-1">
+                            <label for="mobile-number">Enter Customer WhatsApp Mobile Number</label>
+                            
+                            <!-- Styled input group with full border -->
+                            <div style="display: flex; align-items: center; gap: 8px; max-width: 500px;">
+                                <!-- Input wrapper with +91 -->
+                                <div style="display: flex; align-items: center; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; flex: 1;">
+                                    <span style="padding: 8px; background-color: #f0f0f0; border-right: 1px solid #ccc;">+91</span>
+                                    <input
+                                        type="text"
+                                        id="mobile-number"
+                                        placeholder="Enter 10-digit mobile number"
+                                        maxlength="10"
+                                        oninput="validateInput(this.value)"
+                                        style="border: none; padding: 8px; flex: 1; outline: none;"
+                                    />
+                                </div>
+                            
+                                <!-- Search button -->
+                                <button
+                                    id="search-btn"
+                                    onclick="searchNumber()"
+                                    class="btn m-1"
+                                    style="padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;"
+                                >
+                                    Search
+                                </button>
                             </div>
+                            
+                            <p id="phoneError" style="color: red; font-size: 14px; margin: 5px 0 0 0;"></p>
                         </div>
                     </div>
+                    
 
-                    <div id="customer-details" class="customer-details hidden">
-                        <h3>Customer Details</h3>
+                    <div id="customer-details" class="customer-detail m-1 hidden">
+                        <h3>Customer Details:-</h3>
                         <p>Customer Name: <span id="customer-name"></span></p>
+                        <p>Mobile Number: <span id="phone-number"></span></p>
 
                         <div class="table-container">
                             <h3>Last Purchased Products</h3>
@@ -63,9 +100,26 @@
                             </table>
                         </div>
                     </div>
-
-                    <div id="no-details" class="no-details hidden">
+                    
+                    <div id="no-details" class="no-detail m-1 hidden">
                         <div class="no-details-message">No Details Found</div>
+                    
+                        <div class="add-customer-form" style="margin-top: 15px;">
+                            <label for="new-customer-name" style="display: block; margin-bottom: 5px;">Customer Name</label>
+                            <input type="text" id="new-customer-name" placeholder="Enter Customer Name" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" />
+                    
+                            <label for="new-customer-phone" style="display: block; margin-top: 10px; margin-bottom: 5px;">Customer Mobile Number</label>
+                            <div style="display: flex; align-items: center; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; max-width: 250px;">
+                                <span style="padding: 8px; background: #f0f0f0; border-right: 1px solid #ccc;">+91</span>
+                                <input type="text" id="new-customer-phone"
+                                    maxlength="10"
+                                    oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                                    placeholder="Enter WhatsApp Number"
+                                    style="border: none; padding: 8px; flex: 1; outline: none;" />
+                            </div>
+                    
+                            <button class="btn mt-4 m-1" onclick="addNumber()">ADD Number</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -77,41 +131,36 @@
                     <h2>Product Information</h2>
                 </div>
                 <div class="card-body">
-                    <button class="btn primary-btn mb-20">
-                        <i class="fas fa-qrcode"></i> Scan Product
-                    </button>
 
                     <div class="table-container">
                         <h3>Product List</h3>
                         <table>
                             <thead>
                                 <tr>
-                                    <th>S.No</th>
-                                    <th>Product ID</th>
+                                    <th>Result Image</th>
+                                    <th>Product Color</th>
                                     <th>Product Name</th>
-                                    <th>Product Price</th>
+                                    <th>Stock</th>
+                                    <th>Price</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="product-list">
-                                <tr>
-                                    <td>1</td>
-                                    <td>P001</td>
-                                    <td>Chains</td>
-                                    <td>$35.00</td>
-                                </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>P002</td>
-                                    <td>Rings</td>
-                                    <td>$85.00</td>
-                                </tr>
+                            <tbody style="width: 100%;" id="tableBody">
+                                <!-- Dynamic rows will be inserted here -->
                             </tbody>
                         </table>
                     </div>
+                    
+                    <div class="qrcodes">
+        
+                        <button id="scan-btn" class="btn mt-4 m-1"><i class="fas fa-qrcode"></i>Scan QR Code</button>
+                        {% comment %} <button id="scan-btn-2" class="btn mt-4 m-1" onclick="onScanSuccess()"><i class="fas fa-qrcode"></i>Scan QR Code</button> {% endcomment %}
+                        <button id="cancel-btn" class="btn mt-4 m-1" style="display:none;">Stop Scanning</button>
 
-                    <button class="btn secondary-btn mt-20">
-                        <i class="fas fa-plus"></i> Add More Items
-                    </button>
+                        <div id="reader" style="display:none;"></div>
+
+                        <script src="https://unpkg.com/html5-qrcode"></script>
+                    </div>
                 </div>
             </div>
         </section>
@@ -125,7 +174,7 @@
                     <div class="payment-details">
                         <div class="payment-row">
                             <div class="payment-label">Total Amount:</div>
-                            <div class="payment-value">₹<span id="amount">2120</span></div>
+                            <div class="payment-value">₹<span id="amount">0</span></div>
                         </div>
 
                         <button class="btn secondary-btn mb-20" onclick="showDiscountBox()">
@@ -166,7 +215,7 @@
                             <div class="payment-value" id="change-return">₹0.00</div>
                         </div>
 
-                        <button class="btn primary-btn full-width mt-20">
+                        <button type="button" id="submit-btn" class="btn mt-4 m-1">
                             <i class="fas fa-check-circle"></i> Submit Transaction
                         </button>
                     </div>

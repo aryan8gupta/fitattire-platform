@@ -103,12 +103,16 @@
 
         </li><!-- End Notification Nav --> {% endcomment %}
 
+        <li class="nav-item pe-3" id="credits-used-box" style="display: flex; align-items: center;">
+          <span id="credits-used" class="text-dark" style="font-size: 20px;">{{ credits }}</span>
+          <i class="bi bi-coin text-success mx-2" style="font-size: 25px;"></i>
+        </li>
+        
         <li class="nav-item dropdown pe-3">
 
           <div class="filter">
             <button id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                style="border: 0px solid black; background-color: white; display: flex; align-items: center;">
-                <!-- <img src="../static/img/user-image.png" alt="User" style="width: 20px; height: 20px;"> -->
+                style="border: 0px solid black; background-color: white; display: flex; align-items: center; padding: 0; margin: 0;">
                 <img src="{% static 'img/user-image.png' %}" alt="User" style="width: 20px; height: 20px;">
                 <span class="d-none d-md-block ps-2">{{first_name}}</span>
             </button>
@@ -206,10 +210,16 @@
       </li><!-- End Stock Sales Nav -->
       
       <li class="nav-item">
-        <a class="nav-link collapsed" data-bs-target="#charts-nav" data-bs-toggle="collapse" href="/product-display/">
+        <a class="nav-link collapsed" data-bs-target="#charts-nav" data-bs-toggle="collapse" href="/product-display/FiA-75910/">
           <i class="bi bi-layout-text-window-reverse"></i><span>Product Display</span><i class="ms-auto"></i>
         </a>
-      </li><!-- End Stock Sales Nav -->
+      </li><!-- End Product Display Nav -->
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" data-bs-target="#charts-nav" data-bs-toggle="collapse" href="/invoice/INV-2025YZ8U1QKIUY">
+          <i class="bi bi-layout-text-window-reverse"></i><span>Invoice</span><i class="ms-auto"></i>
+        </a>
+      </li><!-- End Order Invoice Nav -->
 
       <!-- <li class="nav-item">
         <a class="nav-link collapsed" data-bs-target="#barCode-nav" data-bs-toggle="collapse" href="/barcode/">

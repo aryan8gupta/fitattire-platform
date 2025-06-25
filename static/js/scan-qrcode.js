@@ -8,7 +8,6 @@ let isScanning = false;
 scanBtn.addEventListener("click", async () => {
   scanBtn.style.display = "none";
   cancelBtn.style.display = "block";
-  readerDiv.style.display = "block";
 
   try {
     const devices = await Html5Qrcode.getCameras();
@@ -25,6 +24,8 @@ scanBtn.addEventListener("click", async () => {
         break;
       }
     }
+    readerDiv.style.display = "block";
+    
 
     await html5QrCode.start(
       cameraId,
@@ -37,10 +38,10 @@ scanBtn.addEventListener("click", async () => {
           scanBtn.style.display = "block";
 
           // ✅ Extract last 6 characters from the scanned URL
-          const shortCode = decodedText.slice(-6);
+          const shortCode = decodedText.slice(-10);
 
           // ✅ Navigate to the backend route
-          window.location.href = `/product-display/${shortCode}`;
+          window.location.href = `/product-display/${shortCode}?from=dashboard`;
 
 
           // try {

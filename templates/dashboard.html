@@ -6,6 +6,24 @@
   <link rel="stylesheet" href="{% static 'css/scan-qrcode.css' %}">
 
   {% if user_type == 'Shop Owners' %}
+  <style>
+    .custom-download-btn {
+      padding: 4px 12px;
+      font-size: 13px;
+      border-radius: 6px;
+      transition: background-color 0.2s, color 0.2s;
+    }
+  
+    .btn-primary.custom-download-btn:hover {
+      background-color: #004a9f;
+    }
+  
+    .btn-success.custom-download-btn:hover {
+      background-color: #137347;
+    }
+  </style>
+  
+
   <main id="main" class="main">
 
     <div class="pagetitle">
@@ -20,12 +38,61 @@
 
     <section class="section dashboard">
       <div class="row">
-
         <!-- Left side columns -->
         <div class="col-lg-8">
           <div class="row">
+    
+            <!-- Download Images Card -->
+            <div class="col-xxl-4 col-md-6 mb-4">
+              <div class="card info-card shadow-sm border-0 p-2" style="min-height: 170px;">
+    
+                <div class="card-body">
+                  <h5 class="card-title mb-3 fs-6">Download Images <span class="text-muted small">| Pending</span></h5>
+    
+                  <div class="text-center">
+                    <h5 class="fw-bold text-muted mb-1">{{ image_count }} Images</h5>
+                  </div>
 
-            <!-- Sales Card -->
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="card-icon rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                      <i class="bi bi-image fs-5"></i>
+                    </div>
+                    <a href="{% url 'download_images' %}" class="btn btn-primary btn-sm custom-download-btn">
+                      <i class="bi bi-cloud-arrow-down me-1"></i>Download 
+                    </a>
+                  </div>
+                </div>
+    
+              </div>
+            </div>
+            <!-- End Download Images Card -->
+    
+            <!-- Download Videos Card -->
+            <div class="col-xxl-4 col-md-6 mb-4">
+              <div class="card info-card shadow-sm border-0 p-2" style="min-height: 170px;">
+    
+                <div class="card-body">
+                  <h5 class="card-title mb-3 fs-6">Download Videos <span class="text-muted small">| Pending</span></h5>
+                  
+                  <div class="text-center">
+                    <h5 class="fw-bold text-muted mb-1">{{ video_count }} videos</h5>
+                  </div>
+
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="card-icon rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                      <i class="bi bi-camera-reels fs-5"></i>
+                    </div>
+                    <a href="{% url 'download_videos' %}" class="btn btn-success btn-sm custom-download-btn">
+                      <i class="bi bi-cloud-arrow-down me-1"></i> Download
+                    </a>
+                  </div>
+                </div>
+    
+              </div>
+            </div>
+            <!-- End Download Videos Card -->
+
+            {% comment %} <!-- Sales Card -->
             <div class="col-xxl-4 col-md-6">
               <div class="card info-card sales-card overflow-auto">
 
@@ -59,9 +126,9 @@
                 </div>
 
               </div>
-            </div><!-- End Sales Card -->
+            </div><!-- End Sales Card --> {% endcomment %}
 
-            <!-- Revenue Card -->
+            {% comment %} <!-- Revenue Card -->
             <div class="col-xxl-4 col-md-6">
               <div class="card info-card revenue-card overflow-auto">
 
@@ -95,10 +162,10 @@
                 </div>
 
               </div>
-            </div><!-- End Revenue Card -->
+            </div><!-- End Revenue Card --> {% endcomment %}
 
             <!-- Customers Card -->
-            <div class="col-xxl-4 col-xl-12">
+            <div class="col-xxl-4 col-md-6 mb-4">
 
               <div class="card info-card customers-card overflow-auto">
 
@@ -117,15 +184,15 @@
                 </div>
 
                 <div class="card-body">
-                  <h5 class="card-title">Customers <span>| This Year</span></h5>
+                  <h5 class="card-title">Total Revenue <span>| This Year</span></h5>
 
                   <div class="d-flex align-items-center">
-                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                      <i class="bi bi-people"></i>
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 40px;">
+                      <i class="bi bi-people" style="font-size: 25px;"></i>
                     </div>
                     <div class="ps-3">
-                      <h6>1244</h6>
-                      <span class="text-danger small pt-1 fw-bold">12%</span> <span class="text-muted small pt-2 ps-1">decrease</span>
+                      <p style="font-size: 30px; font: bold; margin-bottom: 0px;">₹ 56000</p>
+                      <span class="text-danger small fw-bold">12%</span> <span class="text-muted small pt-2 ps-1">decrease vs Last year</span>
 
                     </div>
                   </div>
@@ -222,6 +289,47 @@
             <!-- Top Selling -->
             <div class="col-12">
               <div class="card top-selling overflow-auto">
+                <div class="card-body pb-0">
+                  <h5 class="card-title">Top Selling <span>| {{ time_range }}</span></h5>
+
+                  <table class="table table-borderless">
+                    <thead>
+                      <tr>
+                        <th scope="col">Preview</th>
+                        <th scope="col">Product</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Sold</th>
+                        <th scope="col">Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for product in top_selling_products %}
+                      <tr>
+                        <th scope="row">
+                          <a href="#">
+                            <img src="{{ product.image }}" style="height: 10vh; width: 4vw; object-fit: contain;" alt="">
+                          </a>
+                        </th>
+                        <td>
+                          <a href="#" class="text-primary fw-bold">{{ product.product_name }}</a>
+                        </td>
+                        <td>₹ {{ product.average_price|floatformat:0 }}</td>
+                        <td class="fw-bold">{{ product.total_quantity }}</td>
+                        <td>₹ {{ product.average_price|floatformat:0|add:"0"|floatformat:2|floatformat:0|add:product.total_quantity|floatformat:0 }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+
+                </div>
+              </div>
+            </div>
+            <!-- End Top Selling -->
+
+
+            <!-- Top Selling -->
+            {% comment %} <div class="col-12">
+              <div class="card top-selling overflow-auto">
 
                 <div class="filter">
                   <button style="border: 0px solid black; background-color: white; " id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="bi bi-three-dots"></i></button>
@@ -292,7 +400,7 @@
                 </div>
 
               </div>
-            </div><!-- End Top Selling -->
+            </div><!-- End Top Selling --> {% endcomment %}
 
           </div>
         </div><!-- End Left side columns -->

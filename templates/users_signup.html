@@ -4,7 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Employee Registration</title>
+  <title>FitAttire</title>
+  <!-- Favicons -->
+  <link href="{% static 'img/logo.png' %}" rel="icon">
+  <link href="{% static 'img/logo.png' %}" rel="apple-touch-icon">
   
   <link rel="stylesheet" href="{% static 'css/employees.css' %}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -63,13 +66,16 @@
               <textarea id="shopAddress" name="ShopAddress" placeholder="Enter complete shop address" required></textarea>
             </div>
             <div class="form-group">
-              {% comment %} <label for="garmentsType">Garments Type</label>
-              <select name="GarmentsType" id="garmentsType" required>
-                <option value="" disabled selected>Select one</option>
-                <option value="men">Men Garments</option>
-                <option value="women">Women Garments</option>
-                <option value="both">Both</option>
-              </select> {% endcomment %}
+              <label for="lastName">Instagram URL</label>
+              <input type="text" name="instagram_url" id="instagram" placeholder="Enter Instagram Url" required>
+            </div>
+            <!-- Logo Upload Field -->
+            <div class="form-group">
+              <label for="logoImage">Upload Shop Logo</label>
+              <input type="file" id="logoImage" name="LogoImage" accept="image/*">
+              {% comment %} <small style="display: block; margin-top: 4px; color: #666;">(PNG, JPG, JPEG – Max 2MB)</small> {% endcomment %}
+            </div>
+            <div class="form-group">
               <div class="custom-select-wrapper">
                 <label for="fake-select" class="label-style">Garments Type</label>
                 <div class="custom-select" id="fake-select">
@@ -93,11 +99,11 @@
               <label for="phoneNumber">Phone Number</label>
               <div class="input-with-button">
                 <input type="tel" name="PhoneNumber" id="phoneNumber" placeholder="Enter phone number" required>
-                <button type="button" id="verifyPhoneBtn" class="verify-btn">Verify Phone</button>
-                <input type="hidden" name="StatusValue" id="status-value">
+                {% comment %} <button type="button" id="verifyPhoneBtn" class="verify-btn">Verify Phone</button> {% endcomment %}
+                {% comment %} <input type="hidden" name="StatusValue" id="status-value"> {% endcomment %}
               </div>
               <!-- Phone OTP container with improved structure -->
-              <div id="phoneOtpContainer" class="otp-container hidden">
+              {% comment %} <div id="phoneOtpContainer" class="otp-container hidden">
                 <input type="text" id="phoneOtp" placeholder="Enter OTP" maxlength="6">
                 <p class="otp-timer">Expires in: <span id="phoneOtpTimer">02:00</span></p>
                 <div class="otp-actions">
@@ -107,7 +113,7 @@
                     <span id="resendCountdown" class="resend-countdown"></span>
                   </button>
                 </div>
-              </div>
+              </div> {% endcomment %}
             </div>
             <div class="form-group">
               <label for="email">Email</label>

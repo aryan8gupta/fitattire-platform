@@ -252,14 +252,26 @@ function showImages(final) {
 async function uploadImages() {
   const clothes_swap_category = document.getElementById("swap_category").value;
   const modelImage = selectedImagePath;
-  const cameraFile = document.getElementById("product-image-camera").files[0];
   const uploadFile = document.getElementById("product-image-upload").files[0];
-  const garmentImage = uploadFile || cameraFile;
+  // const cameraFile = document.getElementById("product-image-camera").files[0];
+  // const garmentImage = uploadFile || cameraFile;
+  const garmentImage = uploadFile;
+
+  const credits = document.getElementById("credits-used").innerText;
+
+  if (credits == "0"){
+    alert("No Credits Left");
+    return;
+  }
 
   if (!modelImage || !garmentImage) {
     alert("Please select both images.");
     return;
-  }   
+  }  
+  
+  const spinner2 = document.getElementById("spinner2");
+
+  spinner2.style.display = 'block';
 
   documentData = {
     gender: selectedGender,
@@ -291,7 +303,21 @@ async function uploadImages() {
       imageElement.src = result.upscaled_path;
       imageElement.style.display = 'block';
 
+      fetch('/api/decrease-credits/', {
+        method: 'POST',
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById("credits-used").innerText = data.new_credits;
+        } else {
+          alert("Error: " + data.message);
+        }
+      })
+      .catch(err => console.error("Failed to decrease credits:", err));
+
       // Set hidden input with actual URL
+      spinner2.style.display = 'none';
       document.getElementById('resultImageURL').value = result.upscaled_path;
 
     } else {
@@ -331,10 +357,49 @@ resultImageInput.addEventListener('change', function () {
 // document.addEventListener('DOMContentLoaded', function() {
   // Image Upload Preview
   const previewImage = document.getElementById('preview-image');
-  const inputCamera = document.getElementById('product-image-camera');
+  // const inputCamera = document.getElementById('product-image-camera');
   const inputUpload = document.getElementById('product-image-upload');
   
-  function handleImageChange(input) {
+  function handleImageChange2(input) {
+    input.addEventListener('change', function () {
+        const file = this.files[0];
+        if (file) {
+          const formData = new FormData();
+          formData.append("garment_image", file);
+
+          // 👀 Preview original image immediately (optional)
+          const reader = new FileReader();
+          reader.onload = function () {
+            previewImage.src = reader.result; // show raw image for now
+          };
+          reader.readAsDataURL(file);
+
+          // 📤 Upload to Django for processing
+          fetch("/get-garment/", {
+            method: "POST",
+            body: formData
+          })
+          .then(res => res.json())
+          .then(data => {
+            console.log(data);
+            if (!data.error) {
+              alert("✅ Product processed");
+
+              // ✅ Show final processed image from backend
+              previewImage.src = data.image_url || data.image_base64;
+
+            } else {
+              alert(data.error || "❌ Processing failed");
+            }
+          })
+          .catch(err => {
+            console.error("Error:", err);
+            alert("❌ Server error");
+          });
+        }
+    });
+  }
+  function handleImageChange1(input) {
     input.addEventListener('change', function () {
         const file = this.files[0];
         if (file) {
@@ -347,8 +412,9 @@ resultImageInput.addEventListener('change', function () {
     });
   }
 
-  if (inputCamera) handleImageChange(inputCamera);
-  if (inputUpload) handleImageChange(inputUpload);
+  if (inputCamera) handleImageChange2(inputCamera);
+  if (inputUpload) handleImageChange2(inputUpload);
+
   
   // Category Selection
   const categoryItems = document.querySelectorAll('.category-item');
@@ -478,7 +544,21 @@ resultImageInput.addEventListener('change', function () {
   };
 
   function handleSubmitVariant() {
-    console.log("add Variant Function Started")
+    // Then call backend to decrease credits
+    // fetch('/api/decrease-credits/', {
+    //   method: 'POST',
+    // })
+    // .then(res => res.json())
+    // .then(data => {
+    //   if (data.success) {
+    //     document.getElementById("credits-used").innerText = data.new_credits;
+    //   } else {
+    //     alert("Error: " + data.message);
+    //   }
+    // })
+    // .catch(err => console.error("Failed to decrease credits:", err));
+
+    console.log("Add Variant Function Started")
     // If brand etc not set, read them once
     if (!productData.brand_name) {
       productData.brand_name = document.getElementById('brand-name').value;
@@ -498,10 +578,12 @@ resultImageInput.addEventListener('change', function () {
     const urlInput = document.getElementById('resultImageURL').value;
     const uploadResultImage = document.getElementById('product-result-image-upload').files[0];
     const productColor = getSelectedColor();
-    const cameraFile = document.getElementById("product-image-camera").files[0];
     const uploadFile = document.getElementById("product-image-upload").files[0];
 
-    const garmentImages2 = uploadFile || cameraFile;
+    // const cameraFile = document.getElementById("product-image-camera").files[0];
+    // const garmentImages2 = uploadFile || cameraFile;
+
+    const garmentImages2 = uploadFile;
     const productResult = urlInput || uploadResultImage;
 
     // Validate images and color inputs for the variant
@@ -566,7 +648,7 @@ resultImageInput.addEventListener('change', function () {
 
     // Reset file inputs
     document.getElementById('manual-color-input').value = "";
-    document.getElementById('product-image-camera').value = "";
+    // document.getElementById('product-image-camera').value = "";
     document.getElementById('product-image-upload').value = "";
     document.getElementById('product-result-image-upload').value = "";
     document.getElementById('resultImageURL').value = "";
@@ -584,16 +666,38 @@ resultImageInput.addEventListener('change', function () {
         <td><img src="${showResultImages[i]}" alt="Result Image" width="60" height="95"></td>
         <td><img src="${showGarmentImages[i]}" alt="Garment Image" width="60" height="90"></td>
         <td>${productData.product_colors[i]}</td>
-        <td class="action-buttons">
-          <svg class="delete-icon" viewBox="0 0 24 24">
-            <path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-4.5l-1-1z"/>
-          </svg>
+        <td style="padding: 0;">
+          <div style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%; padding: 10px;">
+            <svg class="delete-icon" viewBox="0 0 24 24" data-index="${i}" style="cursor: pointer; width: 24px; height: 24px;">
+              <path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-4.5l-1-1z"/>
+            </svg>
+          </div>
         </td>
       `;
       tableBody.appendChild(row);
     }
+    // Attach event listeners to all delete icons
+    const deleteIcons = document.querySelectorAll(".delete-icon");
+    deleteIcons.forEach(icon => {
+      icon.addEventListener("click", (event) => {
+        const index = parseInt(event.currentTarget.getAttribute("data-index"));
+        deleteVariant(index);
+      });
+    });
   }
 
+  function deleteVariant(index) {
+    productData.product_colors.splice(index, 1);
+
+    showResultImages.splice(index, 1);
+    showGarmentImages.splice(index, 1);
+
+    productResultImages.splice(index, 1);
+    productGarmentImages.splice(index, 1);
+  
+    updateVariantsTable(); // Re-render the table
+  }
+  
 
   /*--------------------------------------------------------------
   # Multiple QR Code Scanner Section
@@ -632,7 +736,7 @@ resultImageInput.addEventListener('change', function () {
         { fps: 10, qrbox: { width: 250, height: 250 } },
         (decodedText) => {
 
-          const shortId = decodedText.slice(-10); // ✅ get last 5 characters
+          const shortId = decodedText.slice(-10); // ✅ get last 10 characters
           if (!scannedIds.has(shortId)) {
             scannedIds.add(shortId);
             const div = document.createElement("div");
@@ -671,18 +775,57 @@ resultImageInput.addEventListener('change', function () {
       }
   });
 
+  /*--------------------------------------------------------------
+  # Load Previous Data
+  --------------------------------------------------------------*/
+  const loadPreviousButton = document.getElementById('load-previous-btn');
+
+  if (loadPreviousButton) {
+    loadPreviousButton.addEventListener('click', function () {
+      const savedData = localStorage.getItem('lastSubmittedData');
+      if (!savedData) {
+        alert("No previous data found.");
+        return;
+      }
+
+      const parsedData = JSON.parse(savedData);
+      productData = { ...parsedData }; // restore into productData
+
+      // Fill form fields
+      document.getElementById('brand-name').value = parsedData.brand_name || '';
+      document.getElementById('product-name').value = parsedData.product_name || '';
+      document.getElementById('product-fabric').value = parsedData.product_fabric || '';
+      document.getElementById('product-quantity').value = parsedData.product_quantity || 0;
+      document.getElementById('product-price').value = parsedData.product_price || 0;
+      document.getElementById('selling-price').value = parsedData.product_selling_price || 0;
+
+      // Set sizes checkboxes
+      document.querySelectorAll('input[name="size"]').forEach(checkbox => {
+        checkbox.checked = parsedData.product_sizes?.includes(checkbox.value) || false;
+      });
+
+      alert("Previous data loaded!");
+    });
+  }
+
+
 
   /*--------------------------------------------------------------
   # Form Validation and Submission
   --------------------------------------------------------------*/
   const productForm = document.querySelector('.product-form');
   const submitButton = productForm ? productForm.querySelector('.submit-add-products-btn') : null;
+  const btnText = submitButton.querySelector('.btn-text');
+  const btnSpinner = submitButton.querySelector('.btn-spinner');
 
   if (submitButton) {
     submitButton.addEventListener('click', async function(e) {
         e.preventDefault();
         const idsArray = Array.from(scannedIds); // ✅ move it here
         productData.qrcode_ids = [...idsArray];
+
+        btnText.textContent = "Submitting";
+        btnSpinner.style.display = 'inline-block';
 
 
         const formData = new FormData();
@@ -718,7 +861,10 @@ resultImageInput.addEventListener('change', function () {
   
             if (result.uploaded_urls === 'uploaded') {
               alert('Product added successfully!');
-              
+
+              // Save submitted data to localStorage
+              localStorage.setItem('lastSubmittedData', JSON.stringify(productData));
+
               // Reset form
               document.getElementById('brand-name').value = '';
               document.getElementById('product-name').value = '';
@@ -772,6 +918,10 @@ resultImageInput.addEventListener('change', function () {
         } catch (error) {
             console.error('Submission error:', error);
             alert('Network or server error occurred.');
+
+        } finally {
+          btnText.textContent = "Submit Form";
+          btnSpinner.style.display = 'none';
         }
 
     });

@@ -1,7 +1,10 @@
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+import requests
+from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageColor
 from moviepy.editor import ImageClip, CompositeVideoClip, ColorClip
 import numpy as np
-
+from io import BytesIO
+import random
+from Inventify.utils.blob_utils import upload_image_to_azure  # your custom utility
 
 
 # Upscale & Remove backround ---------------------------------------->
@@ -35,7 +38,6 @@ import numpy as np
 #     # upscale_image(output_path, result_upscaled_img)
 
 # remove_background("images/product3.png", output_model)
-
 
 def create_text_image(
     text,
@@ -133,6 +135,15 @@ def make_circle_image(pil_img, size):
 #     cropped_img = img.crop((0, 0, W, H // 1.5))  # left, top, right, bottom
 #     return cropped_img
 
+def load_image_from_path_or_url(path_or_url):
+    if path_or_url.startswith("http://") or path_or_url.startswith("https://"):
+        response = requests.get(path_or_url)
+        response.raise_for_status()
+        return Image.open(BytesIO(response.content))
+    else:
+        return Image.open(path_or_url)
+    
+
 def crop_and_zoom_upper(image_path, zoom_factor=2):
     img = Image.open(image_path)
     W, H = img.size
@@ -147,39 +158,52 @@ def crop_and_zoom_upper(image_path, zoom_factor=2):
     return zoomed
 
 
-
 def create_dynamic_photo_with_auto_closeup(
         big_image_path,
         logo_path,
         texts,
         output_path,
         font_path,
+        garment_image_path=None,  # optional
         canvas_size=(1100, 800),
-        logo_size=(120, 120),
+        # canvas_size=(1080, 1080),
+        logo_size=(200, 130),
         # bg_color=(220, 202, 190)
     ):
+
+    big_img_pil = load_image_from_path_or_url(big_image_path)
+    big_img_np = np.array(big_img_pil)
+
+    logo_img_pil = load_image_from_path_or_url(logo_path)
+    logo_img_np = np.array(logo_img_pil)
+
+    background_img_pil = load_image_from_path_or_url('https://fitattirestorage.blob.core.windows.net/fitattire-assets/background4.jpg')
+    background_img_np = np.array(background_img_pil)
+
 
     W, H = canvas_size
 
     # Background gray clip
     # bg = ColorClip(size=(W, H), color=bg_color).set_duration(0.1)
-    bg = ImageClip("images/background4.jpg").resize((W, H)).set_duration(0.1)
+    bg = ImageClip(background_img_np).resize((W, H)).set_duration(0.1)
 
     # Logo clip (resized bigger)
-    logo = ImageClip(logo_path).resize(newsize=logo_size).set_position((20, 20))
+    logo = ImageClip(logo_img_np).resize(newsize=logo_size).set_position((20, 20))
 
     # Create combined text string for below logo
     # combined_text = "\n".join(texts)
 
     text_clips = []
     line_y_offset = 150  # Start just below the logo
+    text_block_width = 260
 
     for line in texts:
         text_img = create_text_image(
             line,
             font_path=font_path,
             fontsize=28,
-            box_size=(logo_size[0] + 100, 50),
+            # box_size=(logo_size[0] + 100, 50),
+            box_size=(text_block_width, 50),
             color="black",
             align="left",
             padding=2
@@ -189,11 +213,58 @@ def create_dynamic_photo_with_auto_closeup(
         text_clips.append(text_clip)
         line_y_offset += 55  # 60 (height) + 10 spacing
 
+    # # === Big Image processing ===
+    # def prepare_image_clip(np_image, max_w, max_h):
+    #     clip = ImageClip(np_image)
+    #     ow, oh = clip.w, clip.h
+    #     scale = min(max_w / ow, max_h / oh)
+    #     return clip.resize(scale)
 
-    fixed_big_width = 550
+    # big_img_clip = prepare_image_clip(big_img_np, 350, 700)
+
+    # # === Garment Image (optional) ===
+    # garment_clip = None
+    # if garment_image_path:
+    #     garment_pil = load_image_from_path_or_url(garment_image_path)
+    #     garment_np = np.array(garment_pil)
+    #     garment_clip = prepare_image_clip(garment_np, 350, 700)
+
+    # # === Positioning logic ===
+    # spacing = 30  # space between text+logo and big image
+    # spacing2 = 0  # no space between big image and garment image
+
+    # # Width of each section
+    # text_block_total_w = text_block_width + 40  # text + margin
+    # big_img_w = big_img_clip.w
+    # garment_w = garment_clip.w if garment_clip else 0
+
+    # total_required_w = text_block_total_w + spacing + big_img_w + spacing2 + garment_w
+    # start_x = (W - total_required_w) // 2
+
+    # # X positions
+    # text_x = start_x
+    # big_x = text_x + text_block_total_w + spacing
+    # garment_x = big_x + big_img_w + spacing2
+
+    # # Y positions
+    # big_y = (H - big_img_clip.h) // 2
+    # if garment_clip:
+    #     garment_y = (H - garment_clip.h) // 2
+
+    # # Set final positions
+    # big_img_clip = big_img_clip.set_position((big_x, big_y))
+    # if garment_clip:
+    #     garment_clip = garment_clip.set_position((garment_x, garment_y))
+    # logo = logo.set_position((text_x + 10, 20))
+    # for i, clip in enumerate(text_clips):
+    #     text_clips[i] = clip.set_position((text_x + 10, 150 + i * 55))
+
+
+
+    fixed_big_width = 400
     fixed_big_height = 800
 
-    big_img = ImageClip(big_image_path)
+    big_img = ImageClip(big_img_np)
     original_w, original_h = big_img.w, big_img.h
 
     # Threshold for "large" images (you can adjust this)
@@ -220,7 +291,34 @@ def create_dynamic_photo_with_auto_closeup(
         
         big_img = big_img.resize(scale)
 
-    big_img = big_img.set_position(("center", 0))
+    # big_img = big_img.set_position(("center", 0))
+    # Position big image on left or center depending on garment_image presence
+    # big_img_x = (W - fixed_big_width) // 2 if not garment_image_path else (W - (fixed_big_width * 2 + 60)) // 2
+
+    big_img_clip = big_img.resize((fixed_big_width, fixed_big_height))
+
+    big_img_x = W - fixed_big_width * 2
+    big_img_clip = big_img_clip.set_position((big_img_x, (H - fixed_big_height) // 2))
+
+    # ==== Optional Garment Image ====
+    garment_clip = None
+    if garment_image_path:
+        garment_pil = load_image_from_path_or_url(garment_image_path)
+        garment_np = np.array(garment_pil)
+        garment_clip = ImageClip(garment_np)
+
+        # Resize to match fixed size
+        # gw, gh = garment_clip.w, garment_clip.h
+        # scale = min(fixed_big_width / gw, fixed_big_height / gh)
+        # garment_clip = garment_clip.resize(scale)
+
+        garment_clip = garment_clip.resize((fixed_big_width, fixed_big_height))  # optional: same height
+
+
+        garment_clip = garment_clip.set_position((
+            big_img_x + fixed_big_width,
+            (H - fixed_big_height) // 2
+        ))
     
 
 
@@ -276,28 +374,245 @@ def create_dynamic_photo_with_auto_closeup(
 
 
     # Composite all elements
-    final = CompositeVideoClip(
-        [bg, big_img, logo] + text_clips,
-        size=(W, H)
-    )
+    all_clips = [bg, big_img_clip, logo] + text_clips
+    if garment_clip:
+        all_clips.append(garment_clip)
+    final = CompositeVideoClip(all_clips, size=(W, H))  
+
+    # final = CompositeVideoClip(
+    #     [bg, big_img, logo] + text_clips,
+    #     size=(W, H)
+    # )
 
     # Save frame as image
-    final.save_frame(output_path)
+    # final.save_frame(output_path)
+
+    # Get numpy frame
+    frame = final.get_frame(t=0)
+    img = Image.fromarray(frame)
+
+    # Save to in-memory buffer
+    img_bytes = BytesIO()
+    img.save(img_bytes, format='PNG')
+    img_bytes.seek(0)
+
+    # Upload using existing blobs.py utility
+    azure_url = upload_image_to_azure(img_bytes, blob_name=output_path)
+
+    return azure_url  # <-- return the blob URL
+
+
+# def create_offer_photo_with_right_image(
+#         big_image_path,
+#         logo_path,
+#         output_path,
+#         font_path,
+#         product_id="FiA75913",
+#         canvas_size=(1080, 1080)
+#     ):
+#     W, H = canvas_size
+
+#     # Load background
+#     bg = Image.new("RGBA", (W, H), (179, 150, 118))  # Black background
+
+#     # Load main product image
+#     big_img = load_image_from_path_or_url(big_image_path).convert("RGBA")
+#     box_width, box_height = 500, 700
+#     img_with_margin = big_img.resize((box_width - 40, box_height - 60))  # leave margin
+
+#     # Create box with border
+#     box_img = Image.new("RGBA", (box_width, box_height), (255, 255, 255, 0))
+#     draw_box = ImageDraw.Draw(box_img)
+#     radius = 30
+#     draw_box.rounded_rectangle([0, 0, box_width, box_height], radius=radius, outline="white", width=5)
+
+#     # Paste the product image inside the box with margin
+#     box_img.paste(img_with_margin, (20, 30), img_with_margin)
+
+#     # Paste box_img on right side of canvas
+#     bg.paste(box_img, ((W + 100 - box_width) // 2 + 200, (H - box_height) // 2), box_img)
+
+#     # ==== Text Area ====
+#     draw = ImageDraw.Draw(bg)
+
+#     def draw_text_line(text, size, y, bold=False):
+#         font = ImageFont.truetype(font_path, size)
+#         draw.text((80, y), text, font=font, fill="white")
+#         return y + size + 20
+
+#     y_text = 100
+#     y_text = draw_text_line(f"ID: {product_id}", 32, y_text)
+#     y_text = draw_text_line("Special Offer", 60, y_text)
+#     y_text = draw_text_line("50% OFF", 80, y_text)
+
+#     # ==== Shop Now Button ====
+#     button_font = ImageFont.truetype(font_path, 36)
+#     button_text = "Shop Now"
+#     button_padding = (30, 15)
+#     text_size = draw.textsize(button_text, font=button_font)
+#     btn_w = text_size[0] + button_padding[0] * 2
+#     btn_h = text_size[1] + button_padding[1] * 2
+#     btn_x = 80
+#     btn_y = y_text + 30
+
+#     draw.rectangle([btn_x, btn_y, btn_x + btn_w, btn_y + btn_h], fill="white", outline=None)
+#     draw.text(
+#         (btn_x + button_padding[0], btn_y + button_padding[1]),
+#         button_text,
+#         font=button_font,
+#         fill="black"
+#     )
+
+#     # ==== Final Line ====
+#     final_line = "Mention the product ID to know more."
+#     final_font = ImageFont.truetype(font_path, 24)
+#     draw.text((80, btn_y + btn_h + 40), final_line, font=final_font, fill="white")
+
+#     # Convert to BytesIO and upload
+#     img_bytes = BytesIO()
+#     bg.save(img_bytes, format='PNG')
+#     img_bytes.seek(0)
+#     azure_url = upload_image_to_azure(img_bytes, blob_name=output_path)
+#     return azure_url
+
+
+# New function ----------------------------------------->
+def create_offer_photo_with_right_image(
+    big_image_path,
+    output_path,
+    font_path,
+    product_id="FiA75913",
+    offer_title="Special Offer",
+    discount_text="50% OFF",
+    final_line_1="Mention the Product Id",
+    final_line_2="Know more.",
+    canvas_size=(1080, 1080)
+):
+    W, H = canvas_size
+
+    # Create background
+    colors = [
+        (179, 150, 118, 255),  # Brown
+        (128, 0, 128, 255),      # Purple
+        (0, 100, 0, 255),        # Dark Green
+        (0, 0, 139, 255),        # Dark Blue
+        (0, 0, 128, 255)         # Navy Blue
+    ]
+
+    # # Choose a random color
+    bg_color = random.choice(colors)
+
+    # Create new background with randomly chosen color
+    bg = Image.new("RGBA", (W, H), bg_color)
+
+    # Load and resize product image
+    big_img = load_image_from_path_or_url(big_image_path).convert("RGBA")
+    box_width, box_height = 500, 700
+    img_with_margin = big_img.resize((box_width - 40, box_height - 60))
+
+    # Create box with border
+    box_img = Image.new("RGBA", (box_width, box_height), (255, 255, 255, 0))
+    draw_box = ImageDraw.Draw(box_img)
+    radius = 30
+    draw_box.rounded_rectangle([0, 0, box_width, box_height], radius=radius, outline="white", width=5)
+    box_img.paste(img_with_margin, (20, 30), img_with_margin)
+
+    # Paste the image box on the right
+    right_margin = 30  # increase this value to move box further left
+    box_x = W - box_width - right_margin
+    box_y = (H - box_height) // 2
+    bg.paste(box_img, (box_x, box_y), box_img)
+
+    # ==== TEXT DRAWING ====
+    draw = ImageDraw.Draw(bg)
+    font_id = ImageFont.truetype(font_path, 24)
+    font_offer = ImageFont.truetype(font_path, 60)
+    font_discount = ImageFont.truetype(font_path, 80)
+    font_button = ImageFont.truetype(font_path, 28)
+    font_final = ImageFont.truetype(font_path, 24)
+
+    # Prepare all text lines
+    lines = [
+        (f"ID: {product_id}", font_id),
+        (offer_title, font_offer),
+        (discount_text, font_discount),
+        ("", None),  # spacing
+        ("Shop Now", font_button),
+        ("", None),  # spacing
+        (final_line_1, font_final),
+        (final_line_2, font_final),
+    ]
+
+    # Calculate total height
+    total_height = 0
+    spacing = 20
+    button_padding = (30, 15)
+    for text, font in lines:
+        if font and text != "Shop Now":
+            total_height += font.getsize(text)[1] + spacing
+        elif text == "Shop Now":
+            btn_text_size = draw.textsize(text, font=font_button)
+            total_height += btn_text_size[1] + button_padding[1]*2 + spacing
+        else:
+            total_height += spacing
+
+    start_y = (H - total_height) // 2
+    current_y = start_y
+
+    for text, font in lines:
+        if text == "":
+            current_y += spacing
+            continue
+
+        if text == "Shop Now":
+            # Draw button
+            btn_text_size = draw.textsize(text, font=font_button)
+            btn_w = btn_text_size[0] + button_padding[0] * 2
+            btn_h = btn_text_size[1] + button_padding[1] * 2
+            btn_x = 80
+            draw.rectangle([btn_x, current_y, btn_x + btn_w, current_y + btn_h], fill="white")
+            draw.text(
+                (btn_x + button_padding[0], current_y + button_padding[1]),
+                text,
+                font=font_button,
+                fill="black"
+            )
+            current_y += btn_h + spacing
+        else:
+            draw.text((80, current_y), text, font=font, fill="white")
+            current_y += font.getsize(text)[1] + spacing
+
+    # Save and upload image
+    img_bytes = BytesIO()
+    bg.save(img_bytes, format='PNG')
+    img_bytes.seek(0)
+    azure_url = upload_image_to_azure(img_bytes, blob_name=output_path)
+    return azure_url
+
+
 
 
 # === Example usage ===
-if __name__ == "__main__":
-    # font_path = "/Library/Fonts/OpenSans-Bold.ttf"  # Change if needed
-    font_path = "/Library/Fonts/DejaVuSans-Bold.ttf"  # Change if needed
+# if __name__ == "__main__":
+#     # font_path = "/Library/Fonts/OpenSans-Bold.ttf"  # Change if needed
+#     font_path = "/Library/Fonts/DejaVuSans-Bold.ttf"  # Change if needed
 
-    create_dynamic_photo_with_auto_closeup(
-        big_image_path="images/product4.jpg",
-        logo_path="images/logo1.png",
-        texts=[
-            "Price: ₹499",
-            "Sizes: S, M, L, XL",
-            "Fabric: Cotton"
-        ],
-        output_path="output/output_image2.png",
-        font_path=font_path
-    )
+#     # create_dynamic_photo_with_auto_closeup(
+#     #     big_image_path="images/product4.jpg",
+#     #     logo_path="images/logo1.png",
+#     #     texts=[
+#     #         "Price: ₹499",
+#     #         "Sizes: S, M, L, XL",
+#     #         "Fabric: Cotton"
+#     #     ],
+#     #     output_path="output/output_image2.png",
+#     #     font_path=font_path
+#     # )
+#     create_offer_photo_with_right_image(
+#         big_image_path="images/product4.jpg",
+#         logo_path="images/logo1.png",  # not used here but can be reused
+#         output_path="generated",
+#         font_path="/Library/Fonts/DejaVuSans-Bold.ttf",
+#         product_id="FiA75913"
+#     )
+

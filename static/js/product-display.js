@@ -29,7 +29,7 @@ function scrollRightCarousel() {
 
 
 // Switch Images & Color Name Dynamically
-function updateDisplay(resultImage, garmentImage, color, clickedThumb) {
+function updateDisplay(resultImage, garmentImage, color, clickedThumb, index) {
   // Update large images
   document.getElementById('mainResultImage').src = resultImage;
   document.getElementById('mainGarmentImage').src = garmentImage;
@@ -41,4 +41,7 @@ function updateDisplay(resultImage, garmentImage, color, clickedThumb) {
   const thumbs = document.querySelectorAll('.result-thumb');
   thumbs.forEach(thumb => thumb.classList.remove('active'));
   clickedThumb.classList.add('active');
+
+  // Optional: Use the index value if needed
+  console.log("Selected variant index:", index);
 }
