@@ -29,6 +29,7 @@ opencv-python-headless==4.11.0.86
 
 decorator==4.4.2 
 moviepy==1.0.3
+openai==1.88.0
 
 xhtml2pdf==0.2.15
 reportlab==4.0.9
