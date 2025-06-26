@@ -44,14 +44,14 @@ jobs:
           zip -r release.zip . -x '*.git*' '*__pycache__*' 'venv/*' 'node_modules/*' '*.DS_Store*' 'tests/*' '.github/*'
 
 
-      - name: Upload artifact for deployment jobs
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-app
-          path: |
-            release.zip
-            !venv/
-          retention-days: 1
+      # - name: Upload artifact for deployment jobs
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: python-app
+      #     path: |
+      #       release.zip
+      #       !venv/
+      #     retention-days: 1
           
   deploy:
     runs-on: ubuntu-latest
@@ -63,13 +63,13 @@ jobs:
       id-token: write #This is required for requesting the JWT
 
     steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: python-app
+      # - name: Download artifact from build job
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: python-app
 
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
+      # - name: Unzip artifact for deployment
+      #   run: unzip release.zip
 
       
       - name: Login to Azure
