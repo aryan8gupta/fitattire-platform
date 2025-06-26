@@ -1,0 +1,11 @@
+name: Trigger Cleanup
+
+on:
+  workflow_dispatch:  # Allows you to run this manually from GitHub UI
+
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Just echo
+        run: echo "Triggering cleanup"
