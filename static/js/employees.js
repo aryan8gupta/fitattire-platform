@@ -3,14 +3,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const addUserBtn = document.getElementById("addUserBtn")
     if (addUserBtn) {
       addUserBtn.addEventListener("click", () => {
-        window.location.href = "http://127.0.0.1:8000/users-signup/"
+        window.location.href = "https://fitattire.shop/users-signup/"
       })
     }
   
     const addEmployeeBtn = document.getElementById("addEmployeeBtn")
     if (addEmployeeBtn) {
       addEmployeeBtn.addEventListener("click", () => {
-        window.location.href = "http://127.0.0.1:8000/employee-signup/"
+        window.location.href = "https://fitattire.shop/employee-signup/"
       })
     }
   
