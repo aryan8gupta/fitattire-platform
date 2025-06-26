@@ -71,7 +71,13 @@ jobs:
       # - name: Unzip artifact for deployment
       #   run: unzip release.zip
 
-      
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create release.zip
+        run: |
+          zip -r release.zip . -x '*.git*' '*__pycache__*' 'venv/*' 'node_modules/*' '*.DS_Store*' 'tests/*' '.github/*'
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -85,3 +91,4 @@ jobs:
         with:
           app-name: 'inventory-management-app'
           slot-name: 'production'
+          package: release.zip
