@@ -75,6 +75,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          repository: aryan8gupta/inventory_management
+
 
 
       - name: Create release.zip
