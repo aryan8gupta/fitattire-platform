@@ -36,8 +36,13 @@ from django.core.files.base import ContentFile
 from .utils.blob_utils import upload_image_to_azure
 
 from openai import OpenAI
-
 import secrets
+
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 my_var_2 = os.getenv('Open_API_Key', 'Default Value')
@@ -704,10 +709,12 @@ def add_products(request):
     if request.method == 'POST':
         try:
             print("🔍 Reading POST data...")
+            logger.info("reading post data")
 
             # ✅ Safely get the data sent as FormData
             json_data1 = request.POST.get('document')
             json_data2 = request.POST.get('selectedmiddlebuttons')
+            logger.info("reading post data-2")
 
             if not json_data1:
                 print("❌ 'document' is missing in POST")
@@ -719,6 +726,7 @@ def add_products(request):
             # Prepare to save uploaded garment images
             saved_garment_urls = []
             saved_result_urls = []
+            logger.info("reading post data-3")
 
             # garment_images in parsed_data1 are currently placeholders (filenames or base64 strings)
             # We replace them with actual saved media URLs after saving files
@@ -735,7 +743,9 @@ def add_products(request):
                 else:
                     # No file sent for this variant, fallback or error handling
                     saved_garment_urls.append('')  # or handle as you prefer
-            
+
+            logger.info("reading post data-4")
+
             # Handle result images (mixed types)
             index = 0
             while True:
@@ -752,6 +762,8 @@ def add_products(request):
                     break  # Stop when no more result_x keys found
                 index += 1
 
+            logger.info("reading post data-5")
+
             print(saved_garment_urls)
             print(saved_result_urls)
 
@@ -766,6 +778,7 @@ def add_products(request):
             upgraded_product_price = int(parsed_data1['product_selling_price']) + random_integer
             product_discount = int(((random_integer)/(upgraded_product_price)) * 100)
 
+            logger.info("reading post data-6")
             # Build the variants array
             variants = []
             for i in range(len(parsed_data1['product_colors'])):
@@ -797,6 +810,7 @@ def add_products(request):
                     final_line_1="Mention the Product Id to",
                     final_line_2="Know more."
                 )
+                logger.info("reading post data-7")
 
                 generated_urls.append(image_url_2)
 
@@ -821,7 +835,7 @@ def add_products(request):
                 )
 
                 reply = response.choices[0].message.content
-
+                logger.info("reading post data-8")
 
                 response = post_to_instagram(image_url_2, reply)
                 print(response)
@@ -835,7 +849,8 @@ def add_products(request):
                     garment_image_path=garment_image_path
                 )
                 generated_images.append(azure_generated_image_url)
-
+            
+            logger.info("reading post data-9")
 
             image_dict = {
                 "user_id": users_id,
@@ -847,12 +862,14 @@ def add_products(request):
 
             DB.images_download.insert_one(image_dict)
 
-
+            logger.info("reading post data-10")
             # Video Generation by Threading Starts ---------------->
             video_url = ''
             video_record = list(DB.videos_downloaded.find(
                 {"user_id": users_id, "video_generated": False}
             ))
+            logger.info("reading post data-11")
+            logger.info(video_record)
 
             if video_record:
                 for record in video_record:
@@ -959,6 +976,7 @@ def add_products(request):
                 print("[INFO] Video generation thread-2 started.")
 
             else:
+                logger.info("reading post data-12")
                 video_dict = {
                     "user_id": users_id,
                     "qr_ids": parsed_data1['qrcode_ids'],
@@ -990,6 +1008,8 @@ def add_products(request):
                 "variants": variants
             }
             # DB.products.create_index({"qrcode_ids": 1})
+            logger.info("reading post data-13")
+            
             DB.products.insert_one(products_dict)
             print("✅ Product inserted successfully")
 

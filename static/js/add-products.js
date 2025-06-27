@@ -399,21 +399,21 @@ resultImageInput.addEventListener('change', function () {
         }
     });
   }
-  // function handleImageChange1(input) {
-  //   input.addEventListener('change', function () {
-  //       const file = this.files[0];
-  //       if (file) {
-  //           const reader = new FileReader();
-  //           reader.onload = function () {
-  //               previewImage.src = reader.result;
-  //           };
-  //           reader.readAsDataURL(file);
-  //       }
-  //   });
-  // }
+  function handleImageChange1(input) {
+    input.addEventListener('change', function () {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function () {
+                previewImage.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+  }
 
   // if (inputCamera) handleImageChange2(inputCamera);
-  if (inputUpload) handleImageChange2(inputUpload);
+  if (inputUpload) handleImageChange1(inputUpload);
 
   
   // Category Selection
