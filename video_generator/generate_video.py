@@ -26,15 +26,20 @@ def create_text_image(
 
     while True:
         font = ImageFont.truetype(font_path, fontsize)
-        line_height = draw.textsize("A", font=font)[1]
+
+        # Estimate line height using bounding box
+        bbox = draw.textbbox((0, 0), "A", font=font)
+        line_height = bbox[3] - bbox[1]
 
         # Re-wrap text with the current font size
         lines = []
         current_line = ""
         for word in words:
             test_line = f"{current_line} {word}".strip()
-            line_width, _ = draw.textsize(test_line, font=font)
-            if line_width + 2 * padding <= box_width:
+            test_bbox = draw.textbbox((0, 0), test_line, font=font)
+            test_line_width = test_bbox[2] - test_bbox[0]
+
+            if test_line_width + 2 * padding <= box_width:
                 current_line = test_line
             else:
                 if current_line:
@@ -49,14 +54,14 @@ def create_text_image(
         fontsize -= 1
 
     # Create the final image with transparent background
-    print("900")
     img = Image.new("RGBA", (box_width, box_height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
     # Start drawing vertically centered
     y = (box_height - total_text_height) // 2
     for line in lines:
-        line_width, _ = draw.textsize(line, font=font)
+        bbox = draw.textbbox((0, 0), line, font=font)
+        line_width = bbox[2] - bbox[0]
         if align == "center":
             x = (box_width - line_width) // 2
         elif align == "left":
@@ -69,6 +74,66 @@ def create_text_image(
         y += line_height
 
     return img
+
+
+# def create_text_image(
+#     text,
+#     fontsize,
+#     box_size,
+#     color="white",
+#     align="center",
+#     padding=10
+# ):
+#     box_width, box_height = box_size
+#     words = text.split()
+#     temp_img = Image.new("RGB", box_size)
+#     draw = ImageDraw.Draw(temp_img)
+
+#     while True:
+#         font = ImageFont.truetype(font_path, fontsize)
+#         line_height = draw.textsize("A", font=font)[1]
+
+#         # Re-wrap text with the current font size
+#         lines = []
+#         current_line = ""
+#         for word in words:
+#             test_line = f"{current_line} {word}".strip()
+#             line_width, _ = draw.textsize(test_line, font=font)
+#             if line_width + 2 * padding <= box_width:
+#                 current_line = test_line
+#             else:
+#                 if current_line:
+#                     lines.append(current_line)
+#                 current_line = word
+#         if current_line:
+#             lines.append(current_line)
+
+#         total_text_height = line_height * len(lines)
+#         if total_text_height + 2 * padding <= box_height or fontsize <= 10:
+#             break
+#         fontsize -= 1
+
+#     # Create the final image with transparent background
+#     print("900")
+#     img = Image.new("RGBA", (box_width, box_height), (0, 0, 0, 0))
+#     draw = ImageDraw.Draw(img)
+
+#     # Start drawing vertically centered
+#     y = (box_height - total_text_height) // 2
+#     for line in lines:
+#         line_width, _ = draw.textsize(line, font=font)
+#         if align == "center":
+#             x = (box_width - line_width) // 2
+#         elif align == "left":
+#             x = padding
+#         elif align == "right":
+#             x = box_width - line_width - padding
+#         else:
+#             x = padding  # fallback
+#         draw.text((x, y), line, font=font, fill=color)
+#         y += line_height
+
+#     return img
 
 
 # def safe_image_clip(path, duration, height=720):

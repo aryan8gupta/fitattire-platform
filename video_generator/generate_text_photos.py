@@ -44,6 +44,7 @@ font_path = os.path.join(BASE_DIR, 'static/assets/fonts/DejaVuSans-Bold.ttf')
 
 # remove_background("images/product3.png", output_model)
 
+
 def create_text_image(
     text,
     fontsize,
@@ -59,13 +60,18 @@ def create_text_image(
 
     while True:
         font = ImageFont.truetype(font_path, fontsize)
-        line_height = draw.textsize("A", font=font)[1]
+
+        # Estimate line height
+        bbox = draw.textbbox((0, 0), "A", font=font)
+        line_height = bbox[3] - bbox[1]
 
         lines = []
         current_line = ""
         for word in words:
             test_line = f"{current_line} {word}".strip()
-            line_width, _ = draw.textsize(test_line, font=font)
+            test_bbox = draw.textbbox((0, 0), test_line, font=font)
+            line_width = test_bbox[2] - test_bbox[0]
+
             if line_width + 2 * padding <= box_width:
                 current_line = test_line
             else:
@@ -80,12 +86,16 @@ def create_text_image(
             break
         fontsize -= 1
 
+    # Create the transparent output image
     img = Image.new("RGBA", (box_width, box_height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
     y = (box_height - total_text_height) // 2
     for line in lines:
-        line_width, _ = draw.textsize(line, font=font)
+        line_bbox = draw.textbbox((0, 0), line, font=font)
+        line_width = line_bbox[2] - line_bbox[0]
+        line_height = line_bbox[3] - line_bbox[1]
+
         if align == "center":
             x = (box_width - line_width) // 2
         elif align == "left":
@@ -94,10 +104,68 @@ def create_text_image(
             x = box_width - line_width - padding
         else:
             x = padding
+
         draw.text((x, y), line, font=font, fill=color)
         y += line_height
 
     return img
+
+
+
+# def create_text_image(
+#     text,
+#     fontsize,
+#     box_size,
+#     color="black",
+#     align="left",
+#     padding=10
+# ):
+#     box_width, box_height = box_size
+#     words = text.split()
+#     temp_img = Image.new("RGB", box_size)
+#     draw = ImageDraw.Draw(temp_img)
+
+#     while True:
+#         font = ImageFont.truetype(font_path, fontsize)
+#         line_height = draw.textsize("A", font=font)[1]
+
+#         lines = []
+#         current_line = ""
+#         for word in words:
+#             test_line = f"{current_line} {word}".strip()
+#             line_width, _ = draw.textsize(test_line, font=font)
+#             if line_width + 2 * padding <= box_width:
+#                 current_line = test_line
+#             else:
+#                 if current_line:
+#                     lines.append(current_line)
+#                 current_line = word
+#         if current_line:
+#             lines.append(current_line)
+
+#         total_text_height = line_height * len(lines)
+#         if total_text_height + 2 * padding <= box_height or fontsize <= 10:
+#             break
+#         fontsize -= 1
+
+#     img = Image.new("RGBA", (box_width, box_height), (0, 0, 0, 0))
+#     draw = ImageDraw.Draw(img)
+
+#     y = (box_height - total_text_height) // 2
+#     for line in lines:
+#         line_width, _ = draw.textsize(line, font=font)
+#         if align == "center":
+#             x = (box_width - line_width) // 2
+#         elif align == "left":
+#             x = padding
+#         elif align == "right":
+#             x = box_width - line_width - padding
+#         else:
+#             x = padding
+#         draw.text((x, y), line, font=font, fill=color)
+#         y += line_height
+
+#     return img
 
 
 def make_circle_image(pil_img, size):
@@ -569,9 +637,11 @@ def create_offer_photo_with_right_image(
 
         if text == "Shop Now":
             # Draw button
-            btn_text_size = draw.textsize(text, font=font_button)
-            btn_w = btn_text_size[0] + button_padding[0] * 2
-            btn_h = btn_text_size[1] + button_padding[1] * 2
+            bbox = draw.textbbox((0, 0), text, font=font_button)
+            btn_text_width = bbox[2] - bbox[0]
+            btn_text_height = bbox[3] - bbox[1]
+            btn_w = btn_text_width + button_padding[0] * 2
+            btn_h = btn_text_height + button_padding[1] * 2
             btn_x = 80
             draw.rectangle([btn_x, current_y, btn_x + btn_w, current_y + btn_h], fill="white")
             draw.text(
@@ -581,6 +651,7 @@ def create_offer_photo_with_right_image(
                 fill="black"
             )
             current_y += btn_h + spacing
+
         else:
             draw.text((80, current_y), text, font=font, fill="white")
             bbox = font.getbbox(text)
