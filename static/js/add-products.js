@@ -233,7 +233,7 @@ function showFinalSubCategories(gender, category, subCat) {
     sub.forEach(final => {
       const item = createCategoryItem(final);
       item.addEventListener('click', function (e) { 
-        showImages(final);
+        showImages(gender, final);
         selectedFinalCategory = final;
       });
       finalSubCategoryGrid.appendChild(item);
@@ -241,17 +241,63 @@ function showFinalSubCategories(gender, category, subCat) {
   }
 }
 
-function showImages(final) {
+// function showImages(final) {
+//   clearGrid(imagesSection);
+  
+//   // Show Heading
+//   heading.style.display = 'block';
+//   heading.textContent = `Choose Models`;
+
+//   spinner.style.display = 'block';
+//   setTimeout(() => {
+//     spinner.style.display = 'none';
+//     images[final].forEach(src => {
+//       const img = document.createElement('img');
+//       img.src = src;
+//       img.alt = final;
+//       img.loading = "lazy";
+//       img.style.width = "200px";
+//       img.style.height = "250px";
+//       img.style.objectFit = "contain";
+//       img.style.margin = "10px";
+//       img.className = 'image-item'; // <-- add class
+
+//       img.addEventListener('click', function() {
+//         // Remove active from all images
+//         document.querySelectorAll('.images-section img').forEach(i => i.classList.remove('active'));
+//         // Add active to clicked image
+//         this.classList.add('active');
+
+//         detailBox.style.display = "block";
+//         detailBox.style.margin = "10px";
+
+//         selectedImagePath = this.src;
+//         console.log("Selected image path:", selectedImagePath);
+//       });
+//       imagesSection.appendChild(img);
+//     });
+//   }, 500);
+// }
+
+function showImages(gender, final) {
   clearGrid(imagesSection);
   
-  // Show Heading
   heading.style.display = 'block';
   heading.textContent = `Choose Models`;
 
   spinner.style.display = 'block';
   setTimeout(() => {
     spinner.style.display = 'none';
-    images[final].forEach(src => {
+
+    const key = `${gender}:${final}`;
+    const imageList = images[key];
+
+    if (!imageList) {
+      console.warn(`No images found for key: ${key}`);
+      return;
+    }
+
+    imageList.forEach(src => {
       const img = document.createElement('img');
       img.src = src;
       img.alt = final;
@@ -260,12 +306,10 @@ function showImages(final) {
       img.style.height = "250px";
       img.style.objectFit = "contain";
       img.style.margin = "10px";
-      img.className = 'image-item'; // <-- add class
+      img.className = 'image-item';
 
       img.addEventListener('click', function() {
-        // Remove active from all images
         document.querySelectorAll('.images-section img').forEach(i => i.classList.remove('active'));
-        // Add active to clicked image
         this.classList.add('active');
 
         detailBox.style.display = "block";
@@ -274,6 +318,7 @@ function showImages(final) {
         selectedImagePath = this.src;
         console.log("Selected image path:", selectedImagePath);
       });
+
       imagesSection.appendChild(img);
     });
   }, 500);

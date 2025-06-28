@@ -237,28 +237,29 @@ def products_2(request):
 
 
 def product_display(request, qr_id):
-    valid = False
-    data = {}
-    if request.COOKIES.get('t'):
-        valid, data = verify_token(request.COOKIES['t'])
-    dashboard = None
-    if valid:
-        dashboard = 'dashboard'
-    
-    user_type = data.get('user_type')
-    user_name = data.get('first_name')
-
-    result = DB.products.find_one({"qrcode_ids": qr_id})
-    random_integer = random.randint(100, 300)
-    upgraded_product_price = int(result['selling_price']) + random_integer
-    product_discount = int(((random_integer)/(upgraded_product_price)) * 100)
-
-    if result:
-        return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'product': result, 'discount': product_discount, 'product_price': upgraded_product_price, "show_edit": valid, 'product_id': result['_id']})
-    else:
-        return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'product': result, 'discount': product_discount, 'product_price': upgraded_product_price, "show_edit": valid, 'product_id': result['_id']})
-
+    try: 
+        valid = False
+        data = {}
+        if request.COOKIES.get('t'):
+            valid, data = verify_token(request.COOKIES['t'])
+        dashboard = None
+        if valid:
+            dashboard = 'dashboard'
         
+        user_type = data.get('user_type')
+        user_name = data.get('first_name')
+
+        result = DB.products.find_one({"qrcode_ids": qr_id})
+        random_integer = random.randint(100, 300)
+        upgraded_product_price = int(result['selling_price']) + random_integer
+        product_discount = int(((random_integer)/(upgraded_product_price)) * 100)
+
+        if result:
+            return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'product': result, 'discount': product_discount, 'product_price': upgraded_product_price, "show_edit": valid, 'product_id': result['_id']})
+        else:
+            return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'product': result, 'discount': product_discount, 'product_price': upgraded_product_price, "show_edit": valid, 'product_id': result['_id']})
+    except:
+        return render(request, 'product_display.html')
 
 
 
