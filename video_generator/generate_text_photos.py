@@ -549,10 +549,13 @@ def create_offer_photo_with_right_image(
     button_padding = (30, 15)
     for text, font in lines:
         if font and text != "Shop Now":
-            total_height += font.getsize(text)[1] + spacing
+            bbox = font.getbbox(text)
+            height = bbox[3] - bbox[1]
+            total_height += height + spacing
         elif text == "Shop Now":
-            btn_text_size = draw.textsize(text, font=font_button)
-            total_height += btn_text_size[1] + button_padding[1]*2 + spacing
+            bbox = draw.textbbox((0, 0), text, font=font_button)
+            btn_height = (bbox[3] - bbox[1]) + button_padding[1]*2
+            total_height += btn_height + spacing
         else:
             total_height += spacing
 
@@ -580,7 +583,9 @@ def create_offer_photo_with_right_image(
             current_y += btn_h + spacing
         else:
             draw.text((80, current_y), text, font=font, fill="white")
-            current_y += font.getsize(text)[1] + spacing
+            bbox = font.getbbox(text)
+            text_height = bbox[3] - bbox[1]
+            current_y += text_height + spacing
 
     # Save and upload image
     img_bytes = BytesIO()

@@ -204,7 +204,7 @@ function showFinalCategories(gender, category) {
     sub.forEach(subCat => {
       const item = createCategoryItem(subCat);
       item.addEventListener('click', function (e) {  
-        showImages(subCat);
+        showImages(gender, subCat);
         selectedSubCategory = subCat;
       });
       finalCategoryGrid.appendChild(item);

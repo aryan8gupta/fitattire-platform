@@ -248,17 +248,19 @@ def product_display(request, qr_id):
         
         user_type = data.get('user_type')
         user_name = data.get('first_name')
+        qrcode = qr_id + "/"
 
-        result = DB.products.find_one({"qrcode_ids": qr_id})
-        random_integer = random.randint(100, 300)
-        upgraded_product_price = int(result['selling_price']) + random_integer
-        product_discount = int(((random_integer)/(upgraded_product_price)) * 100)
-
+        result = DB.products.find_one({"qrcode_ids": qrcode})
         if result:
+            random_integer = random.randint(100, 300)
+            upgraded_product_price = int(result['selling_price']) + random_integer
+            product_discount = int(((random_integer)/(upgraded_product_price)) * 100)
             return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'product': result, 'discount': product_discount, 'product_price': upgraded_product_price, "show_edit": valid, 'product_id': result['_id']})
-        else:
-            return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'product': result, 'discount': product_discount, 'product_price': upgraded_product_price, "show_edit": valid, 'product_id': result['_id']})
-    except:
+
+        return render(request, 'product_display.html', {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'product': None})
+
+    except Exception as e:
+        print(f"Error in product_display: {e}")
         return render(request, 'product_display.html')
 
 
