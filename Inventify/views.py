@@ -252,10 +252,7 @@ def product_display(request, qr_id):
 
         result = DB.products.find_one({"qrcode_ids": qrcode})
         if result:
-            random_integer = random.randint(100, 300)
-            upgraded_product_price = int(result['selling_price']) + random_integer
-            product_discount = int(((random_integer)/(upgraded_product_price)) * 100)
-            return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'product': result, 'discount': product_discount, 'product_price': upgraded_product_price, "show_edit": valid, 'product_id': result['_id']})
+            return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'product': result, "show_edit": valid, 'product_id': result['_id']})
 
         return render(request, 'product_display.html', {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'product': None})
 
@@ -765,7 +762,7 @@ def add_products(request):
             category = parsed_data2.get('category', 'Jeans')
             gender = parsed_data2.get('gender', 'Women')
 
-            random_integer = random.randint(100, 300)
+            random_integer = random.randint(50, 150)
             upgraded_product_price = int(parsed_data1['product_selling_price']) + random_integer
             product_discount = int(((random_integer)/(upgraded_product_price)) * 100)
 
@@ -993,6 +990,7 @@ def add_products(request):
                 "sizes": parsed_data1['product_sizes'],
                 "product_price": parsed_data1['product_price'],
                 "selling_price": parsed_data1['product_selling_price'],
+                "product_discount": product_discount,
                 "variants": variants
             }
             # DB.products.create_index({"qrcode_ids": 1})
