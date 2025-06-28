@@ -4,6 +4,36 @@
 {% block contain %}
     <link rel="stylesheet" href="{% static 'css/product-display.css' %}">
 
+    <style>
+        .product-image-scroll {
+            display: flex;
+            overflow-x: auto;
+            gap: 16px; /* space between images */
+            padding: 10px;
+            scroll-snap-type: x mandatory;
+        }
+    
+        .product-image-scroll img {
+            height: 70vh;
+            scroll-snap-align: start;
+            flex-shrink: 0;
+        }
+    
+        /* Default: large screen layout */
+        #mainResultImage,
+        #mainGarmentImage {
+            width: 40vw;
+        }
+    
+        /* Mobile: result and garment both take 80% width */
+        @media (max-width: 768px) {
+            #mainResultImage,
+            #mainGarmentImage {
+                width: 80%;
+            }
+        }
+    </style>
+
     <!-- prduct details -->
     <main id="main" class="main">
         <section class="product-details">
@@ -31,8 +61,8 @@
                 </button>
 
                 <div class="product-image-scroll" id="imageContainer">
-                    <img id="mainResultImage" src="{{ product.variants.0.result_image }}" class="main-image" />
-                    <img id="mainGarmentImage" src="{{ product.variants.0.garment_image }}" class="main-image" />
+                    <img id="mainResultImage" src="{{ product.variants.0.result_image }}" class="main-image" alt="Result Image" />
+                    <img id="mainGarmentImage" src="{{ product.variants.0.garment_image }}" class="main-image" alt="Garment Image" />
                     <!-- Images will be dynamically inserted here -->
                 </div>
 
@@ -82,14 +112,14 @@
                     </div>
                 </div>
 
-                <div class="info-item">
+                {% comment %} <div class="info-item">
                     <p>
                         <strong>Price:</strong> <span class="highlight price">₹{{product.selling_price}}</span>
                         <br>
                         <span class="discount">-{{discount}}%</span>
                         <span class="mrp">M.R.P.: ₹{{product_price}}</span>
                     </p>
-                </div>
+                </div> {% endcomment %}
             </div>
 
         </section>

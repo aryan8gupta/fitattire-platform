@@ -6,6 +6,11 @@ from io import BytesIO
 import random
 from Inventify.utils.blob_utils import upload_image_to_azure  # your custom utility
 
+import os
+from Inventify.base import BASE_DIR
+
+font_path = os.path.join(BASE_DIR, 'static/assets/fonts/DejaVuSans-Bold.ttf')
+
 
 # Upscale & Remove backround ---------------------------------------->
 
@@ -41,7 +46,6 @@ from Inventify.utils.blob_utils import upload_image_to_azure  # your custom util
 
 def create_text_image(
     text,
-    font_path,
     fontsize,
     box_size,
     color="black",
@@ -163,7 +167,6 @@ def create_dynamic_photo_with_auto_closeup(
         logo_path,
         texts,
         output_path,
-        font_path,
         garment_image_path=None,  # optional
         canvas_size=(1100, 800),
         # canvas_size=(1080, 1080),
@@ -200,7 +203,6 @@ def create_dynamic_photo_with_auto_closeup(
     for line in texts:
         text_img = create_text_image(
             line,
-            font_path=font_path,
             fontsize=28,
             # box_size=(logo_size[0] + 100, 50),
             box_size=(text_block_width, 50),
@@ -406,7 +408,6 @@ def create_dynamic_photo_with_auto_closeup(
 #         big_image_path,
 #         logo_path,
 #         output_path,
-#         font_path,
 #         product_id="FiA75913",
 #         canvas_size=(1080, 1080)
 #     ):
@@ -480,8 +481,7 @@ def create_dynamic_photo_with_auto_closeup(
 def create_offer_photo_with_right_image(
     big_image_path,
     output_path,
-    font_path,
-    product_id="FiA75913",
+    product_id="FiA-75913",
     offer_title="Special Offer",
     discount_text="50% OFF",
     final_line_1="Mention the Product Id",
@@ -594,8 +594,6 @@ def create_offer_photo_with_right_image(
 
 # === Example usage ===
 # if __name__ == "__main__":
-#     # font_path = "/Library/Fonts/OpenSans-Bold.ttf"  # Change if needed
-#     font_path = "/Library/Fonts/DejaVuSans-Bold.ttf"  # Change if needed
 
 #     # create_dynamic_photo_with_auto_closeup(
 #     #     big_image_path="images/product4.jpg",
@@ -606,13 +604,11 @@ def create_offer_photo_with_right_image(
 #     #         "Fabric: Cotton"
 #     #     ],
 #     #     output_path="output/output_image2.png",
-#     #     font_path=font_path
 #     # )
 #     create_offer_photo_with_right_image(
 #         big_image_path="images/product4.jpg",
 #         logo_path="images/logo1.png",  # not used here but can be reused
 #         output_path="generated",
-#         font_path="/Library/Fonts/DejaVuSans-Bold.ttf",
 #         product_id="FiA75913"
 #     )
 

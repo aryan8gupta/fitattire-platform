@@ -53,8 +53,6 @@ my_var_1 = os.getenv('New_Pincel_API_Key', 'Default Value')
 PINCEL_API_URL = "https://pincel.app/api/clothes-swap"
 PINCEL_API_KEY = my_var_1
 
-print("hi")
-
 # QR-Code Generating / Template----------------------------------------------------------->
 import qrcode
 from reportlab.pdfgen import canvas
@@ -193,14 +191,12 @@ def index(request):
     #     logo_path="https://fitattirestorage.blob.core.windows.net/fitattire-assets/Screenshot 2025-06-08 at 7.30.15 PM.png",
     #     texts=text,
     #     output_path="generated",
-    #     font_path="/Library/Fonts/DejaVuSans-Bold.ttf",
     #     garment_image_path="https://fitattirestorage.blob.core.windows.net/fitattire-assets/Screenshot 2025-03-15 at 9.56.31 AM.png"
     # )
 
     # image_url_2 = create_offer_photo_with_right_image(
     #     big_image_path="https://fitattirestorage.blob.core.windows.net/fitattire-assets/c5e80186-20e0-41d0-b59a-edbb4464f4ad_final_upscaled-9.jpg",
     #     output_path="generated",
-    #     font_path="/Library/Fonts/DejaVuSans-Bold.ttf",
     #     product_id="FIA-75913",
     #     offer_title="Mega Deal",
     #     discount_text="23% OFF",
@@ -248,7 +244,7 @@ def product_display(request, qr_id):
     dashboard = None
     if valid:
         dashboard = 'dashboard'
-	
+    
     user_type = data.get('user_type')
     user_name = data.get('first_name')
 
@@ -260,24 +256,14 @@ def product_display(request, qr_id):
     if result:
         return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'product': result, 'discount': product_discount, 'product_price': upgraded_product_price, "show_edit": valid, 'product_id': result['_id']})
     else:
-        messages.warning(request, "Not Found")
-        return render(request, "dashboard.html")
+        return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'product': result, 'discount': product_discount, 'product_price': upgraded_product_price, "show_edit": valid, 'product_id': result['_id']})
+
+        
 
 
 
 def invoice(request, invoice_id):
-    valid = False
-    data = {}
-    if request.COOKIES.get('t'):
-        valid, data = verify_token(request.COOKIES['t'])
-    dashboard = None
-    if valid:
-        dashboard = 'dashboard'
-	
 
-    user_email = data.get('email')
-
-    
     records = list(DB.products_sold.find({"invoice_id": invoice_id}))
     if records:
 
@@ -288,7 +274,9 @@ def invoice(request, invoice_id):
             except (ValueError, TypeError):
                 r["less"] = 0.0  # fallback if conversion fails
 
-        user_record = DB.users.find_one({"email": user_email})
+        user_id = records[0].get('user_id')
+        user_record = DB.users.find_one({"_id": user_id})
+
         users_shop_logo = user_record['shop_logo']
         users_shop_address = user_record['shop_address']
         users_shop_name = user_record['shop_name']
@@ -793,7 +781,6 @@ def add_products(request):
                 garment_image_path = saved_garment_urls[i]
                 logo_path = users_shop_logo
                 output_path = "generated"
-                font_path = "/Library/Fonts/DejaVuSans-Bold.ttf"  # adjust for production
                 texts = [
                     f"Price: ₹{parsed_data1['product_selling_price']}",
                     f"Sizes: {parsed_data1['product_sizes']}",
@@ -803,11 +790,10 @@ def add_products(request):
                 image_url_2 = create_offer_photo_with_right_image(
                     big_image_path=big_image_path,
                     output_path="generated",
-                    font_path="/Library/Fonts/DejaVuSans-Bold.ttf",
                     product_id=parsed_data1['qrcode_ids'][0],
                     offer_title="Mega Deal",
                     discount_text=f"{product_discount}% OFF",
-                    final_line_1="Mention the Product Id to",
+                    final_line_1="DM the Product Id to",
                     final_line_2="Know more."
                 )
                 logger.info("reading post data-7")
@@ -845,7 +831,6 @@ def add_products(request):
                     logo_path=logo_path,
                     texts=texts,
                     output_path=output_path,
-                    font_path=font_path,
                     garment_image_path=garment_image_path
                 )
                 generated_images.append(azure_generated_image_url)
@@ -1009,7 +994,7 @@ def add_products(request):
             }
             # DB.products.create_index({"qrcode_ids": 1})
             logger.info("reading post data-13")
-            
+
             DB.products.insert_one(products_dict)
             print("✅ Product inserted successfully")
 

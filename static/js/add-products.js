@@ -37,30 +37,61 @@ const data = {
 
 
 // Image file mapping (real filenames)
+// const images = {};
+// const azureBaseUrl = "https://fitattirestorage.blob.core.windows.net/fitattire-assets"
+// Object.keys(data).forEach(gender => {
+//   Object.keys(data[gender]).forEach(category => {
+//     const sub = data[gender][category];
+//     if (typeof sub === 'object' && !Array.isArray(sub)) {
+//       // sub is an object (example: T-Shirts have Half Sleeve, Full Sleeve)
+//       Object.keys(sub).forEach(subCategory => {
+//         const finalSub = sub[subCategory];
+//         if (Array.isArray(finalSub)) {
+//           finalSub.forEach(final => {
+//           images[final] = Array.from({ length: 5 }, (_, i) => 
+//             `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${subCategory.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`);
+//           });
+//         }
+//       });
+//     } else if (Array.isArray(sub)){
+//       sub.forEach(final => {
+//         images[final] = Array.from({ length: 5 }, (_, i) => 
+//           `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`);
+//       });
+//     }
+//   });
+// });
+
+
 const images = {};
-const azureBaseUrl = "https://fitattirestorage.blob.core.windows.net/fitattire-assets"
+const azureBaseUrl = "https://fitattirestorage.blob.core.windows.net/fitattire-assets";
+
 Object.keys(data).forEach(gender => {
   Object.keys(data[gender]).forEach(category => {
     const sub = data[gender][category];
     if (typeof sub === 'object' && !Array.isArray(sub)) {
-      // sub is an object (example: T-Shirts have Half Sleeve, Full Sleeve)
       Object.keys(sub).forEach(subCategory => {
         const finalSub = sub[subCategory];
         if (Array.isArray(finalSub)) {
           finalSub.forEach(final => {
-          images[final] = Array.from({ length: 5 }, (_, i) => 
-            `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${subCategory.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`);
+            const key = `${gender}:${final}`;  // Unique key to avoid collision
+            images[key] = Array.from({ length: 5 }, (_, i) => 
+              `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${subCategory.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`
+            );
           });
         }
       });
     } else if (Array.isArray(sub)){
       sub.forEach(final => {
-        images[final] = Array.from({ length: 5 }, (_, i) => 
-          `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`);
+        const key = `${gender}:${final}`;
+        images[key] = Array.from({ length: 5 }, (_, i) => 
+          `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`
+        );
       });
     }
   });
 });
+
 
 const categoryGrid = document.querySelector('.category-grid');
 const subCategoryGrid = document.querySelector('.sub-category-grid');
@@ -630,6 +661,7 @@ resultImageInput.addEventListener('change', function () {
     
 
     console.log("Current productData:", productData);
+    console.log("Current documentData:", documentData);
 
     // Update the table with the new variant added
     updateVariantsTable();

@@ -5,10 +5,14 @@ import numpy as np
 from Inventify.utils.blob_utils import upload_video_to_azure
 import random
 
+import os
+from Inventify.base import BASE_DIR
+
+font_path = os.path.join(BASE_DIR, 'static/assets/fonts/DejaVuSans-Bold.ttf')
+
 
 def create_text_image(
     text,
-    font_path,
     fontsize,
     box_size,
     color="white",
@@ -91,7 +95,6 @@ def create_text_image(
 #     # Generate text overlays
 #     text_image1 = create_text_image(
 #         text = "This is a sample text that needs to be wrapped and fit within the box.",
-#         font_path = "/Library/Fonts/DejaVuSans.ttf",
 #         fontsize = 50,
 #         box_size = (500, 100),
 #         color = "white",
@@ -100,7 +103,6 @@ def create_text_image(
 #     )
 #     text_image2 = create_text_image(
 #         text = "New Crop Top ₹499",
-#         font_path = "/Library/Fonts/DejaVuSans.ttf",
 #         fontsize = 50,
 #         box_size = (300, 100),
 #         color = "white",
@@ -208,7 +210,6 @@ def create_text_image(
 #     if text:
 #         text_img = create_text_image(
 #             text=text,
-#             font_path="/Library/Fonts/DejaVuSans.ttf",  # or use a valid font path on your OS
 #             fontsize=60,
 #             box_size=(700, 70),
 #             color=(101, 67, 33),  # Dark brown RGB
@@ -259,7 +260,6 @@ def create_text_image(
 # # Stick Texts Starts ---------------------------------->
 # fixed_text_img = create_text_image(
 #     text="New Collections",
-#     font_path="/Library/Fonts/DejaVuSans-Bold.ttf",
 #     fontsize=80,
 #     box_size=(700, 80),
 #     color=(101, 67, 33),  # dark brown
@@ -352,7 +352,6 @@ import requests
 import tempfile
 from io import BytesIO
 from PIL import Image
-import os
 
 
 def create_title_or_end_clip(
@@ -360,7 +359,6 @@ def create_title_or_end_clip(
     background_color=None,     # New argument
     logo_url=None,
     text_lines=[],
-    font_path=None,
     is_first_clip=False,
     video_size=(1080, 1920),
     font_size=80
@@ -409,7 +407,6 @@ def create_title_or_end_clip(
             box_size = (box_width, line_height)
             text_img = create_text_image(
                 text=text_content,
-                font_path=font_path,
                 fontsize=font_size,
                 box_size=box_size,
                 align="center",
@@ -433,7 +430,6 @@ def create_title_or_end_clip_2(
     background_url,
     logo_url,
     text_lines,
-    font_path,
     is_first_clip,
     video_size=(1080, 1920),
     duration=5,
@@ -478,7 +474,6 @@ def create_title_or_end_clip_2(
         box_size = (box_width, line_height)
         text_img = create_text_image(
             text=text_content,
-            font_path=font_path,
             fontsize=font_size,
             box_size=box_size,
             align="center",
@@ -524,7 +519,6 @@ def generate_reel_video(image_urls, output_path, users_shop_address, users_shop_
             ("Extra Discount Applied at Checkout", 50, "white"),
             ("ADD TO YOUR CART NOW", 60, "black")  
         ],
-        font_path = "/Library/Fonts/DejaVuSans-Bold.ttf",
         is_first_clip = True
     )
     print("100")
@@ -541,7 +535,6 @@ def generate_reel_video(image_urls, output_path, users_shop_address, users_shop_
             ("For More Product Updates", 50, "white"),
             ("Follow us on Instagram & WhatsApp", 50, "white")
         ],
-        font_path = "/Library/Fonts/DejaVuSans-Bold.ttf",
         is_first_clip = False
     )
 
