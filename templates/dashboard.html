@@ -959,39 +959,36 @@
       </div>
     </section>
 
-    <script>
-      async function downloadFileAndReload(event, url, filename) {
-        event.preventDefault();
-    
-        try {
-          const response = await fetch(url);
-          if (!response.ok) {
-            alert("Download failed");
-            return;
-          }
-    
-          const blob = await response.blob();
-          const downloadUrl = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = downloadUrl;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          window.URL.revokeObjectURL(downloadUrl);
-    
-          // Refresh page to update video_count / image_count
-          location.reload();
-        } catch (err) {
-          console.error("Download error:", err);
-        }
-      }
-    </script>
-    
-    
-
-
   </main><!-- End #main -->
+
+  <script>
+    async function downloadFileAndReload(event, url, filename) {
+      event.preventDefault();
+  
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          alert("Download failed");
+          return;
+        }
+  
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = downloadUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+  
+        // Refresh page to update video_count / image_count
+        location.reload();
+      } catch (err) {
+        console.error("Download error:", err);
+      }
+    }
+  </script>
 
   {% endif %}
 

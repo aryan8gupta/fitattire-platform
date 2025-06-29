@@ -1379,7 +1379,7 @@ def dashboard(request):
     # video_count = DB.videos_download.count_documents({"is_downloaded": False})
     video_count = DB.videos_download.count_documents({
         "is_downloaded": False,
-        "video_url": { "$nin": ["", " "] }  # Exclude empty or whitespace strings
+        "video_urls": { "$nin": ["", " "] }  # Exclude empty or whitespace strings
     })
 
 
@@ -1480,7 +1480,7 @@ def download_videos_zip(request):
     # 1. Fetch all video documents not yet downloaded with valid URLs
     video_docs = list(DB.videos_download.find({
         "is_downloaded": False,
-        "video_url": {
+        "video_urls": {
             "$regex": r"^https://fitattirestorage\.blob\.core\.windows\.net/fitattire-assets/",
             "$options": "i"
         }

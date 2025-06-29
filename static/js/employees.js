@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const addUserBtn = document.getElementById("addUserBtn")
     if (addUserBtn) {
       addUserBtn.addEventListener("click", () => {
-        window.location.href = "https://fitattire.shop/admin-only-user-signup-5famtsp89f1/"
+        window.location.href = "https://fitattire.shop/admin-only-user_signup-5famtsp89f1/"
       })
     }
   
