@@ -1376,7 +1376,12 @@ def dashboard(request):
     image_count = sum(len(doc.get("image_urls", [])) for doc in image_docs)
 
     # Count total video documents not downloaded (1 video per doc)
-    video_count = DB.videos_download.count_documents({"is_downloaded": False})
+    # video_count = DB.videos_download.count_documents({"is_downloaded": False})
+    video_count = DB.videos_download.count_documents({
+        "is_downloaded": False,
+        "video_url": { "$nin": ["", " "] }  # Exclude empty or whitespace strings
+    })
+
 
     collection = DB.products_sold  # your collection
 
@@ -1431,9 +1436,55 @@ def download_images_zip(request):
     return response
 
 
+# def download_videos_zip(request):
+#     # 1. Fetch all video documents not yet downloaded
+#     # video_docs = list(DB.videos_download.find({"is_downloaded": False}))
+#     video_docs = list(DB.videos_download.find({
+#         "is_downloaded": False,
+#         "video_url": {
+#             "$regex": r"^https://fitattirestorage\.blob\.core\.windows\.net/fitattire-assets/",
+#             "$options": "i"  # optional, makes it case-insensitive
+#         }
+#     }))
+
+
+#     # 2. Prepare a zip file in memory
+#     zip_buffer = BytesIO()
+#     with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+#         for idx, doc in enumerate(video_docs):
+#             video_url = doc.get("video_url")
+#             if not video_url:
+#                 continue
+#             try:
+#                 response = requests.get(video_url, stream=True)
+#                 if response.status_code == 200:
+#                     ext = video_url.split(".")[-1].split("?")[0]  # Remove any query string
+#                     filename = f"video_{idx+1}.{ext}"
+#                     zip_file.writestr(filename, response.content)
+#                 else:
+#                     print(f"Failed to fetch {video_url}: Status {response.status_code}")
+#             except Exception as e:
+#                 print(f"Error downloading {video_url}: {e}")
+
+#     # 3. Mark all fetched video docs as downloaded
+#     DB.videos_download.update_many({"is_downloaded": False}, {"$set": {"is_downloaded": True}})
+
+#     # 4. Send zip file as download response
+#     zip_buffer.seek(0)
+#     response = HttpResponse(zip_buffer.read(), content_type='application/zip')
+#     response['Content-Disposition'] = 'attachment; filename="videos_download.zip"'
+#     return response
+
+
 def download_videos_zip(request):
-    # 1. Fetch all video documents not yet downloaded
-    video_docs = list(DB.videos_download.find({"is_downloaded": False}))
+    # 1. Fetch all video documents not yet downloaded with valid URLs
+    video_docs = list(DB.videos_download.find({
+        "is_downloaded": False,
+        "video_url": {
+            "$regex": r"^https://fitattirestorage\.blob\.core\.windows\.net/fitattire-assets/",
+            "$options": "i"
+        }
+    }))
 
     # 2. Prepare a zip file in memory
     zip_buffer = BytesIO()
@@ -1445,7 +1496,7 @@ def download_videos_zip(request):
             try:
                 response = requests.get(video_url, stream=True)
                 if response.status_code == 200:
-                    ext = video_url.split(".")[-1].split("?")[0]  # Remove any query string
+                    ext = video_url.split(".")[-1].split("?")[0]
                     filename = f"video_{idx+1}.{ext}"
                     zip_file.writestr(filename, response.content)
                 else:
@@ -1453,14 +1504,20 @@ def download_videos_zip(request):
             except Exception as e:
                 print(f"Error downloading {video_url}: {e}")
 
-    # 3. Mark all fetched video docs as downloaded
-    DB.videos_download.update_many({"is_downloaded": False}, {"$set": {"is_downloaded": True}})
+    # 3. Mark only these docs as downloaded
+    video_ids = [doc['_id'] for doc in video_docs]
+    if video_ids:
+        DB.videos_download.update_many(
+            {"_id": {"$in": video_ids}},
+            {"$set": {"is_downloaded": True}}
+        )
 
-    # 4. Send zip file as download response
+    # 4. Send zip file as response
     zip_buffer.seek(0)
     response = HttpResponse(zip_buffer.read(), content_type='application/zip')
     response['Content-Disposition'] = 'attachment; filename="videos_download.zip"'
     return response
+
 
 
 @csrf_exempt

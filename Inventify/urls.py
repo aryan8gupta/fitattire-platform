@@ -58,7 +58,7 @@ urlpatterns = [
     path('shops/', views.shops),
     path('shops-add/', views.shops_add),
     path('users-details/', views.users_details),
-    path('users-signup/', views.users_signup),
+    path('admin-only-user_signup-5famtsp89f1/', views.users_signup),
     # ----------------------------------->
     
     path('delete/', views.delete),

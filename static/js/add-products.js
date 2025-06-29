@@ -124,6 +124,7 @@ let documentData = {
 };
 let idsArray = [];
 
+const clothes_swap_category = document.getElementById("swap_category").value;
 
 
 function clearGrid(grid) {
@@ -326,7 +327,6 @@ function showImages(gender, final) {
 
 
 async function uploadImages() {
-  const clothes_swap_category = document.getElementById("swap_category").value;
   const modelImage = selectedImagePath;
   const uploadFile = document.getElementById("product-image-upload").files[0];
   // const cameraFile = document.getElementById("product-image-camera").files[0];
@@ -348,16 +348,6 @@ async function uploadImages() {
   const spinner2 = document.getElementById("spinner2");
 
   spinner2.style.display = 'block';
-
-  documentData = {
-    gender: selectedGender,
-    category: selectedCategory,
-    subCategory: selectedSubCategory,
-    finalCategory: selectedFinalCategory,
-    modelImagePath: selectedImagePath,
-    swapCategory: clothes_swap_category
-  };
-  console.log(documentData)
 
   const formData = new FormData();
   formData.append("category", clothes_swap_category);
@@ -703,6 +693,16 @@ resultImageInput.addEventListener('change', function () {
 
     console.log(productGarmentImages)
     console.log(productResultImages)
+
+    documentData = {
+      gender: selectedGender,
+      category: selectedCategory,
+      subCategory: selectedSubCategory,
+      finalCategory: selectedFinalCategory,
+      modelImagePath: selectedImagePath,
+      swapCategory: clothes_swap_category
+    };
+    console.log("documentData:", documentData)
     
 
     console.log("Current productData:", productData);
