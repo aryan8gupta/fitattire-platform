@@ -758,7 +758,7 @@ def add_products(request):
             generated_urls=[]
             generated_images = []
 
-            product_name = parsed_data2.get('product_name', 'Low Rise Wide Jeans')
+            product_name = parsed_data1.get('product_name', 'Low Rise Wide Jeans')
             category = parsed_data2.get('category', 'Jeans')
             gender = parsed_data2.get('gender', 'Women')
 

@@ -398,7 +398,10 @@ if (customerAmountInput && discountedElement && originalElement && changeElement
 
 // Submit Transaction Button
 document.getElementById("submit-btn").addEventListener("click", async () => {
-    const phone = document.getElementById('mobile-number').value
+    const phone1 = document.getElementById('new-customer-phone').value.trim();
+    const phone2 = document.getElementById('phone-number').value.trim(); 
+
+    const phone = phone1 || phone2
 
     console.log(phone);
     console.log(totalAmount);
@@ -412,17 +415,18 @@ document.getElementById("submit-btn").addEventListener("click", async () => {
 
     const discountedPercentage = discount ? discount : discountPercent;
 
-    exchangepostdata = {
-        'qr_ids': qrcodeidsarray,
-        'phone': phone,
-        'total_bill': totalAmount,
-        'original_amount': originalAmount,
-        'discounted_amount': discountedAmount,
-        'discount_percentage': discountedPercentage,
-        'customer_amount': customerAmount,
-        'amount_less_more': change.toFixed(2),
-        'customer_name': customer_name,
-    }
+    const exchangepostdata = {
+        qr_ids: qrcodeidsarray ?? [],
+        phone: phone ?? "",
+        total_bill: totalAmount ?? 0,
+        original_amount: originalAmount ?? 0,
+        discounted_amount: discountedAmount ?? 0,
+        discount_percentage: discountedPercentage ?? 0,
+        customer_amount: customerAmount ?? 0,
+        amount_less_more: (change ?? 0).toFixed(2),
+        customer_name: customer_name ?? ""
+    };
+    
     try {
         const response = await fetch("/sales/", {
             method: "POST",

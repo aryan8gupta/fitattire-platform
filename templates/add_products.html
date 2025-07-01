@@ -112,264 +112,467 @@
       <div class="con-row">
         <div class="total_products col">
           <h1 style="color: blue;">Add Products</h1>
+            <!-- Mode Toggle Buttons -->
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                <button class="btn" onclick="showModelConversion()" style="background-color: green;">Model Conversion</button>
+                <button class="btn" onclick="showNoModelConversion()" style="background-color: orange;">No Model Conversion</button>
+            </div>
         </div>
 
-
-        <section class="upload-image-section">
-          <div class="card">
-              <div class="card-header">
-                  <h2>Upload Image</h2>
-                  <button class="btn mt-0" id="load-previous-btn">Load Previous Data</button>
-              </div>
-              <div class="card-body">
-                  <div class="image-upload-container">
-
-                      
-                        <div class="image-preview m-2">
-                            <img width="200" height="200" id="preview-image" src="https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png" alt="Product Image">
-                        </div>
-                        <div class="upload-controls">
-                            {% comment %} <div class="file-upload mb-2">
-                                <input type="file" name="product-image-camera" id="product-image-camera" style="display: none;" accept="image/*">
-                                <label for="product-image-camera" class="upload-image-button">
-                                    <i class="fas fa-cloud-upload-alt"></i> Scan from Camera
-                                </label>
-                            </div> {% endcomment %}
-                            <div class="file-upload mb-2">
-                                <input type="file" name="product-image-upload" id="product-image-upload" style="display: none;" accept="image/*">
-                                <label for="product-image-upload" class="upload-image-button">
-                                    <i class="fas fa-cloud-upload-alt"></i> Upload Product Image
-                                </label>
-                            </div>
-                        </div>
-                  </div>
-              </div>
-          </div>
-        </section>
-
-        <section class="category-section">
+        <section id="modelConversionWrapper">
+            <section class="upload-image-section">
             <div class="card">
                 <div class="card-header">
-                    <h2>Select Product Category</h2>
+                    <h2>Upload Image</h2>
+                    <button class="btn mt-0" id="load-previous-btn">Load Previous Data</button>
                 </div>
                 <div class="card-body">
+                    <div class="image-upload-container">
 
-                    <!-- <div class="category-grid" id="category"></div> -->
-                    <div class="category-grid">
-                        <div class="category-item" data-gender="Men">
-                            <i class="fas fa-mars"></i>
-                            <span>Men</span>
-                        </div>
-                        <div class="category-item" data-gender="Women">
-                            <i class="fas fa-venus"></i>
-                            <span>Women</span>
-                        </div>
-                    </div>
-
-                    <div class="sub-category-grid" id="subcategory">
-                        <!-- Subcategories (Half Sleeve T-Shirts, etc.) -->
-                    </div>
-                    <div class="final-category-grid" id="finalcategory">
-                        <!-- Final categories (Polo T-shirt etc.) -->
-                    </div>
-                    <div class="final-sub-category-grid">
-                        <!-- Polo T-Shirts, Round Neck, etc. (4th level) — NO NEED NOW, handled inside final-category-grid -->
-                      </div>
-                    <div class="spinner" style="display: none;">
-                        <i class="fas fa-spinner fa-spin fa-3x"></i>
-                    </div>
-
-                    <!-- Image Section -------------------------------->
-                    <h2 id="image-section-heading" style="text-align:center; color:#333; font-size:28px; margin-top:30px; display:none;"></h2>
-                    <div class="images-section">
-                        <!-- All images will appear here -->
-                    </div>
-                    <!-- Image Section Ends --------------------------->
-
-                    <!-- Result Section Starts --------------------------->
-                    <div id="result-image-box" style="display: none;">
-                        <div style="display: flex; flex-direction: column; gap: 10px; width: 240px;">
-
-                            <div class="custom-select-wrapper">
-                                <label for="fake-select" class="label-style">Select clothing area</label>
-                                <div class="custom-select" id="fake-select">
-                                    <span class="selected-value">Select Category</span>
-                                    <i class='arrow fas fa-angle-down' style='font-size:24px'></i>
-                                </div>
-                                <div class="custom-options" id="custom-options">
-                                  <div data-value="upper_body">upper_body</div>
-                                  <div data-value="lower_body">lower_body</div>
-                                  <div data-value="dresses">dresses</div>
-                                </div>
-                                <input type="hidden" name="swap_category" id="swap_category" value="upper_body">
+                        
+                            <div class="image-preview m-2">
+                                <img width="200" height="200" id="preview-image" src="https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png" alt="Product Image">
                             </div>
-
-                            <button class="upload-image-button" onclick="uploadImages()">Generate Clothes Swap</button>
-                            <input type="hidden" name="resultImageURL" id="resultImageURL">
-
-                            <input type="file" name="product-result-image-upload" id="product-result-image-upload" style="display: none;" accept="image/*">
-                            <label for="product-result-image-upload" class="upload-image-button">
-                                <i class="fas fa-cloud-upload-alt"></i> Upload Result Image
-                            </label>
-                            <div class="spinner" id="spinner2" style="display: none;">
-                                <i class="fas fa-spinner fa-spin fa-3x"></i>
+                            <div class="upload-controls">
+                                {% comment %} <div class="file-upload mb-2">
+                                    <input type="file" name="product-image-camera" id="product-image-camera" style="display: none;" accept="image/*">
+                                    <label for="product-image-camera" class="upload-image-button">
+                                        <i class="fas fa-cloud-upload-alt"></i> Scan from Camera
+                                    </label>
+                                </div> {% endcomment %}
+                                <div class="file-upload mb-2">
+                                    <input type="file" name="product-image-upload" id="product-image-upload" style="display: none;" accept="image/*">
+                                    <label for="product-image-upload" class="upload-image-button">
+                                        <i class="fas fa-cloud-upload-alt"></i> Upload Product Image
+                                    </label>
+                                </div>
                             </div>
-                        </div>
-                        <p class="mb-5" id="response"></p>
-                        <h3 id="result-heading" style="display:none;">Result:-</h3>
-                        <img width="300" height="370" id="resultImage" alt="Processed Image" style="display:none;"/>
                     </div>
-                    <!-- Result Section Ends --------------------------->
-        
                 </div>
             </div>
-        </section>
+            </section>
 
+            <section class="category-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Select Product Category</h2>
+                    </div>
+                    <div class="card-body">
 
-        <section class="product-details-section">
-          <div class="card">
-              <div class="card-header">
-                  <h2>Product Details</h2>
-              </div>
-              <div class="card-body">
-                  <div class="product-form">
-                      <div class="form-row">
-                          <div class="input-group">
-                              <label for="brand-name">Brand Name</label>
-                              <input type="text" id="brand-name" placeholder="Enter brand name" required>
-                          </div>
-                          <div class="input-group">
-                              <label for="product-name">Product Name</label>
-                              <input type="text" id="product-name" placeholder="Enter product name" required>
-                          </div>
-                          <div class="input-group">
-                              <label for="product-fabric">Fabric</label>
-                              <input type="text" id="product-fabric" placeholder="Enter Fabric name" required>
-                          </div>
-                      </div>
-                      <div class="form-row">
-
-                          <div class="input-group">
-                            <label for="color-select">Colors:</label>
-                            <!-- New manual color input field -->
-                            <input type="text" id="manual-color-input" placeholder="Enter Custom Color" style="margin-bottom: 8px;" required/>
-
-                            <div class="dropdown-wrapper">
-                                <div class="custom-dropdown" id="color-select">
-                                    <span class="selected-value-color">Select Color</span>
-                                    <i class='arrow fas fa-angle-down' style='font-size:24px'></i>
-                                </div>
-                                <div class="dropdown-options">
-                                    <div data-value="">Select Color</div>
-                                    <div data-value="Black">Black</div>
-                                    <div data-value="White">White</div>
-                                    <div data-value="Silver">Silver</div>
-                                    <div data-value="Red">Red</div>
-                                    <div data-value="Yellow">Yellow</div>
-                                    <div data-value="Blue">Blue</div>
-                                    <div data-value="Green">Green</div>
-                                    <div data-value="Gold">Gold</div>
-                                </div>
+                        <!-- <div class="category-grid" id="category"></div> -->
+                        <div class="category-grid">
+                            <div class="category-item" data-gender="Men">
+                                <i class="fas fa-mars"></i>
+                                <span>Men</span>
                             </div>
-
-                            <!-- Hidden field to hold the selected value for form submission -->
-                            <input type="hidden" name="product-color" id="product-color" value="">
-
-                          </div>
-
-                          <div class="input-group-2">
-                              <label id="label-sizes">Sizes:</label>
-                              <div class="checkbox-group">
-                                  <label class="checkbox-label">
-                                      <input type="checkbox" name="size" value="XS">Extra Small(XS)
-                                  </label>
-                                  <label class="checkbox-label">
-                                      <input type="checkbox" name="size" value="S">Small(S)
-                                  </label>
-                                  <label class="checkbox-label">
-                                      <input type="checkbox" name="size" value="M">Medium(M)
-                                  </label>
-                                  <label class="checkbox-label">
-                                      <input type="checkbox" name="size" value="L">Large(L)
-                                  </label>
-                                  <label class="checkbox-label">
-                                      <input type="checkbox" name="size" value="XL">Extra Large(XL)
-                                  </label>
-                                  <label class="checkbox-label">
-                                      <input type="checkbox" name="size" value="2XL">2XL
-                                  </label>
-                                  <label class="checkbox-label">
-                                      <input type="checkbox" name="size" value="3XL">3XL
-                                  </label>
-                              </div>
-                          </div>
-                      </div>
-                      <div class="form-row">
-                          <div class="input-group">
-                              <label for="product-quantity">Total Pieces Available</label>
-                              <input type="number" id="product-quantity" placeholder="Enter quantity" required>
-                          </div>
-                          <div class="input-group">
-                              <label for="product-price">Product Price</label>
-                              <input type="number" id="product-price" placeholder="Enter product price" required>
-                          </div>
-                      </div>
-                      <div class="form-row">
-                          <div class="input-group">
-                              <label for="selling-price">Selling Price</label>
-                              <input type="number" id="selling-price" placeholder="Enter selling price" required>
-                          </div>
-                          <div class="input-group">
-                              <!-- Empty for alignment -->
-                          </div>
-                      </div>
-                      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px">
-                        <button type="button" id="submit-variant-btn" class="btn">Submit & Add Another Variant</button>
-                      </div>
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>S.No.</th>
-                            <th>Resulted Image</th>
-                            <th>Model Image</th>
-                            <th>Color</th>
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                        <!-- Dynamic rows will be inserted here -->
-                        </tbody>
-                    </table>
-                    <div class="qrcodes mt-2">
-                        <h3>Scan QR Codes</h3>
-
-                        <button id="scan-btn" class="btn">Start Scanning</button>
-                        <button id="cancel-btn" class="btn" style="display:none;">Stop Scanning</button>
-
-                        <div id="reader" style="display:none;"></div>
-
-                        <div id="scanned-list">
-                            <div id="scanned-items"></div>
+                            <div class="category-item" data-gender="Women">
+                                <i class="fas fa-venus"></i>
+                                <span>Women</span>
+                            </div>
                         </div>
 
-                        <script src="https://unpkg.com/html5-qrcode"></script>
-                    </div>
+                        <div class="sub-category-grid" id="subcategory">
+                            <!-- Subcategories (Half Sleeve T-Shirts, etc.) -->
+                        </div>
+                        <div class="final-category-grid" id="finalcategory">
+                            <!-- Final categories (Polo T-shirt etc.) -->
+                        </div>
+                        <div class="final-sub-category-grid">
+                            <!-- Polo T-Shirts, Round Neck, etc. (4th level) — NO NEED NOW, handled inside final-category-grid -->
+                        </div>
+                        <div class="spinner" style="display: none;">
+                            <i class="fas fa-spinner fa-spin fa-3x"></i>
+                        </div>
 
-                    <div class="form-actions mt-4">
-                        <button type="button" class="submit-add-products-btn">
-                            <span class="btn-text">Submit Form</span>
-                            <span class="btn-spinner loader" style="display: none; margin-left: 8px;"></span>
-                        </button>
-                    </div>
+                        <!-- Image Section -------------------------------->
+                        <h2 id="image-section-heading" style="text-align:center; color:#333; font-size:28px; margin-top:30px; display:none;"></h2>
+                        <div class="images-section">
+                            <!-- All images will appear here -->
+                        </div>
+                        <!-- Image Section Ends --------------------------->
 
+                        <!-- Result Section Starts --------------------------->
+                        <div id="result-image-box" style="display: none;">
+                            <div style="display: flex; flex-direction: column; gap: 10px; width: 240px;">
+
+                                <div class="custom-select-wrapper">
+                                    <label for="fake-select" class="label-style">Select clothing area</label>
+                                    <div class="custom-select" id="fake-select">
+                                        <span class="selected-value">Select Category</span>
+                                        <i class='arrow fas fa-angle-down' style='font-size:24px'></i>
+                                    </div>
+                                    <div class="custom-options" id="custom-options">
+                                    <div data-value="upper_body">upper_body</div>
+                                    <div data-value="lower_body">lower_body</div>
+                                    <div data-value="dresses">dresses</div>
+                                    </div>
+                                    <input type="hidden" name="swap_category" id="swap_category" value="upper_body">
+                                </div>
+
+                                <button class="upload-image-button" onclick="uploadImages()">Generate Clothes Swap</button>
+                                <input type="hidden" name="resultImageURL" id="resultImageURL">
+
+                                <input type="file" name="product-result-image-upload" id="product-result-image-upload" style="display: none;" accept="image/*">
+                                <label for="product-result-image-upload" class="upload-image-button">
+                                    <i class="fas fa-cloud-upload-alt"></i> Upload Result Image
+                                </label>
+                                <div class="spinner" id="spinner2" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin fa-3x"></i>
+                                </div>
+                            </div>
+                            <p class="mb-5" id="response"></p>
+                            <h3 id="result-heading" style="display:none;">Result:-</h3>
+                            <img width="300" height="370" id="resultImage" alt="Processed Image" style="display:none;"/>
+                        </div>
+                        <!-- Result Section Ends --------------------------->
+            
+                    </div>
+                </div>
+            </section>
+
+
+            <section class="product-details-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Product Details</h2>
+                </div>
+                <div class="card-body">
+                    <div class="product-form">
+                        <div class="form-row">
+                            <div class="input-group">
+                                <label for="brand-name">Brand Name</label>
+                                <input type="text" id="brand-name" placeholder="Enter brand name" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="product-name">Product Name</label>
+                                <input type="text" id="product-name" placeholder="Enter product name" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="product-fabric">Fabric</label>
+                                <input type="text" id="product-fabric" placeholder="Enter Fabric name" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+
+                            <div class="input-group">
+                                <label for="color-select">Colors:</label>
+                                <!-- New manual color input field -->
+                                <input type="text" id="manual-color-input" placeholder="Enter Custom Color" style="margin-bottom: 8px;" required/>
+
+                                <div class="dropdown-wrapper">
+                                    <div class="custom-dropdown" id="color-select">
+                                        <span class="selected-value-color">Select Color</span>
+                                        <i class='arrow fas fa-angle-down' style='font-size:24px'></i>
+                                    </div>
+                                    <div class="dropdown-options">
+                                        <div data-value="">Select Color</div>
+                                        <div data-value="Black">Black</div>
+                                        <div data-value="White">White</div>
+                                        <div data-value="Silver">Silver</div>
+                                        <div data-value="Red">Red</div>
+                                        <div data-value="Yellow">Yellow</div>
+                                        <div data-value="Blue">Blue</div>
+                                        <div data-value="Green">Green</div>
+                                        <div data-value="Gold">Gold</div>
+                                    </div>
+                                </div>
+
+                                <!-- Hidden field to hold the selected value for form submission -->
+                                <input type="hidden" name="product-color" id="product-color" value="">
+
+                            </div>
+
+                            <div class="input-group-2">
+                                <label id="label-sizes">Sizes:</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="size" value="XS">Extra Small(XS)
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="size" value="S">Small(S)
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="size" value="M">Medium(M)
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="size" value="L">Large(L)
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="size" value="XL">Extra Large(XL)
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="size" value="2XL">2XL
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="size" value="3XL">3XL
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="input-group">
+                                <label for="product-quantity">Total Pieces Available</label>
+                                <input type="number" id="product-quantity" placeholder="Enter quantity" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="product-price">Product Price</label>
+                                <input type="number" id="product-price" placeholder="Enter product price" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="input-group">
+                                <label for="selling-price">Selling Price</label>
+                                <input type="number" id="selling-price" placeholder="Enter selling price" required>
+                            </div>
+                            <div class="input-group">
+                                <!-- Empty for alignment -->
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px">
+                            <button type="button" id="submit-variant-btn" class="btn">Submit & Add Another Variant</button>
+                        </div>
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>S.No.</th>
+                                <th>Resulted Image</th>
+                                <th>Model Image</th>
+                                <th>Color</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                            <!-- Dynamic rows will be inserted here -->
+                            </tbody>
+                        </table>
+                        <div class="qrcodes mt-2">
+                            <h3>Scan QR Codes</h3>
+
+                            <button id="scan-btn" class="btn">Start Scanning</button>
+                            <button id="cancel-btn" class="btn" style="display:none;">Stop Scanning</button>
+
+                            <div id="reader" style="display:none;"></div>
+
+                            <div id="scanned-list">
+                                <div id="scanned-items"></div>
+                            </div>
+
+                            <script src="https://unpkg.com/html5-qrcode"></script>
+                        </div>
+
+                        <div class="form-actions mt-4">
+                            <button type="button" class="submit-add-products-btn">
+                                <span class="btn-text">Submit Form</span>
+                                <span class="btn-spinner loader" style="display: none; margin-left: 8px;"></span>
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            </section>
+        </section>
+        <section id="nomodelConversionWrapper">
+            <section class="upload-image-section">
+                <div class="card">
+                  <div class="card-header">
+                    <h2>Upload Images</h2>
                   </div>
-              </div>
-          </div>
+                  <div class="card-body">
+                    <div class="image-upload-container">
+              
+                      <!-- Main Image Upload -->
+                      <div class="image-preview m-2">
+                        <label style="font-weight: bold;">Upload your Main Image</label><br>
+                        <img id="mainImagePreview" src="https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png" width="200" height="200" alt="Main Image">
+                        <input type="file" id="mainImageInput" accept="image/*" style="display: none;">
+                        <label for="mainImageInput" class="upload-image-button"><i class="fas fa-cloud-upload-alt"></i> Choose Main Image</label>
+                      </div>
+              
+                      <!-- Second Image Upload -->
+                      <div class="image-preview m-2">
+                        <label style="font-weight: bold;">Upload your Second Image</label><br>
+                        <img id="secondImagePreview" src="https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png" width="200" height="200" alt="Second Image">
+                        <input type="file" id="secondImageInput" accept="image/*" style="display: none;">
+                        <label for="secondImageInput" class="upload-image-button"><i class="fas fa-cloud-upload-alt"></i> Choose Second Image</label>
+                      </div>
+              
+                    </div>
+                  </div>
+                </div>
+            </section>
+              
+            <section class="product-details-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Product Details</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="product-form">
+                            <div class="form-row">
+                                <div class="input-group">
+                                    <label for="brand-name">Brand Name</label>
+                                    <input type="text" id="brand-name" placeholder="Enter brand name" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="product-name">Product Name</label>
+                                    <input type="text" id="product-name" placeholder="Enter product name" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="product-fabric">Fabric</label>
+                                    <input type="text" id="product-fabric" placeholder="Enter Fabric name" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+    
+                                <div class="input-group">
+                                    <label for="color-select">Colors:</label>
+                                    <!-- New manual color input field -->
+                                    <input type="text" id="manual-color-input" placeholder="Enter Custom Color" style="margin-bottom: 8px;" required/>
+    
+                                    <div class="dropdown-wrapper">
+                                        <div class="custom-dropdown" id="color-select">
+                                            <span class="selected-value-color">Select Color</span>
+                                            <i class='arrow fas fa-angle-down' style='font-size:24px'></i>
+                                        </div>
+                                        <div class="dropdown-options">
+                                            <div data-value="">Select Color</div>
+                                            <div data-value="Black">Black</div>
+                                            <div data-value="White">White</div>
+                                            <div data-value="Silver">Silver</div>
+                                            <div data-value="Red">Red</div>
+                                            <div data-value="Yellow">Yellow</div>
+                                            <div data-value="Blue">Blue</div>
+                                            <div data-value="Green">Green</div>
+                                            <div data-value="Gold">Gold</div>
+                                        </div>
+                                    </div>
+    
+                                    <!-- Hidden field to hold the selected value for form submission -->
+                                    <input type="hidden" name="product-color" id="product-color" value="">
+    
+                                </div>
+    
+                                <div class="input-group-2">
+                                    <label id="label-sizes">Sizes:</label>
+                                    <div class="checkbox-group">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="size" value="XS">Extra Small(XS)
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="size" value="S">Small(S)
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="size" value="M">Medium(M)
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="size" value="L">Large(L)
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="size" value="XL">Extra Large(XL)
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="size" value="2XL">2XL
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="size" value="3XL">3XL
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="input-group">
+                                    <label for="product-quantity">Total Pieces Available</label>
+                                    <input type="number" id="product-quantity" placeholder="Enter quantity" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="product-price">Product Price</label>
+                                    <input type="number" id="product-price" placeholder="Enter product price" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="input-group">
+                                    <label for="selling-price">Selling Price</label>
+                                    <input type="number" id="selling-price" placeholder="Enter selling price" required>
+                                </div>
+                                <div class="input-group">
+                                    <!-- Empty for alignment -->
+                                </div>
+                            </div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px">
+                                <button type="button" id="submit-variant-btn" class="btn">Submit & Add Another Variant</button>
+                            </div>
+                            <table>
+                                <thead>
+                                <tr>
+                                    <th>S.No.</th>
+                                    <th>Resulted Image</th>
+                                    <th>Model Image</th>
+                                    <th>Color</th>
+                                    <th>Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody id="tableBody">
+                                <!-- Dynamic rows will be inserted here -->
+                                </tbody>
+                            </table>
+                            <div class="qrcodes mt-2">
+                                <h3>Scan QR Codes</h3>
+    
+                                <button id="scan-btn" class="btn">Start Scanning</button>
+                                <button id="cancel-btn" class="btn" style="display:none;">Stop Scanning</button>
+    
+                                <div id="reader" style="display:none;"></div>
+    
+                                <div id="scanned-list">
+                                    <div id="scanned-items"></div>
+                                </div>
+    
+                                <script src="https://unpkg.com/html5-qrcode"></script>
+                            </div>
+    
+                            <div class="form-actions mt-4">
+                                <button type="button" class="submit-add-products-btn">
+                                    <span class="btn-text">Submit Form</span>
+                                    <span class="btn-spinner loader" style="display: none; margin-left: 8px;"></span>
+                                </button>
+                            </div>
+    
+                        </div>
+                    </div>
+                </div>
+            </section>
         </section>
 
       </div>
         
     </main> <!-- End #main -->
     <script src="{% static 'js/add-products.js' %}" defer></script>
+    <script>
+        function showModelConversion() {
+            document.getElementById("modelConversionWrapper").style.display = "block";
+            document.getElementById("nomodelConversionWrapper").style.display = "none";
+        }
+        
+        function showNoModelConversion() {
+            document.getElementById("modelConversionWrapper").style.display = "none";
+            document.getElementById("nomodelConversionWrapper").style.display = "block";
+        }
+
+        document.getElementById("mainImageInput").addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById("mainImagePreview").src = URL.createObjectURL(file);
+            }
+        });
+        
+        document.getElementById("secondImageInput").addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById("secondImagePreview").src = URL.createObjectURL(file);
+            }
+        });
+        
+    </script>        
 
 {% endblock %}
