@@ -123,6 +123,7 @@ let documentData = {
   swapCategory: null
 };
 let idsArray = [];
+let currentMode = "";
 
 const clothes_swap_category = document.getElementById("swap_category").value;
 
@@ -130,6 +131,40 @@ const clothes_swap_category = document.getElementById("swap_category").value;
 function clearGrid(grid) {
   grid.innerHTML = '';
 }
+
+const mainImages = [];
+const secondImages = [];
+
+document.getElementById("mainImageInput").addEventListener("change", function (e) {
+  const file = e.target.files[0];
+  if (file) {
+    const imageUrl = URL.createObjectURL(file);
+    document.getElementById("mainImagePreview").src = imageUrl;
+    mainImages.push(imageUrl); // store image URL in array
+  }
+});
+
+document.getElementById("secondImageInput").addEventListener("change", function (e) {
+  const file = e.target.files[0];
+  if (file) {
+    const imageUrl = URL.createObjectURL(file);
+    document.getElementById("secondImagePreview").src = imageUrl;
+    secondImages.push(imageUrl); // store image URL in array
+  }
+});
+
+document.getElementById("modelConversionBtn").addEventListener("click", () => {
+  currentMode = "model";
+  document.getElementById("modelConversionWrapper").style.display = "block";
+  document.getElementById("nomodelConversionWrapper").style.display = "none";
+});
+
+document.getElementById("noModelConversionBtn").addEventListener("click", () => {
+  currentMode = "nomodel";
+  document.getElementById("modelConversionWrapper").style.display = "none";
+  document.getElementById("nomodelConversionWrapper").style.display = "block";
+});
+
 
 
 // Attach Click Listener to whole category grid
@@ -205,8 +240,14 @@ function showFinalCategories(gender, category) {
     sub.forEach(subCat => {
       const item = createCategoryItem(subCat);
       item.addEventListener('click', function (e) {  
-        showImages(gender, subCat);
-        selectedSubCategory = subCat;
+        if (currentMode === "model") {
+          showImages(gender, subCat);
+          selectedSubCategory = subCat;
+          console.log("Model Conversion logic here");
+        } else if (currentMode === "nomodel") {
+          document.getElementById("product-details").display = "block";
+          console.log("No Model Conversion logic here");
+        }
       });
       finalCategoryGrid.appendChild(item);
     });
@@ -234,51 +275,19 @@ function showFinalSubCategories(gender, category, subCat) {
     sub.forEach(final => {
       const item = createCategoryItem(final);
       item.addEventListener('click', function (e) { 
-        showImages(gender, final);
-        selectedFinalCategory = final;
+        if (currentMode === "model") {
+          showImages(gender, final);
+          selectedFinalCategory = final;
+          console.log("Model Conversion logic here");
+        } else if (currentMode === "nomodel") {
+          document.getElementById("product-details").display = "block";
+          console.log("No Model Conversion logic here");
+        }
       });
       finalSubCategoryGrid.appendChild(item);
     });
   }
 }
-
-// function showImages(final) {
-//   clearGrid(imagesSection);
-  
-//   // Show Heading
-//   heading.style.display = 'block';
-//   heading.textContent = `Choose Models`;
-
-//   spinner.style.display = 'block';
-//   setTimeout(() => {
-//     spinner.style.display = 'none';
-//     images[final].forEach(src => {
-//       const img = document.createElement('img');
-//       img.src = src;
-//       img.alt = final;
-//       img.loading = "lazy";
-//       img.style.width = "200px";
-//       img.style.height = "250px";
-//       img.style.objectFit = "contain";
-//       img.style.margin = "10px";
-//       img.className = 'image-item'; // <-- add class
-
-//       img.addEventListener('click', function() {
-//         // Remove active from all images
-//         document.querySelectorAll('.images-section img').forEach(i => i.classList.remove('active'));
-//         // Add active to clicked image
-//         this.classList.add('active');
-
-//         detailBox.style.display = "block";
-//         detailBox.style.margin = "10px";
-
-//         selectedImagePath = this.src;
-//         console.log("Selected image path:", selectedImagePath);
-//       });
-//       imagesSection.appendChild(img);
-//     });
-//   }, 500);
-// }
 
 function showImages(gender, final) {
   clearGrid(imagesSection);
@@ -718,6 +727,8 @@ resultImageInput.addEventListener('change', function () {
 
   function resetVariantFields() {
     document.getElementById('preview-image').src = "https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png";
+    document.getElementById("mainImagePreview").src = "https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png";
+    document.getElementById("secondImagePreview").src = "https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png";
     document.getElementById('resultImage').src = "";
     document.getElementById('resultImage').style.display = "none";
     document.getElementById('product-color').value = "";
@@ -736,12 +747,17 @@ resultImageInput.addEventListener('change', function () {
     const tableBody = document.getElementById("tableBody");
     tableBody.innerHTML = ""; // clear existing rows
 
+
+
+    const mainImg = mainImages[i] || "https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png";
+    const secondImg = secondImages[i] || "https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png";
+
     for (let i = 0; i < productData.product_colors.length; i++) {
       const row = document.createElement("tr");
       row.innerHTML = `
         <td>${i + 1}</td>
-        <td><img src="${showResultImages[i]}" alt="Result Image" width="60" height="95"></td>
-        <td><img src="${showGarmentImages[i]}" alt="Garment Image" width="60" height="90"></td>
+        <td><img src="${mainImg}" alt="Result Image" width="60" height="95"></td>
+        <td><img src="${secondImg}" alt="Garment Image" width="60" height="90"></td>
         <td>${productData.product_colors[i]}</td>
         <td style="padding: 0;">
           <div style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%; padding: 10px;">

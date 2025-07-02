@@ -65,9 +65,9 @@ LABEL_HEIGHT_MM = 34
 PAGE_WIDTH_MM = 210
 PAGE_HEIGHT_MM = 297
 TOP_MARGIN_MM = 10
-LEFT_MARGIN_MM = 10
+LEFT_MARGIN_MM = 6
 GAP_X_MM = 5   # Horizontal gap
-GAP_Y_MM = 0   # ✅ MINIMAL vertical gap to fit 8 rows
+GAP_Y_MM = 2   # ✅ MINIMAL vertical gap to fit 8 rows
 
 def mm_to_pt(mm_val):
     return mm_val * mm
@@ -77,7 +77,7 @@ def generate_qr_code(data, filename):
     qr.save(filename)
     return filename
 
-def create_qr_label_pdf(start_id=10000, total_labels=240, output_file="qr_labels.pdf"):
+def create_qr_label_pdf(start_id=10000, total_labels=240, output_file="qr_labels-3.pdf"):
     c = canvas.Canvas(output_file, pagesize=(mm_to_pt(PAGE_WIDTH_MM), mm_to_pt(PAGE_HEIGHT_MM)))
 
     labels_per_row = 3

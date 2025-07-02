@@ -65,6 +65,7 @@ db.sqlite3-journal
 # Ignore collected static files
 /staticfiles/
 extra_stuff/
+qr_labels*.pdf
 
 # Flask stuff:
 instance/

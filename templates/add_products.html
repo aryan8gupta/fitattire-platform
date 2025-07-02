@@ -111,15 +111,14 @@
     <main id="main" class="main">
       <div class="con-row">
         <div class="total_products col">
-          <h1 style="color: blue;">Add Products</h1>
-            <!-- Mode Toggle Buttons -->
-            <div style="margin-top: 15px; display: flex; gap: 10px;">
-                <button class="btn" onclick="showModelConversion()" style="background-color: green;">Model Conversion</button>
-                <button class="btn" onclick="showNoModelConversion()" style="background-color: orange;">No Model Conversion</button>
+            <h1 style="color: blue;">Add Products</h1>
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button class="btn" id="modelConversionBtn" onclick="showModelConversion()" >Model Conversion</button>
+                <button class="btn" id="nomodelConversionBtn" onclick="showNoModelConversion()">No Model Conversion</button>
             </div>
         </div>
 
-        <section id="modelConversionWrapper">
+        <section id="modelConversionWrapper" style="display: none">
             <section class="upload-image-section">
             <div class="card">
                 <div class="card-header">
@@ -372,37 +371,70 @@
             </div>
             </section>
         </section>
-        <section id="nomodelConversionWrapper">
+        <section id="nomodelConversionWrapper" style="display: none">
             <section class="upload-image-section">
                 <div class="card">
                   <div class="card-header">
                     <h2>Upload Images</h2>
                   </div>
                   <div class="card-body">
-                    <div class="image-upload-container">
-              
-                      <!-- Main Image Upload -->
-                      <div class="image-preview m-2">
-                        <label style="font-weight: bold;">Upload your Main Image</label><br>
-                        <img id="mainImagePreview" src="https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png" width="200" height="200" alt="Main Image">
-                        <input type="file" id="mainImageInput" accept="image/*" style="display: none;">
-                        <label for="mainImageInput" class="upload-image-button"><i class="fas fa-cloud-upload-alt"></i> Choose Main Image</label>
-                      </div>
-              
-                      <!-- Second Image Upload -->
-                      <div class="image-preview m-2">
-                        <label style="font-weight: bold;">Upload your Second Image</label><br>
-                        <img id="secondImagePreview" src="https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png" width="200" height="200" alt="Second Image">
-                        <input type="file" id="secondImageInput" accept="image/*" style="display: none;">
-                        <label for="secondImageInput" class="upload-image-button"><i class="fas fa-cloud-upload-alt"></i> Choose Second Image</label>
-                      </div>
-              
+                    <div class="image-upload-container" style="display: flex; flex-direction: row; gap: 30px; flex-wrap: wrap; justify-content: flex-start;">
+
+                        <!-- Main Image Block -->
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                          <label style="font-weight: bold;">Main Image</label>
+                          <img id="mainImagePreview" src="https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png" width="200" height="200" alt="Main Image" style="margin-bottom: 10px;">
+                          <input type="file" id="mainImageInput" accept="image/*" style="display: none;">
+                          <label for="mainImageInput" class="upload-image-button"><i class="fas fa-cloud-upload-alt"></i> Choose Main Image</label>
+                        </div>
+                      
+                        <!-- Second Image Block -->
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                          <label style="font-weight: bold;">Second Image</label>
+                          <img id="secondImagePreview" src="https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png" width="200" height="200" alt="Second Image" style="margin-bottom: 10px;">
+                          <input type="file" id="secondImageInput" accept="image/*" style="display: none;">
+                          <label for="secondImageInput" class="upload-image-button"><i class="fas fa-cloud-upload-alt"></i> Choose Second Image</label>
+                        </div>
+                      
                     </div>
+                      
                   </div>
                 </div>
             </section>
+
+            <section class="category-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Select Product Category</h2>
+                    </div>
+                    <div class="card-body">
+
+                        <!-- <div class="category-grid" id="category"></div> -->
+                        <div class="category-grid">
+                            <div class="category-item" data-gender="Men">
+                                <i class="fas fa-mars"></i>
+                                <span>Men</span>
+                            </div>
+                            <div class="category-item" data-gender="Women">
+                                <i class="fas fa-venus"></i>
+                                <span>Women</span>
+                            </div>
+                        </div>
+
+                        <div class="sub-category-grid" id="subcategory">
+                            <!-- Subcategories (Half Sleeve T-Shirts, etc.) -->
+                        </div>
+                        <div class="final-category-grid" id="finalcategory">
+                            <!-- Final categories (Polo T-shirt etc.) -->
+                        </div>
+                        <div class="final-sub-category-grid">
+                            <!-- Polo T-Shirts, Round Neck, etc. (4th level) — NO NEED NOW, handled inside final-category-grid -->
+                        </div>
+                    </div>
+                </div>
+            </section>
               
-            <section class="product-details-section">
+            <section class="product-details-section" id="product-details" style="display: none">
                 <div class="card">
                     <div class="card-header">
                         <h2>Product Details</h2>
@@ -506,8 +538,8 @@
                                 <thead>
                                 <tr>
                                     <th>S.No.</th>
-                                    <th>Resulted Image</th>
-                                    <th>Model Image</th>
+                                    <th>Main Image</th>
+                                    <th>Second Image</th>
                                     <th>Color</th>
                                     <th>Actions</th>
                                 </tr>
@@ -548,31 +580,5 @@
         
     </main> <!-- End #main -->
     <script src="{% static 'js/add-products.js' %}" defer></script>
-    <script>
-        function showModelConversion() {
-            document.getElementById("modelConversionWrapper").style.display = "block";
-            document.getElementById("nomodelConversionWrapper").style.display = "none";
-        }
-        
-        function showNoModelConversion() {
-            document.getElementById("modelConversionWrapper").style.display = "none";
-            document.getElementById("nomodelConversionWrapper").style.display = "block";
-        }
-
-        document.getElementById("mainImageInput").addEventListener("change", function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                document.getElementById("mainImagePreview").src = URL.createObjectURL(file);
-            }
-        });
-        
-        document.getElementById("secondImageInput").addEventListener("change", function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                document.getElementById("secondImagePreview").src = URL.createObjectURL(file);
-            }
-        });
-        
-    </script>        
 
 {% endblock %}
