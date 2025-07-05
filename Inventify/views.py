@@ -64,7 +64,7 @@ LABEL_WIDTH_MM = 64
 LABEL_HEIGHT_MM = 34
 PAGE_WIDTH_MM = 210
 PAGE_HEIGHT_MM = 297
-TOP_MARGIN_MM = 10
+TOP_MARGIN_MM = 1
 LEFT_MARGIN_MM = 6
 GAP_X_MM = 5   # Horizontal gap
 GAP_Y_MM = 2   # ✅ MINIMAL vertical gap to fit 8 rows
@@ -133,7 +133,7 @@ def create_qr_label_pdf(start_id=10000, total_labels=240, output_file="qr_labels
 
 
 
-# create_qr_label_pdf(start_id=10001, total_labels=240)
+# create_qr_label_pdf(start_id=10001, total_labels=48)
 
 # --------------------------------------------------------------------->
 
@@ -252,7 +252,8 @@ def product_display(request, qr_id):
 
         result = DB.products.find_one({"qrcode_ids": qrcode})
         if result:
-            return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'product': result, "show_edit": valid, 'product_id': result['_id']})
+            random_integer = random.randint(50, 250)
+            return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'sold_count': random_integer, 'product': result, "show_edit": valid, 'product_id': qr_id})
 
         return render(request, 'product_display.html', {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'product': None})
 
@@ -847,76 +848,41 @@ def add_products(request):
 
             DB.images_download.insert_one(image_dict)
 
-            logger.info("reading post data-10")
             # Video Generation by Threading Starts ---------------->
             video_url = ''
+            video_groups = []
+
+            video_dict = {
+                "user_id": users_id,
+                "product_name": product_name,
+                "qr_ids": parsed_data1['qrcode_ids'],
+                "image_urls": generated_urls,
+                "video_urls": video_url,
+                "video_generated": False,
+                "is_downloaded": False,
+                "created_at": datetime.now().strftime("%d-%m-%Y")
+            }
+
+            DB.videos_download.insert_one(video_dict)
+
             video_record = list(DB.videos_downloaded.find(
                 {"user_id": users_id, "video_generated": False}
             ))
-            logger.info("reading post data-11")
-            logger.info(video_record)
 
-            if video_record:
-                for record in video_record:
-                    generated_urls.append(record["image_urls"])
+            for record in video_record:
+                image_urls = record.get("image_urls", [])
+                product_name = record.get("product_name", "Product")
+                video_groups.append({"product_name": product_name, "image_urls": image_urls})
 
-                if len(generated_urls) >= 3:
-                    video_output_path = f"output/generated_reel_{uuid.uuid4().hex}.mp4"
+            total_images = sum(len(group["image_urls"]) for group in video_groups)
 
-                    # SAFETY: Start thread and don't store the thread object
-                    def background_task():
-                        video_url = start_video_generation(generated_urls, video_output_path, users_shop_address, users_shop_name)
-                        
-                        response = client.chat.completions.create(
-                            model="gpt-3.5-turbo",
-                            messages=[
-                                {"role": "system", "content": "You are a creative Instagram marketer who writes short, catchy, and trendy captions for fashion products in India. Use emojis and hashtags where relevant. And be concise."},
-                                {
-                                    "role": "user",
-                                    "content": f"""Generate an Instagram caption for the following product:
-                                        Product Name: {product_name}
-                                        Product Category: {category}
-                                        Product Gender: {gender}
-                                        Product Fabric: {parsed_data1['product_fabric']}
-                                        Product Price: ₹{parsed_data1['product_price']}
-                                        Product Selling Price: ₹{parsed_data1['product_selling_price']}
-                                        Product Color: {parsed_data1['product_colors'][i]}
-
-                                        Keep it short, attention-grabbing, and its a video of the product with different variants of the product with information like Mega Deal, {product_discount}% off, to know more about the product, enter the product id in the chat given in the image and add 3–5 relevant fashion hashtags."""
-                                }
-                            ]
-                        )
-
-                        reply_2 = response.choices[0].message.content
-                        
-                        caption = "🔥 Fresh stock just dropped! #streetwear #fashionreel"
-                        result = post_azure_video_to_instagram(video_url, reply_2)
-                        print(result)
-
-                        if video_url:
-                            DB.videos_download.update_one(
-                                {"user_id": users_id},
-                                {'$set': 
-                                    {
-                                        "video_urls": video_url,
-                                        "video_generated": True,
-                                        "image_urls": generated_urls,
-                                    }
-                                }
-                            )
-                    thread = threading.Thread(target=background_task)
-                    thread.daemon = True
-                    thread.start()
-
-                    print("[INFO] Video generation thread-1 started.")
-
-            elif len(generated_urls) >= 3:
+            if len(total_images) >= 8:
                 video_output_path = f"output/generated_reel_{uuid.uuid4().hex}.mp4"
 
-                # ✅ SAFETY: Start thread and don't store the thread object
+                # SAFETY: Start thread and don't store the thread object
                 def background_task():
-                    video_url = start_video_generation(generated_urls, video_output_path, users_shop_address)
-                        
+                    video_url = start_video_generation(video_groups, video_output_path, users_shop_address, users_shop_name)
+                    
                     response = client.chat.completions.create(
                         model="gpt-3.5-turbo",
                         messages=[
@@ -944,36 +910,21 @@ def add_products(request):
                     print(result)
 
                     if video_url:
-                        DB.videos_download.insert_one({
-                            "user_id": users_id,
-                            "qr_ids": parsed_data1['qrcode_ids'],
-                            "image_urls": generated_urls,
-                            "video_urls": video_url,
-                            "video_generated": True,
-                            "is_downloaded": False,
-                            "created_at": datetime.now().strftime("%d-%m-%Y")
-                        })
-
+                        DB.videos_download.update_one(
+                            {"user_id": users_id},
+                            {'$set': 
+                                {
+                                    "video_urls": video_url,
+                                    "video_generated": True,
+                                    "image_urls": generated_urls,
+                                }
+                            }
+                        )
                 thread = threading.Thread(target=background_task)
                 thread.daemon = True
                 thread.start()
 
-                print("[INFO] Video generation thread-2 started.")
-
-            else:
-                logger.info("reading post data-12")
-                video_dict = {
-                    "user_id": users_id,
-                    "qr_ids": parsed_data1['qrcode_ids'],
-                    "image_urls": generated_urls,
-                    "video_urls": video_url,
-                    "video_generated": False,
-                    "is_downloaded": False,
-                    "created_at": datetime.now().strftime("%d-%m-%Y")
-                }
-
-                DB.videos_download.insert_one(video_dict)
-                print("[INFO] Not enough images to start video generation.")
+                print("[INFO] Video generation thread-1 started.")
 
 
             products_dict = {

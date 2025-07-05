@@ -397,11 +397,26 @@ if (customerAmountInput && discountedElement && originalElement && changeElement
 
 
 // Submit Transaction Button
-document.getElementById("submit-btn").addEventListener("click", async () => {
-    const phone1 = document.getElementById('new-customer-phone').value.trim();
-    const phone2 = document.getElementById('phone-number').value.trim(); 
+const submitButton = document.getElementById("submit-btn");
+const btnText = submitButton.querySelector('.btn-text');
+const btnSpinner = submitButton.querySelector('.btn-spinner');
 
-    const phone = phone1 || phone2
+submitButton.addEventListener("click", async () => {
+
+    btnText.textContent = "Submitting";
+    btnSpinner.style.display = 'inline-block';
+
+    let phone = "";
+
+    const phone1El = document.getElementById('new-customer-phone'); // input
+    const phone2El = document.getElementById('phone-number');       // span
+
+    if (phone1El && phone1El.value !== undefined) {
+        phone = phone1El.value.trim();
+    } else if (phone2El && phone2El.textContent !== undefined) {
+        phone = phone2El.textContent.trim();
+    }
+
 
     console.log(phone);
     console.log(totalAmount);
@@ -460,5 +475,8 @@ document.getElementById("submit-btn").addEventListener("click", async () => {
 
     } catch (error) {
         console.error("Submit failed:", error);
+    } finally {
+        btnText.textContent = "Submit Transaction";
+        btnSpinner.style.display = 'none';
     }
 });

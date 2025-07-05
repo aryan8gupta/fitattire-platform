@@ -29,6 +29,10 @@
             padding: 10px;             /* Optional: for spacing */
             word-wrap: break-word;     /* Prevent overflow */
         }
+        .btn:hover {
+            background-color: #8A4AF3;
+            color: white;
+        }
         
     </style>
 
@@ -54,7 +58,7 @@
                                 <div style="display: flex; align-items: center; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; flex: 1;">
                                     <span style="padding: 8px; background-color: #f0f0f0; border-right: 1px solid #ccc;">+91</span>
                                     <input
-                                        type="text"
+                                        type="number"
                                         id="mobile-number"
                                         placeholder="Enter 10-digit mobile number"
                                         maxlength="10"
@@ -216,7 +220,8 @@
                         </div>
 
                         <button type="button" id="submit-btn" class="btn mt-4 m-1">
-                            <i class="fas fa-check-circle"></i> Submit Transaction
+                            <i class="fas fa-check-circle"></i><span class="btn-text">Submit Transaction</span>
+                            <span class="btn-spinner loader" style="display: none; margin-left: 8px;"></span>
                         </button>
                     </div>
                 </div>

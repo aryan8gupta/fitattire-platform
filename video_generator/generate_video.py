@@ -792,10 +792,10 @@ def generate_reel_video_1(image_urls, output_path, audio_path="https://fitattire
             os.remove(os.path.join("temp_images", file))
 
 
-def start_video_generation(image_paths, video_output_path, users_shop_address, users_shop_name):
+def start_video_generation(video_groups, video_output_path, users_shop_address, users_shop_name):
     try:
         print("[INFO] Background video generation started...")
-        local_video_path = generate_reel_video(image_paths, video_output_path, users_shop_address, users_shop_name)
+        local_video_path = generate_reel_video(video_groups, video_output_path, users_shop_address, users_shop_name)
         print("6571")
         if local_video_path:
             # Upload to Azure

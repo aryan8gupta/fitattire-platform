@@ -118,8 +118,8 @@
 
             <!-- Product ID and Sold Count -->
             <div style="margin: 10px 0 20px 0; font-size: 15px; color: #555;">
-                <strong>Product ID:</strong> {{ product.product_id }} &nbsp;|&nbsp;
-                <strong>Sold to:</strong> {{ product.sold_count }}+ people
+                <strong>Product ID:</strong> {{ product_id }} &nbsp;|&nbsp;
+                <strong>Sold to:</strong> {{ sold_count }}+ people
             </div>
 
             <div class="product-image-wrapper">
@@ -127,7 +127,7 @@
                     &#8592;
                 </button>
 
-                <div class="product-image-scroll" id="imageContainer">
+                <div class="product-image-scroll mx-2" id="imageContainer">
                     <img id="mainResultImage" src="{{ product.variants.0.result_image }}" class="main-image" alt="Result Image" />
                     <img id="mainGarmentImage" src="{{ product.variants.0.garment_image }}" class="main-image" alt="Garment Image" />
                     <!-- Images will be dynamically inserted here -->
