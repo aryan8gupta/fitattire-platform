@@ -98,10 +98,10 @@ function searchNumber() {
 
 
 function addNumber() {
-    customer_name = document.getElementById("new-customer-name").value.trim();
+    const customer_name2 = document.getElementById("new-customer-name").value.trim();
     const phone = document.getElementById("new-customer-phone").value.trim();
 
-    if (customer_name === "" || !/^\d{10}$/.test(phone)) {
+    if (customer_name2 === "" || !/^\d{10}$/.test(phone)) {
         alert("Please enter a valid name and 10-digit mobile number.");
         return;
     }
@@ -109,7 +109,7 @@ function addNumber() {
     fetch('/add-whatsapp-number/', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ name: customer_name, phone: '+91' + phone })
+        body: JSON.stringify({ name: customer_name2, phone: '+91' + phone })
     })
     .then(response => response.json())
     .then(data => {
@@ -120,8 +120,44 @@ function addNumber() {
         document.getElementById("new-customer-name").value = "";
         document.getElementById("new-customer-phone").value = "";
         document.getElementById("mobile-number").value = "";
-        document.getElementById("customer-details").classList.add("hidden");
-        document.getElementById("no-details").classList.add("hidden");
+
+        document.getElementById("customer-name").textContent = customer_name2;
+        document.getElementById("phone-number").textContent = phone;
+
+        customer_name = customer_name2;
+
+        // Clear previous rows
+        const tableContainer = document.querySelector(".table-container");
+        const tbody = document.getElementById("last-purchases");
+        tbody.innerHTML = "";
+        if (data.purchases && data.purchases.length > 0) {
+            (data.purchases || []).forEach(p => {
+                const row = `<tr>
+                    <td>${p.product}</td>
+                    <td>${p.qty}</td>
+                    <td>${p.price}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+            tableContainer.style.display = "block";  // Show table
+        } else {
+            tableContainer.style.display = "none";  // Hide table
+            const noPurchaseMsg = document.createElement("p");
+            noPurchaseMsg.textContent = "No Purchases Yet!";
+            noPurchaseMsg.style.color = "gray";
+            noPurchaseMsg.style.marginTop = "10px";
+            noPurchaseMsg.id = "no-purchase-msg";
+
+            // Remove any previous message
+            const prevMsg = document.getElementById("no-purchase-msg");
+            if (prevMsg) prevMsg.remove();
+
+            document.getElementById("customer-details").appendChild(noPurchaseMsg);
+        }
+
+        customerDetails.classList.remove("hidden");
+        noDetails.classList.add("hidden");
+
     })
     .catch(error => {
         console.error("Error:", error);
@@ -408,21 +444,18 @@ submitButton.addEventListener("click", async () => {
 
     let phone = "";
 
-    const phone1El = document.getElementById('new-customer-phone'); // input
-    const phone2El = document.getElementById('phone-number');       // span
 
-    if (phone1El && phone1El.value !== undefined) {
-        phone = phone1El.value.trim();
-    } else if (phone2El && phone2El.textContent !== undefined) {
-        phone = phone2El.textContent.trim();
+    const phone2El = document.getElementById('phone-number');       // span
+    const spanPhone = phone2El?.textContent.trim();
+
+    if (spanPhone) {
+        phone = spanPhone;
     }
 
-
-    console.log(phone);
+    console.log("Phone:", phone);
     console.log(totalAmount);
     console.log(originalAmount);
     console.log(discountedAmount);
-    console.log(discountPercent);
     console.log(discount);
     console.log(customerAmount);
     console.log(customer_name);
@@ -433,15 +466,16 @@ submitButton.addEventListener("click", async () => {
     const exchangepostdata = {
         qr_ids: qrcodeidsarray ?? [],
         phone: phone ?? "",
+        customer_name: customer_name ?? "",
         total_bill: totalAmount ?? 0,
         original_amount: originalAmount ?? 0,
         discounted_amount: discountedAmount ?? 0,
         discount_percentage: discountedPercentage ?? 0,
         customer_amount: customerAmount ?? 0,
-        amount_less_more: (change ?? 0).toFixed(2),
-        customer_name: customer_name ?? ""
+        amount_less_more: (change ?? 0).toFixed(2)
     };
     
+
     try {
         const response = await fetch("/sales/", {
             method: "POST",

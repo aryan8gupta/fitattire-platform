@@ -114,8 +114,8 @@
             <h1 style="color: blue;">Add Products</h1>
         </div>
         <div style="margin-top: 10px; display: flex; gap: 10px;">
-            <button class="btn" id="modelConversionBtn" onclick="showModelConversion()" >Model Conversion</button>
-            <button class="btn" id="noModelConversionBtn" onclick="showNoModelConversion()">No Model Conversion</button>
+            <button class="btn" id="modelConversionBtn">Model Conversion</button>
+            <button class="btn" id="noModelConversionBtn">No Model Conversion</button>
         </div>
 
         <section id="modelConversionWrapper" style="display: none">
@@ -157,9 +157,30 @@
                         <h2>Select Product Category</h2>
                     </div>
                     <div class="card-body">
+                        <div class="category-section">
+                            <div class="category-grid">
+                              <div class="category-item" data-gender="Men">
+                                <i class="fas fa-mars"></i>
+                                <span>Men</span>
+                              </div>
+                              <div class="category-item" data-gender="Women">
+                                <i class="fas fa-venus"></i>
+                                <span>Women</span>
+                              </div>
+                            </div>
+                          
+                            <div class="sub-category-grid"></div>
+                            <div class="final-category-grid"></div>
+                            <div class="final-sub-category-grid"></div>
+                          
+                            <div class="images-section"></div>
+                            <h3 class="image-section-heading" style="display:none;">Choose Models</h3>
+                            <div class="result-image-box" style="display:none;"></div>
+                        </div>
+                          
 
                         <!-- <div class="category-grid" id="category"></div> -->
-                        <div class="category-grid">
+                        {% comment %} <div class="category-grid">
                             <div class="category-item" data-gender="Men">
                                 <i class="fas fa-mars"></i>
                                 <span>Men</span>
@@ -187,7 +208,8 @@
                         <h2 id="image-section-heading" style="text-align:center; color:#333; font-size:28px; margin-top:30px; display:none;"></h2>
                         <div class="images-section">
                             <!-- All images will appear here -->
-                        </div>
+                        </div> {% endcomment %}
+
                         <!-- Image Section Ends --------------------------->
 
                         <!-- Result Section Starts --------------------------->
@@ -410,7 +432,7 @@
                     <div class="card-body">
 
                         <!-- <div class="category-grid" id="category"></div> -->
-                        <div class="category-grid">
+                        {% comment %} <div class="category-grid">
                             <div class="category-item" data-gender="Men">
                                 <i class="fas fa-mars"></i>
                                 <span>Men</span>
@@ -429,6 +451,24 @@
                         </div>
                         <div class="final-sub-category-grid">
                             <!-- Polo T-Shirts, Round Neck, etc. (4th level) — NO NEED NOW, handled inside final-category-grid -->
+                        </div> {% endcomment %}
+
+                        <div class="category-section">
+                            <div class="category-grid">
+                              <div class="category-item" data-gender="Men">
+                                <i class="fas fa-mars"></i>
+                                <span>Men</span>
+                              </div>
+                              <div class="category-item" data-gender="Women">
+                                <i class="fas fa-venus"></i>
+                                <span>Women</span>
+                              </div>
+                            </div>
+                          
+                            <div class="sub-category-grid"></div>
+                            <div class="final-category-grid"></div>
+                            <div class="final-sub-category-grid"></div>
+                        
                         </div>
                     </div>
                 </div>

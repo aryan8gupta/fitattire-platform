@@ -321,31 +321,48 @@
         if (scannedProductData[qrId]) return;
         
         console.log(qrId)
-        qrcodeidsarray.push(qrId)
         // scanner.stop(); // Stop scanning after one scan
 
         if (currentMode === "Returned") {
             return_cancel_btn();
+
+            fetch("/get-product-sold/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ qr_id: qrId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log(data);
+                if (!data.error) {
+                    scannedProductData[qrId] = data;
+                    qrcodeidsarray.push(qrId)
+                    displayAllRowsFromDataStore();
+                } else {
+                    alert(data.error || "Product not found.");
+                }
+            });
+
         } else {
             delete_cancel_btn();
-        }
 
-        // isScanning = false;
-        fetch("/get-product/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ qr_id: qrId })
-        })
-        .then(res => res.json())
-        .then(data => {
-            console.log(data);
-            if (!data.error) {
-                scannedProductData[qrId] = data;
-                displayAllRowsFromDataStore();
-            } else {
-                alert(data.error || "Product not found.");
-            }
-        });
+            fetch("/get-product/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ qr_id: qrId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log(data);
+                if (!data.error) {
+                    scannedProductData[qrId] = data;
+                    qrcodeidsarray.push(qrId)
+                    displayAllRowsFromDataStore();
+                } else {
+                    alert(data.error || "Product not found.");
+                }
+            });
+        }
     }
 
     function displayAllRowsFromDataStore() {

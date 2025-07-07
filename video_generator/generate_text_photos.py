@@ -666,6 +666,138 @@ def create_offer_photo_with_right_image(
     return azure_url
 
 
+# === Function to create the final marketing image ===
+def create_offer_photo_with_right_image_2(
+    big_image_path,
+    output_path,
+    logo_path,
+    product_name="Cool Shirt",
+    product_quantity=2,
+    product_selling_price_total_amount="999",
+    canvas_size=(1080, 1080),
+    product_id="FIA-75913"
+):
+    W, H = canvas_size
+    LEFT_WIDTH = 500  # safe area for logo + text
+
+    # === Background ===
+    colors = [
+        (179, 150, 118, 255),
+        (128, 0, 128, 255),
+        (0, 100, 0, 255),
+        (0, 0, 139, 255),
+        (0, 0, 128, 255)
+    ]
+    bg_color = random.choice(colors)
+    bg = Image.new("RGBA", (W, H), bg_color)
+    draw = ImageDraw.Draw(bg)
+
+    # === Fonts ===
+    font_large = ImageFont.truetype(font_path, 60)
+    font_medium = ImageFont.truetype(font_path, 40)
+    font_price = ImageFont.truetype(font_path, 70)
+    font_small = ImageFont.truetype(font_path, 26)
+
+    # === Load and resize product image ===
+    big_img = load_image_from_path_or_url(big_image_path).convert("RGBA")
+    box_width, box_height = 500, 700
+    img_with_margin = big_img.resize((box_width - 40, box_height - 60))
+    box_img = Image.new("RGBA", (box_width, box_height), (255, 255, 255, 0))
+    draw_box = ImageDraw.Draw(box_img)
+    draw_box.rounded_rectangle([0, 0, box_width, box_height], radius=30, outline="white", width=5)
+    box_img.paste(img_with_margin, (20, 30), img_with_margin)
+
+    # === Paste product image on right ===
+    right_margin = 30
+    box_x = W - box_width - right_margin
+    box_y = (H - box_height) // 2
+    bg.paste(box_img, (box_x, box_y), box_img)
+
+    # === Load and resize logo ===
+    logo = load_image_from_path_or_url(logo_path).convert("RGBA")
+    logo_max_width = 250
+    logo_aspect = logo.height / logo.width
+    logo = logo.resize((logo_max_width, int(logo_max_width * logo_aspect)))
+
+    # === Text lines (before wrapping) ===
+    raw_lines = [
+        (f"ID: {product_id}", font_small),
+        (f"All New {product_name}", font_medium),
+        (f"Buy {product_quantity} Items,", font_medium),
+        (f"Just ₹{product_selling_price_total_amount}!", font_price),
+        ("DM the Product ID", font_small),
+        ("to know more.", font_small),
+    ]
+
+    # === Wrap long lines based on LEFT_WIDTH ===
+    wrapped_lines = []
+    padding = 40
+    for text, font in raw_lines:
+        words = text.split()
+        line = ""
+        for word in words:
+            test_line = (line + " " + word).strip()
+            bbox = draw.textbbox((0, 0), test_line, font=font)
+            width = bbox[2] - bbox[0]
+            if width <= LEFT_WIDTH - 2 * padding:
+                line = test_line
+            else:
+                if line:
+                    wrapped_lines.append((line, font))
+                line = word
+        if line:
+            wrapped_lines.append((line, font))
+
+    # === Measure total content height (logo + wrapped text) ===
+    spacing = 20
+    total_height = logo.height + spacing
+    for line, font in wrapped_lines:
+        bbox = draw.textbbox((0, 0), line, font=font)
+        total_height += (bbox[3] - bbox[1]) + spacing
+
+    # === Start drawing from vertically centered position ===
+    start_y = (H - total_height) // 2
+    x = padding
+    y = start_y
+
+    # Draw logo
+    bg.paste(logo, (x, y), logo)
+    logo_bottom_padding = 40
+    y += logo.height + logo_bottom_padding
+
+
+    # Draw each wrapped line
+    for line, font in wrapped_lines:
+
+        if "Buy" in line:
+            y += 30  # extra space above price
+        elif "All" in line:
+            y += 10
+
+        draw.text((x, y), line, font=font, fill="white")
+        bbox = draw.textbbox((0, 0), line, font=font)
+        line_height = bbox[3] - bbox[1]
+
+        y += line_height
+
+        # Add extra bottom space if it's the price line
+        if "₹" in line:
+            y += 40  # <- add extra 40px below price
+        else:
+            y += spacing  # normal spacing
+
+    # === Save final image ===
+    img_bytes = BytesIO()
+    bg.save(img_bytes, format='PNG')
+    img_bytes.seek(0)
+    azure_url = upload_image_to_azure(img_bytes, blob_name=output_path)
+    return azure_url
+
+    # if not os.path.exists(output_path):
+    #     os.makedirs(output_path)
+    # final_path = os.path.join(output_path, f"{product_id}_offer.png")
+    # bg.convert("RGB").save(final_path)
+    # print(f"✅ Image saved at: {final_path}")
 
 
 # === Example usage ===

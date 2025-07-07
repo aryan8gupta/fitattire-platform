@@ -2,6 +2,8 @@
 # Script-1
 --------------------------------------------------------------*/
 
+
+// === CATEGORY & IMAGE DATA ===
 const data = {
   "Men": {
     "T-Shirts": {
@@ -35,304 +37,486 @@ const data = {
   }
 };
 
-
-// Image file mapping (real filenames)
-// const images = {};
-// const azureBaseUrl = "https://fitattirestorage.blob.core.windows.net/fitattire-assets"
-// Object.keys(data).forEach(gender => {
-//   Object.keys(data[gender]).forEach(category => {
-//     const sub = data[gender][category];
-//     if (typeof sub === 'object' && !Array.isArray(sub)) {
-//       // sub is an object (example: T-Shirts have Half Sleeve, Full Sleeve)
-//       Object.keys(sub).forEach(subCategory => {
-//         const finalSub = sub[subCategory];
-//         if (Array.isArray(finalSub)) {
-//           finalSub.forEach(final => {
-//           images[final] = Array.from({ length: 5 }, (_, i) => 
-//             `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${subCategory.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`);
-//           });
-//         }
-//       });
-//     } else if (Array.isArray(sub)){
-//       sub.forEach(final => {
-//         images[final] = Array.from({ length: 5 }, (_, i) => 
-//           `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`);
-//       });
-//     }
-//   });
-// });
-
-
-const images = {};
 const azureBaseUrl = "https://fitattirestorage.blob.core.windows.net/fitattire-assets";
-
+const images = {};
 Object.keys(data).forEach(gender => {
   Object.keys(data[gender]).forEach(category => {
     const sub = data[gender][category];
     if (typeof sub === 'object' && !Array.isArray(sub)) {
       Object.keys(sub).forEach(subCategory => {
-        const finalSub = sub[subCategory];
-        if (Array.isArray(finalSub)) {
-          finalSub.forEach(final => {
-            const key = `${gender}:${final}`;  // Unique key to avoid collision
-            images[key] = Array.from({ length: 5 }, (_, i) => 
-              `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${subCategory.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`
-            );
-          });
-        }
+        sub[subCategory].forEach(final => {
+          const key = `${gender}:${final}`;
+          images[key] = Array.from({ length: 5 }, (_, i) => `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${subCategory.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`);
+        });
       });
-    } else if (Array.isArray(sub)){
+    } else {
       sub.forEach(final => {
         const key = `${gender}:${final}`;
-        images[key] = Array.from({ length: 5 }, (_, i) => 
-          `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`
-        );
+        images[key] = Array.from({ length: 5 }, (_, i) => `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`);
       });
     }
   });
 });
 
+// === MULTI-BLOCK LOGIC ===
+document.querySelectorAll('.category-section').forEach(section => {
+  const categoryGrid = section.querySelector('.category-grid');
+  const subCategoryGrid = section.querySelector('.sub-category-grid');
+  const finalCategoryGrid = section.querySelector('.final-category-grid');
+  const finalSubCategoryGrid = section.querySelector('.final-sub-category-grid');
+  const imagesSection = section.querySelector('.images-section');
+  const heading = section.querySelector('#image-section-heading');
+  const detailBox = section.querySelector('#result-image-box');
 
-const categoryGrid = document.querySelector('.category-grid');
-const subCategoryGrid = document.querySelector('.sub-category-grid');
-const finalCategoryGrid = document.querySelector('.final-category-grid');
-const finalSubCategoryGrid = document.querySelector('.final-sub-category-grid');
-const imagesSection = document.querySelector('.images-section');
-const heading = document.getElementById('image-section-heading');
-const detailBox = document.getElementById("result-image-box");
-const spinner = document.querySelector('.spinner');
+  let selectedGender = "";
+  let selectedCategory = "";
+  let selectedSubCategory = "";
+  let selectedFinalCategory = "";
+  let selectedImagePath = "";
+  let currentMode = "model";
 
-// Selections
-let selectedGender = "";
-let selectedCategory = "";
-let selectedSubCategory = "";
-let selectedFinalCategory = "";
-let selectedImagePath = "";
-let productGarmentImages = []; 
-let productResultImages = []; 
-
-let showGarmentImages = [];
-let showResultImages = [];
-
-let documentData = {
-  gender: null,
-  category: null,
-  subCategory: null,
-  finalCategory: null,
-  modelImagePath: null,
-  swapCategory: null
-};
-let idsArray = [];
-let currentMode = "";
-
-const clothes_swap_category = document.getElementById("swap_category").value;
-
-
-function clearGrid(grid) {
-  grid.innerHTML = '';
-}
-
-const mainImages = [];
-const secondImages = [];
-
-document.getElementById("mainImageInput").addEventListener("change", function (e) {
-  const file = e.target.files[0];
-  if (file) {
-    const imageUrl = URL.createObjectURL(file);
-    document.getElementById("mainImagePreview").src = imageUrl;
-    mainImages.push(imageUrl); // store image URL in array
-  }
-});
-
-document.getElementById("secondImageInput").addEventListener("change", function (e) {
-  const file = e.target.files[0];
-  if (file) {
-    const imageUrl = URL.createObjectURL(file);
-    document.getElementById("secondImagePreview").src = imageUrl;
-    secondImages.push(imageUrl); // store image URL in array
-  }
-});
-
-document.getElementById("modelConversionBtn").addEventListener("click", () => {
-  currentMode = "model";
-  document.getElementById("modelConversionWrapper").style.display = "block";
-  document.getElementById("nomodelConversionWrapper").style.display = "none";
-});
-
-document.getElementById("noModelConversionBtn").addEventListener("click", () => {
-  currentMode = "nomodel";
-  document.getElementById("modelConversionWrapper").style.display = "none";
-  document.getElementById("nomodelConversionWrapper").style.display = "block";
-});
-
-
-
-// Attach Click Listener to whole category grid
-categoryGrid.addEventListener('click', function (e) {
-  const target = e.target.closest('[data-gender]');
-  if (!target) return;
-
-  const gender = target.dataset.gender;
-  showSubCategories(gender);
-
-  // Optional: Active class handling
-  Array.from(categoryGrid.children).forEach(item => item.classList.remove('active'));
-  target.classList.add('active');
-});
-document.querySelectorAll('.category-item').forEach(item => {
-  item.addEventListener('click', function () {
-    selectedGender = this.dataset.gender;
-    console.log("Selected gender:", selectedGender);
+  categoryGrid.addEventListener('click', function (e) {
+    const target = e.target.closest('[data-gender]');
+    if (!target) return;
+    selectedGender = target.dataset.gender;
+    categoryGrid.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
+    target.classList.add('active');
+    showSubCategories(selectedGender);
   });
-});
 
-function createCategoryItem(name, icon = 'fas fa-tshirt') {
-  const div = document.createElement('div');
-  div.className = 'category-item';
-  div.innerHTML = `<i class="${icon}"></i><span>${name}</span>`;
-  div.addEventListener('click', () => {
-    // Active class handling
-    const siblings = div.parentElement.querySelectorAll('.category-item');
-    siblings.forEach(sib => sib.classList.remove('active'));
-    div.classList.add('active');
-  });
-  return div;
-}
+  function clearGrid(grid) { grid.innerHTML = ''; }
 
-function showSubCategories(gender) {
-  if (gender == "None") {
-    clearGrid(subCategoryGrid);
-    clearGrid(finalCategoryGrid);
-    clearGrid(finalSubCategoryGrid);
-    clearGrid(imagesSection);
+  function createCategoryItem(name, icon = 'fas fa-tshirt') {
+    const div = document.createElement('div');
+    div.className = 'category-item';
+    div.innerHTML = `<i class="${icon}"></i><span>${name}</span>`;
+    return div;
+  }
+
+  function showSubCategories(gender) {
+    [subCategoryGrid, finalCategoryGrid, finalSubCategoryGrid, imagesSection].forEach(clearGrid);
     heading.style.display = 'none';
     detailBox.style.display = "none";
-  } else {
-    clearGrid(subCategoryGrid);
-    clearGrid(finalCategoryGrid);
-    clearGrid(finalSubCategoryGrid);
-    clearGrid(imagesSection);
-    heading.style.display = 'none';
-    detailBox.style.display = "none";
+    if (!gender || !data[gender]) return;
 
-    const categories = Object.keys(data[gender]);
-    categories.forEach(cat => {
-      const item = createCategoryItem(cat);
-      item.addEventListener('click', function (e) { 
-        showFinalCategories(gender, cat);
-        selectedCategory = cat;
+    Object.keys(data[gender]).forEach(category => {
+      const item = createCategoryItem(category);
+      item.addEventListener('click', () => {
+        selectedCategory = category;
+        showFinalCategories(gender, category);
       });
       subCategoryGrid.appendChild(item);
     });
   }
-}
 
+  function showFinalCategories(gender, category) {
+    [finalCategoryGrid, finalSubCategoryGrid, imagesSection].forEach(clearGrid);
+    heading.style.display = 'none';
+    detailBox.style.display = "none";
 
-function showFinalCategories(gender, category) {
-  clearGrid(finalCategoryGrid);
-  clearGrid(finalSubCategoryGrid);
-  clearGrid(imagesSection);
-  heading.style.display = 'none';
-  detailBox.style.display = "none";
-
-  const sub = data[gender][category];
-  if (Array.isArray(sub)) {
-    sub.forEach(subCat => {
-      const item = createCategoryItem(subCat);
-      item.addEventListener('click', function (e) {  
-        if (currentMode === "model") {
-          showImages(gender, subCat);
+    const sub = data[gender][category];
+    if (Array.isArray(sub)) {
+      sub.forEach(subCat => {
+        const item = createCategoryItem(subCat);
+        item.addEventListener('click', () => {
           selectedSubCategory = subCat;
-          console.log("Model Conversion logic here");
-        } else if (currentMode === "nomodel") {
-          document.getElementById("product-details").display = "block";
-          console.log("No Model Conversion logic here");
-        }
+          showImages(gender, subCat);
+        });
+        finalCategoryGrid.appendChild(item);
       });
-      finalCategoryGrid.appendChild(item);
-    });
-  } else if (typeof sub === 'object') {
-    const subCategories = Object.keys(sub);
-    subCategories.forEach(subCat => {
-      const item = createCategoryItem(subCat);
-      item.addEventListener('click', function (e) { 
-        showFinalSubCategories(gender, category, subCat);
-        selectedSubCategory = subCat;
+    } else {
+      Object.keys(sub).forEach(subCat => {
+        const item = createCategoryItem(subCat);
+        item.addEventListener('click', () => {
+          selectedSubCategory = subCat;
+          showFinalSubCategories(gender, category, subCat);
+        });
+        finalCategoryGrid.appendChild(item);
       });
-      finalCategoryGrid.appendChild(item);
-    });
+    }
   }
-}
 
-function showFinalSubCategories(gender, category, subCat) {
-  clearGrid(finalSubCategoryGrid);
-  clearGrid(imagesSection);
-  heading.style.display = 'none';
-  detailBox.style.display = "none";
+  function showFinalSubCategories(gender, category, subCat) {
+    [finalSubCategoryGrid, imagesSection].forEach(clearGrid);
+    heading.style.display = 'none';
+    detailBox.style.display = "none";
 
-  const sub = data[gender][category][subCat];
-  if (Array.isArray(sub)) {
-    sub.forEach(final => {
+    data[gender][category][subCat].forEach(final => {
       const item = createCategoryItem(final);
-      item.addEventListener('click', function (e) { 
-        if (currentMode === "model") {
-          showImages(gender, final);
-          selectedFinalCategory = final;
-          console.log("Model Conversion logic here");
-        } else if (currentMode === "nomodel") {
-          document.getElementById("product-details").display = "block";
-          console.log("No Model Conversion logic here");
-        }
+      item.addEventListener('click', () => {
+        selectedFinalCategory = final;
+        showImages(gender, final);
       });
       finalSubCategoryGrid.appendChild(item);
     });
   }
-}
 
-function showImages(gender, final) {
-  clearGrid(imagesSection);
-  
-  heading.style.display = 'block';
-  heading.textContent = `Choose Models`;
-
-  spinner.style.display = 'block';
-  setTimeout(() => {
-    spinner.style.display = 'none';
-
+  function showImages(gender, final) {
+    clearGrid(imagesSection);
+    heading.style.display = 'block';
+    heading.textContent = `Choose Models`;
     const key = `${gender}:${final}`;
     const imageList = images[key];
-
-    if (!imageList) {
-      console.warn(`No images found for key: ${key}`);
-      return;
-    }
+    if (!imageList) return;
 
     imageList.forEach(src => {
       const img = document.createElement('img');
       img.src = src;
       img.alt = final;
       img.loading = "lazy";
-      img.style.width = "200px";
-      img.style.height = "250px";
-      img.style.objectFit = "contain";
-      img.style.margin = "10px";
+      img.style = "width: 200px; height: 250px; object-fit: contain; margin: 10px;";
       img.className = 'image-item';
 
-      img.addEventListener('click', function() {
-        document.querySelectorAll('.images-section img').forEach(i => i.classList.remove('active'));
-        this.classList.add('active');
-
+      img.addEventListener('click', () => {
+        imagesSection.querySelectorAll('img').forEach(i => i.classList.remove('active'));
+        img.classList.add('active');
         detailBox.style.display = "block";
-        detailBox.style.margin = "10px";
-
-        selectedImagePath = this.src;
-        console.log("Selected image path:", selectedImagePath);
+        selectedImagePath = img.src;
       });
 
       imagesSection.appendChild(img);
     });
-  }, 500);
-}
+  }
+});
+
+
+
+// const data = {
+//   "Men": {
+//     "T-Shirts": {
+//       "Half Sleeve T-Shirts": ["Polo T-Shirts", "Round Neck T-Shirts", "V-Neck T-Shirts", "Henley T-Shirts", "Sweatshirts"],
+//       "Full Sleeve T-Shirts": ["Striped T-Shirts", "Plain T-Shirts", "Graphic T-Shirts"]
+//     },
+//     "Shirts": ["Formal Shirts", "Casual Shirts", "Denim Shirts", "Printed Shirts"],
+//     "Jeans": ["Slim Fit Jeans", "Regular Fit Jeans", "Tapered Jeans"],
+//     "Lowers": ["Track Pants", "Joggers", "Pyjamas"],
+//     "Jackets": ["Bomber Jackets", "Denim Jackets", "Leather Jackets"],
+//     "Hoodies": ["Zip-up Hoodies", "Pullover Hoodies"],
+//     "Suits": ["Business Suits", "Wedding Suits"],
+//     "Sweater": ["Crew Neck Sweater", "V-Neck Sweater"],
+//     "Shorts": ["Casual Shorts", "Sports Shorts"],
+//     "Tank Top": ["Gym Tank Tops", "Casual Tank Tops"]
+//   },
+//   "Women": {
+//     "Kurtis": ["Anarkali Kurtis", "Straight Kurtis", "A-line Kurtis"],
+//     "Suits": ["Salwar Suits", "Anarkali Suits", "Straight Suits", "A-line Suits", "Churidar Suits"],
+//     "Tops": ["Crop Tops", "Blouse Tops", "Off-Shoulder Tops"],
+//     "Dresses": ["Maxi Dresses", "Bodycon Dresses", "A-Line Dresses"],
+//     "Shirts": ["Over Sized T-shirts"],
+//     "T-Shirts": {
+//       "Half Sleeve T-Shirts": ["Over Sized T-shirts", "Polo T-Shirts", "Round Neck T-Shirts", "V-Neck T-Shirts", "Henley T-Shirts", "Sweatshirts"],
+//       "Full Sleeve T-Shirts": ["Striped T-Shirts", "Plain T-Shirts", "Graphic T-Shirts"]
+//     },
+//     "Jeans": ["Skinny Jeans", "Boyfriend Jeans", "High-waist Jeans"],
+//     "Skirts": ["Mini Skirts", "Pencil Skirts"],
+//     "Jackets": ["Denim Jackets", "Blazers"],
+//     "Sweaters": ["Pullover Sweaters", "Cardigans"]
+//   }
+// };
+
+
+// // Image file mapping (real filenames)
+// // const images = {};
+// // const azureBaseUrl = "https://fitattirestorage.blob.core.windows.net/fitattire-assets"
+// // Object.keys(data).forEach(gender => {
+// //   Object.keys(data[gender]).forEach(category => {
+// //     const sub = data[gender][category];
+// //     if (typeof sub === 'object' && !Array.isArray(sub)) {
+// //       // sub is an object (example: T-Shirts have Half Sleeve, Full Sleeve)
+// //       Object.keys(sub).forEach(subCategory => {
+// //         const finalSub = sub[subCategory];
+// //         if (Array.isArray(finalSub)) {
+// //           finalSub.forEach(final => {
+// //           images[final] = Array.from({ length: 5 }, (_, i) => 
+// //             `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${subCategory.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`);
+// //           });
+// //         }
+// //       });
+// //     } else if (Array.isArray(sub)){
+// //       sub.forEach(final => {
+// //         images[final] = Array.from({ length: 5 }, (_, i) => 
+// //           `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`);
+// //       });
+// //     }
+// //   });
+// // });
+
+
+// const images = {};
+// const azureBaseUrl = "https://fitattirestorage.blob.core.windows.net/fitattire-assets";
+
+// Object.keys(data).forEach(gender => {
+//   Object.keys(data[gender]).forEach(category => {
+//     const sub = data[gender][category];
+//     if (typeof sub === 'object' && !Array.isArray(sub)) {
+//       Object.keys(sub).forEach(subCategory => {
+//         const finalSub = sub[subCategory];
+//         if (Array.isArray(finalSub)) {
+//           finalSub.forEach(final => {
+//             const key = `${gender}:${final}`;  // Unique key to avoid collision
+//             images[key] = Array.from({ length: 5 }, (_, i) => 
+//               `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${subCategory.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`
+//             );
+//           });
+//         }
+//       });
+//     } else if (Array.isArray(sub)){
+//       sub.forEach(final => {
+//         const key = `${gender}:${final}`;
+//         images[key] = Array.from({ length: 5 }, (_, i) => 
+//           `${azureBaseUrl}/${gender.toLowerCase()}:${category.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}:${final.toLowerCase().replace(/\s/g,'-')}-${i+1}.png`
+//         );
+//       });
+//     }
+//   });
+// });
+
+
+// const categoryGrid = document.querySelector('.category-grid');
+// const subCategoryGrid = document.querySelector('.sub-category-grid');
+// const finalCategoryGrid = document.querySelector('.final-category-grid');
+// const finalSubCategoryGrid = document.querySelector('.final-sub-category-grid');
+// const imagesSection = document.querySelector('.images-section');
+// const heading = document.getElementById('image-section-heading');
+// const detailBox = document.getElementById("result-image-box");
+// const spinner = document.querySelector('.spinner');
+
+// // Selections
+// let selectedGender = "";
+// let selectedCategory = "";
+// let selectedSubCategory = "";
+// let selectedFinalCategory = "";
+// let selectedImagePath = "";
+// let productGarmentImages = []; 
+// let productResultImages = []; 
+
+// let showGarmentImages = [];
+// let showResultImages = [];
+
+// let documentData = {
+//   gender: null,
+//   category: null,
+//   subCategory: null,
+//   finalCategory: null,
+//   modelImagePath: null,
+//   swapCategory: null
+// };
+// let idsArray = [];
+// let currentMode = "";
+
+// const clothes_swap_category = document.getElementById("swap_category").value;
+
+
+// function clearGrid(grid) {
+//   grid.innerHTML = '';
+// }
+
+// const mainImages = [];
+// const secondImages = [];
+
+// document.getElementById("mainImageInput").addEventListener("change", function (e) {
+//   const file = e.target.files[0];
+//   if (file) {
+//     const imageUrl = URL.createObjectURL(file);
+//     document.getElementById("mainImagePreview").src = imageUrl;
+//     mainImages.push(imageUrl); // store image URL in array
+//   }
+// });
+
+// document.getElementById("secondImageInput").addEventListener("change", function (e) {
+//   const file = e.target.files[0];
+//   if (file) {
+//     const imageUrl = URL.createObjectURL(file);
+//     document.getElementById("secondImagePreview").src = imageUrl;
+//     secondImages.push(imageUrl); // store image URL in array
+//   }
+// });
+
+// document.getElementById("modelConversionBtn").addEventListener("click", () => {
+//   currentMode = "model";
+//   document.getElementById("modelConversionWrapper").style.display = "block";
+//   document.getElementById("nomodelConversionWrapper").style.display = "none";
+// });
+
+// document.getElementById("noModelConversionBtn").addEventListener("click", () => {
+//   currentMode = "nomodel";
+//   document.getElementById("modelConversionWrapper").style.display = "none";
+//   document.getElementById("nomodelConversionWrapper").style.display = "block";
+// });
+
+
+
+// // Attach Click Listener to whole category grid
+// categoryGrid.addEventListener('click', function (e) {
+//   const target = e.target.closest('[data-gender]');
+//   console.log("452");
+//   if (!target) return;
+
+//   console.log("453");
+
+
+//   const gender = target.dataset.gender;
+//   showSubCategories(gender);
+
+//   // Optional: Active class handling
+//   Array.from(categoryGrid.children).forEach(item => item.classList.remove('active'));
+//   target.classList.add('active');
+// });
+// document.querySelectorAll('.category-item').forEach(item => {
+//   item.addEventListener('click', function () {
+//     selectedGender = this.dataset.gender;
+//     console.log("Selected gender:", selectedGender);
+//   });
+// });
+
+// function createCategoryItem(name, icon = 'fas fa-tshirt') {
+//   const div = document.createElement('div');
+//   div.className = 'category-item';
+//   div.innerHTML = `<i class="${icon}"></i><span>${name}</span>`;
+//   div.addEventListener('click', () => {
+//     // Active class handling
+//     const siblings = div.parentElement.querySelectorAll('.category-item');
+//     siblings.forEach(sib => sib.classList.remove('active'));
+//     div.classList.add('active');
+//   });
+//   return div;
+// }
+
+// function showSubCategories(gender) {
+//   if (gender == "None") {
+//     clearGrid(subCategoryGrid);
+//     clearGrid(finalCategoryGrid);
+//     clearGrid(finalSubCategoryGrid);
+//     clearGrid(imagesSection);
+//     heading.style.display = 'none';
+//     detailBox.style.display = "none";
+//   } else {
+//     clearGrid(subCategoryGrid);
+//     clearGrid(finalCategoryGrid);
+//     clearGrid(finalSubCategoryGrid);
+//     clearGrid(imagesSection);
+//     heading.style.display = 'none';
+//     detailBox.style.display = "none";
+//     console.log("showsubcategories");
+
+//     const categories = Object.keys(data[gender]);
+//     categories.forEach(cat => {
+//       const item = createCategoryItem(cat);
+//       item.addEventListener('click', function (e) { 
+//         showFinalCategories(gender, cat);
+//         selectedCategory = cat;
+//       });
+//       subCategoryGrid.appendChild(item);
+//     });
+//   }
+// }
+
+
+// function showFinalCategories(gender, category) {
+//   clearGrid(finalCategoryGrid);
+//   clearGrid(finalSubCategoryGrid);
+//   clearGrid(imagesSection);
+//   heading.style.display = 'none';
+//   detailBox.style.display = "none";
+
+//   const sub = data[gender][category];
+//   if (Array.isArray(sub)) {
+//     sub.forEach(subCat => {
+//       const item = createCategoryItem(subCat);
+//       item.addEventListener('click', function (e) {  
+//         if (currentMode === "model") {
+//           showImages(gender, subCat);
+//           selectedSubCategory = subCat;
+//           console.log("Model Conversion logic here");
+//         } else if (currentMode === "nomodel") {
+//           document.getElementById("product-details").display = "block";
+//           console.log("No Model Conversion logic here");
+//         }
+//       });
+//       finalCategoryGrid.appendChild(item);
+//     });
+//   } else if (typeof sub === 'object') {
+//     const subCategories = Object.keys(sub);
+//     subCategories.forEach(subCat => {
+//       const item = createCategoryItem(subCat);
+//       item.addEventListener('click', function (e) { 
+//         showFinalSubCategories(gender, category, subCat);
+//         selectedSubCategory = subCat;
+//       });
+//       finalCategoryGrid.appendChild(item);
+//     });
+//   }
+// }
+
+// function showFinalSubCategories(gender, category, subCat) {
+//   clearGrid(finalSubCategoryGrid);
+//   clearGrid(imagesSection);
+//   heading.style.display = 'none';
+//   detailBox.style.display = "none";
+
+//   const sub = data[gender][category][subCat];
+//   if (Array.isArray(sub)) {
+//     sub.forEach(final => {
+//       const item = createCategoryItem(final);
+//       item.addEventListener('click', function (e) { 
+//         if (currentMode === "model") {
+//           showImages(gender, final);
+//           selectedFinalCategory = final;
+//           console.log("Model Conversion logic here");
+//         } else if (currentMode === "nomodel") {
+//           document.getElementById("product-details").display = "block";
+//           console.log("No Model Conversion logic here");
+//         }
+//       });
+//       finalSubCategoryGrid.appendChild(item);
+//     });
+//   }
+// }
+
+// function showImages(gender, final) {
+//   clearGrid(imagesSection);
+  
+//   heading.style.display = 'block';
+//   heading.textContent = `Choose Models`;
+
+//   spinner.style.display = 'block';
+//   setTimeout(() => {
+//     spinner.style.display = 'none';
+
+//     const key = `${gender}:${final}`;
+//     const imageList = images[key];
+
+//     if (!imageList) {
+//       console.warn(`No images found for key: ${key}`);
+//       return;
+//     }
+
+//     imageList.forEach(src => {
+//       const img = document.createElement('img');
+//       img.src = src;
+//       img.alt = final;
+//       img.loading = "lazy";
+//       img.style.width = "200px";
+//       img.style.height = "250px";
+//       img.style.objectFit = "contain";
+//       img.style.margin = "10px";
+//       img.className = 'image-item';
+
+//       img.addEventListener('click', function() {
+//         document.querySelectorAll('.images-section img').forEach(i => i.classList.remove('active'));
+//         this.classList.add('active');
+
+//         detailBox.style.display = "block";
+//         detailBox.style.margin = "10px";
+
+//         selectedImagePath = this.src;
+//         console.log("Selected image path:", selectedImagePath);
+//       });
+
+//       imagesSection.appendChild(img);
+//     });
+//   }, 500);
+// }
 
 
 async function uploadImages() {
@@ -711,8 +895,6 @@ resultImageInput.addEventListener('change', function () {
       modelImagePath: selectedImagePath,
       swapCategory: clothes_swap_category
     };
-    console.log("documentData:", documentData)
-    
 
     console.log("Current productData:", productData);
     console.log("Current documentData:", documentData);
@@ -736,7 +918,6 @@ resultImageInput.addEventListener('change', function () {
 
     // Reset file inputs
     document.getElementById('manual-color-input').value = "";
-    // document.getElementById('product-image-camera').value = "";
     document.getElementById('product-image-upload').value = "";
     document.getElementById('product-result-image-upload').value = "";
     document.getElementById('resultImageURL').value = "";
@@ -748,35 +929,64 @@ resultImageInput.addEventListener('change', function () {
     tableBody.innerHTML = ""; // clear existing rows
 
 
+    if (currentMode = "nomodel") {
+      const mainImg = mainImages[i] || "https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png";
+      const secondImg = secondImages[i] || "https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png";
 
-    const mainImg = mainImages[i] || "https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png";
-    const secondImg = secondImages[i] || "https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png";
-
-    for (let i = 0; i < productData.product_colors.length; i++) {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${i + 1}</td>
-        <td><img src="${mainImg}" alt="Result Image" width="60" height="95"></td>
-        <td><img src="${secondImg}" alt="Garment Image" width="60" height="90"></td>
-        <td>${productData.product_colors[i]}</td>
-        <td style="padding: 0;">
-          <div style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%; padding: 10px;">
-            <svg class="delete-icon" viewBox="0 0 24 24" data-index="${i}" style="cursor: pointer; width: 24px; height: 24px;">
-              <path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-4.5l-1-1z"/>
-            </svg>
-          </div>
-        </td>
-      `;
-      tableBody.appendChild(row);
-    }
-    // Attach event listeners to all delete icons
-    const deleteIcons = document.querySelectorAll(".delete-icon");
-    deleteIcons.forEach(icon => {
-      icon.addEventListener("click", (event) => {
-        const index = parseInt(event.currentTarget.getAttribute("data-index"));
-        deleteVariant(index);
+      for (let i = 0; i < productData.product_colors.length; i++) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${i + 1}</td>
+          <td><img src="${mainImg}" alt="Result Image" width="60" height="95"></td>
+          <td><img src="${secondImg}" alt="Garment Image" width="60" height="90"></td>
+          <td>${productData.product_colors[i]}</td>
+          <td style="padding: 0;">
+            <div style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%; padding: 10px;">
+              <svg class="delete-icon" viewBox="0 0 24 24" data-index="${i}" style="cursor: pointer; width: 24px; height: 24px;">
+                <path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-4.5l-1-1z"/>
+              </svg>
+            </div>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      }
+      // Attach event listeners to all delete icons
+      const deleteIcons = document.querySelectorAll(".delete-icon");
+      deleteIcons.forEach(icon => {
+        icon.addEventListener("click", (event) => {
+          const index = parseInt(event.currentTarget.getAttribute("data-index"));
+          deleteVariant(index);
+        });
       });
-    });
+
+    } else if (currentMode = "model") {
+
+      for (let i = 0; i < productData.product_colors.length; i++) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${i + 1}</td>
+          <td><img src="${showResultImages[i]}" alt="Result Image" width="60" height="95"></td>
+          <td><img src="${showGarmentImages[i]}" alt="Garment Image" width="60" height="90"></td>
+          <td>${productData.product_colors[i]}</td>
+          <td style="padding: 0;">
+            <div style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%; padding: 10px;">
+              <svg class="delete-icon" viewBox="0 0 24 24" data-index="${i}" style="cursor: pointer; width: 24px; height: 24px;">
+                <path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-4.5l-1-1z"/>
+              </svg>
+            </div>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      }
+      // Attach event listeners to all delete icons
+      const deleteIcons = document.querySelectorAll(".delete-icon");
+      deleteIcons.forEach(icon => {
+        icon.addEventListener("click", (event) => {
+          const index = parseInt(event.currentTarget.getAttribute("data-index"));
+          deleteVariant(index);
+        });
+      });
+    }
   }
 
   function deleteVariant(index) {
@@ -1019,4 +1229,3 @@ resultImageInput.addEventListener('change', function () {
 
     });
   }
-// });

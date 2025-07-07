@@ -42,6 +42,7 @@ urlpatterns = [
     path('barcode/', views.barcode),
 
     path('exchange/', views.exchange),
+    path("get-product-sold/", views.get_product_sold_by_qrcode),
     path("get-product/", views.get_product_by_qrcode),
     path("get-garment/", views.get_garment_image),
 

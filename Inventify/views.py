@@ -5,6 +5,7 @@ from django.contrib import messages;
 from django.shortcuts import render, redirect;
 from django.http import HttpResponseRedirect, HttpResponse
 
+from collections import Counter
 import bcrypt 
 import jwt
 from datetime import datetime, timedelta
@@ -12,9 +13,9 @@ from django.views.decorators.csrf import csrf_exempt
 # from Inventify.settings import DB, JWT_SECRET_KEY, MEDIA_ROOT
 from Inventify.deployment import DB, JWT_SECRET_KEY, MEDIA_ROOT
 from .models import YourModel
-from video_generator.generate_text_photos import create_dynamic_photo_with_auto_closeup, create_offer_photo_with_right_image 
-from video_generator.instagram_post_test import post_to_instagram, post_azure_video_to_instagram
-from video_generator.generate_video import start_video_generation
+from video_generator.generate_text_photos import create_dynamic_photo_with_auto_closeup, create_offer_photo_with_right_image, create_offer_photo_with_right_image_2
+from video_generator.instagram_post_test import post_to_instagram, post_azure_video_to_instagram, post_carousel_to_instagram
+from video_generator.generate_video import start_video_generation, start_video_generation_2
 from video_generator.send_whatsapp import send_invoice_whatsapp_message
 
 from PIL import Image, ImageOps
@@ -67,7 +68,7 @@ PAGE_HEIGHT_MM = 297
 TOP_MARGIN_MM = 1
 LEFT_MARGIN_MM = 6
 GAP_X_MM = 5   # Horizontal gap
-GAP_Y_MM = 2   # ✅ MINIMAL vertical gap to fit 8 rows
+GAP_Y_MM = 3   # ✅ MINIMAL vertical gap to fit 8 rows
 
 def mm_to_pt(mm_val):
     return mm_val * mm
@@ -77,7 +78,7 @@ def generate_qr_code(data, filename):
     qr.save(filename)
     return filename
 
-def create_qr_label_pdf(start_id=10000, total_labels=240, output_file="qr_labels-3.pdf"):
+def create_qr_label_pdf(start_id=10000, total_labels=240, output_file="qr_labels-4.pdf"):
     c = canvas.Canvas(output_file, pagesize=(mm_to_pt(PAGE_WIDTH_MM), mm_to_pt(PAGE_HEIGHT_MM)))
 
     labels_per_row = 3
@@ -289,6 +290,7 @@ def invoice(request, invoice_id):
 
     return render(request, 'invoice.html',  {
         'records': records, 
+        'products': records[0].get('products', []),
         'business_shop_logo': users_shop_logo,
         'business_shop_address': users_shop_address,
         'business_shop_name': users_shop_name,
@@ -758,10 +760,15 @@ def add_products(request):
 
             generated_urls=[]
             generated_images = []
+            generated_colors = []
 
             product_name = parsed_data1.get('product_name', 'Low Rise Wide Jeans')
             category = parsed_data2.get('category', 'Jeans')
             gender = parsed_data2.get('gender', 'Women')
+
+            price_one_item = parsed_data1.get('product_selling_price', '0')
+            len_variants = len(parsed_data1['product_colors'])
+            total_price = price_one_item * len_variants
 
             random_integer = random.randint(50, 150)
             upgraded_product_price = int(parsed_data1['product_selling_price']) + random_integer
@@ -788,44 +795,26 @@ def add_products(request):
                     f"Fabric: {parsed_data1['product_fabric']}",
                     f"Color: {parsed_data1['product_colors'][i]}"
                 ]
-                image_url_2 = create_offer_photo_with_right_image(
+                # image_url_2 = create_offer_photo_with_right_image(
+                #     big_image_path=big_image_path,
+                #     output_path="generated",
+                #     product_id=parsed_data1['qrcode_ids'][0],
+                #     offer_title="Mega Deal",
+                #     discount_text=f"{product_discount}% OFF",
+                #     final_line_1="DM the Product Id to",
+                #     final_line_2="Know more."
+                # )
+                image_url_3 = create_offer_photo_with_right_image_2(
                     big_image_path=big_image_path,
+                    logo_path=logo_path,
                     output_path="generated",
-                    product_id=parsed_data1['qrcode_ids'][0],
-                    offer_title="Mega Deal",
-                    discount_text=f"{product_discount}% OFF",
-                    final_line_1="DM the Product Id to",
-                    final_line_2="Know more."
+                    product_name=product_name,
+                    product_quantity=int(parsed_data1['product_quantity']),
+                    product_selling_price_total_amount=total_price,
+                    product_id=parsed_data1['qrcode_ids'][0]
                 )
-                logger.info("reading post data-7")
+                generated_urls.append(image_url_3)
 
-                generated_urls.append(image_url_2)
-
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are a creative Instagram marketer who writes short, catchy, and trendy captions for fashion products in India. Use emojis and hashtags where relevant. And be concise."},
-                        {
-                            "role": "user",
-                            "content": f"""Generate an Instagram caption for the following product:
-                                Product Name: {product_name}
-                                Product Category: {category}
-                                Product Gender: {gender}
-                                Product Fabric: {parsed_data1['product_fabric']}
-                                Product Price: ₹{parsed_data1['product_price']}
-                                Product Selling Price: ₹{parsed_data1['product_selling_price']}
-                                Product Color: {parsed_data1['product_colors'][i]}
-
-                                Keep it short, attention-grabbing, and its an image of a product with information like Mega Deal, {product_discount}% off, to know more about the product, enter the product id in the chat given in the image and add 3–5 relevant fashion hashtags."""
-                        }
-                    ]
-                )
-
-                reply = response.choices[0].message.content
-                logger.info("reading post data-8")
-
-                response = post_to_instagram(image_url_2, reply)
-                print(response)
 
                 azure_generated_image_url = create_dynamic_photo_with_auto_closeup(
                     big_image_path=big_image_path,
@@ -835,9 +824,50 @@ def add_products(request):
                     garment_image_path=garment_image_path
                 )
                 generated_images.append(azure_generated_image_url)
-            
-            logger.info("reading post data-9")
 
+                generated_colors.append(parsed_data1['product_colors'][i])
+
+
+            response1 = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are a creative Instagram marketer who writes short, catchy, and trendy captions "
+                            "for fashion products in India. Use emojis and 3–5 relevant fashion hashtags. "
+                            "Keep the tone fun and engaging, and always be concise."
+                        )
+                    },
+                    {
+                        "role": "user",
+                        "content": f"""
+                            Generate an Instagram caption for the following fashion product carousel:
+
+                            - 🛍️ Product Name: {product_name}  
+                            - 👕 Category: {category}  
+                            - 🧍 Gender: {gender}  
+                            - 🧵 Fabric: {parsed_data1['product_fabric']}  
+                            - 🎨 Available in {parsed_data1['product_quantity']} colors: {generated_colors}  
+                            - 💰 Mega Deal: ₹{total_price} total (based on all variants)  
+                            - 🔥 {product_discount}% OFF  
+
+                            💡 Include this line in the caption:  
+                            "To know more, enter the Product ID in the chat shown in the image!"  
+
+                            📝 Caption Style:  
+                            - Keep it short and attention-grabbing  
+                            - Mention the discount/deal clearly  
+                            - Use emojis and make it carousel-appropriate  
+                            - Add 3–5 trendy fashion hashtags at the end
+                        """
+                    }
+                ]
+            )
+
+            reply1 = response1.choices[0].message.content
+                
+            
             image_dict = {
                 "user_id": users_id,
                 "qr_ids": parsed_data1['qrcode_ids'],
@@ -852,12 +882,21 @@ def add_products(request):
             video_url = ''
             video_groups = []
 
+            product_entry = {
+                "clothes_category": category,
+                "gender": gender,
+                "product_selling_price": parsed_data1['product_selling_price'],
+                "product_name": product_name,
+                "image_urls": generated_urls
+            }
+
+            video_groups.append(product_entry)
+
             video_dict = {
                 "user_id": users_id,
-                "product_name": product_name,
                 "qr_ids": parsed_data1['qrcode_ids'],
-                "image_urls": generated_urls,
                 "video_urls": video_url,
+                "video_groups": video_groups,
                 "video_generated": False,
                 "is_downloaded": False,
                 "created_at": datetime.now().strftime("%d-%m-%Y")
@@ -869,9 +908,14 @@ def add_products(request):
                 {"user_id": users_id, "video_generated": False}
             ))
 
+            product_info = []
+
             for record in video_record:
-                image_urls = record.get("image_urls", [])
-                product_name = record.get("product_name", "Product")
+                video_record = record.get("video_groups", [])
+                for group in video_record:
+                    product_name = group.get("product_name")
+                    image_urls = group.get("image_urls")
+
                 video_groups.append({"product_name": product_name, "image_urls": image_urls})
 
             total_images = sum(len(group["image_urls"]) for group in video_groups)
@@ -881,33 +925,54 @@ def add_products(request):
 
                 # SAFETY: Start thread and don't store the thread object
                 def background_task():
-                    video_url = start_video_generation(video_groups, video_output_path, users_shop_address, users_shop_name)
+                    video_url = start_video_generation_2(video_groups, video_output_path, users_shop_address, users_shop_name, product_info)
                     
-                    response = client.chat.completions.create(
+                    response2 = client.chat.completions.create(
                         model="gpt-3.5-turbo",
                         messages=[
                             {"role": "system", "content": "You are a creative Instagram marketer who writes short, catchy, and trendy captions for fashion products in India. Use emojis and hashtags where relevant. And be concise."},
                             {
                                 "role": "user",
-                                "content": f"""Generate an Instagram caption for the following product:
-                                    Product Name: {product_name}
-                                    Product Category: {category}
-                                    Product Gender: {gender}
-                                    Product Fabric: {parsed_data1['product_fabric']}
-                                    Product Price: ₹{parsed_data1['product_price']}
-                                    Product Selling Price: ₹{parsed_data1['product_selling_price']}
-                                    Product Color: {parsed_data1['product_colors'][i]}
+                                "content": """Generate an Instagram caption for a product video that shows different fashion styles and variants.
 
-                                    Keep it short, attention-grabbing, and its a video of the product with different variants of the product with information like Mega Deal, {product_discount}% off, to know more about the product, enter the product id in the chat given in the image and add 3–5 relevant fashion hashtags."""
+                                Tell users that:
+                                - New styles just dropped
+                                - To DM the product ID shown in the video to know more
+                                - Prices range from ₹200 to ₹700
+                                - Add excitement with phrases like Mega Deal or Limited Stock
+                                - Add 3–5 trendy fashion hashtags at the end
+
+                                Keep the tone casual, exciting, and attention-grabbing."""
                             }
                         ]
                     )
+                    # response = client.chat.completions.create(
+                    #     model="gpt-3.5-turbo",
+                    #     messages=[
+                    #         {"role": "system", "content": "You are a creative Instagram marketer who writes short, catchy, and trendy captions for fashion products in India. Use emojis and hashtags where relevant. And be concise."},
+                    #         {
+                    #             "role": "user",
+                    #             "content": f"""Generate an Instagram caption for the following product:
+                    #                 Product Name: {product_name}
+                    #                 Product Category: {category}
+                    #                 Product Gender: {gender}
+                    #                 Product Fabric: {parsed_data1['product_fabric']}
+                    #                 Product Price: ₹{parsed_data1['product_price']}
+                    #                 Product Selling Price: ₹{parsed_data1['product_selling_price']}
+                    #                 Product Color: {parsed_data1['product_colors'][i]}
 
-                    reply_2 = response.choices[0].message.content
+                    #                 Keep it short, attention-grabbing, and its a video of the product with different variants of the product with information like Mega Deal, {product_discount}% off, to know more about the product, enter the product id in the chat given in the image and add 3–5 relevant fashion hashtags."""
+                    #         }
+                    #     ]
+                    # )
+
+                    print_response1 = post_carousel_to_instagram(generated_urls, reply1)
+                    print("response-1: ", print_response1)
+
+                    reply_2 = response2.choices[0].message.content
                     
-                    caption = "🔥 Fresh stock just dropped! #streetwear #fashionreel"
                     result = post_azure_video_to_instagram(video_url, reply_2)
-                    print(result)
+                    print("response-2: ", result)
 
                     if video_url:
                         DB.videos_download.update_one(
@@ -945,7 +1010,6 @@ def add_products(request):
                 "variants": variants
             }
             # DB.products.create_index({"qrcode_ids": 1})
-            logger.info("reading post data-13")
 
             DB.products.insert_one(products_dict)
             print("✅ Product inserted successfully")
@@ -1008,7 +1072,10 @@ def exchange(request):
                         if (scanned_data.get("status") == "Returned"):
                             DB.products.update_one(
                                 {"qrcode_ids": qr_id},
-                                {"$inc": {"product_quantity": -1}}
+                                {
+                                    "$inc": {"product_quantity": -1},
+                                    "$pull": {"qrcode_ids": qr_id}
+                                }
                             )
                         elif (scanned_data.get("status") == "Deleted"):
                             DB.prodcuts.delete_one({"qrcode_ids": qr_id})
@@ -1065,23 +1132,47 @@ def sales(request):
                 invoice_id = generate_secure_invoice_id()
                 if not DB.products_sold.find_one({"invoice_id": invoice_id}):
                     break
-            
+
+            products_list = []
             for qr_id in scanned_data["qr_ids"]:
                 product_sold_data = DB.product_sold.find_one({"qr_ids": qr_id})
                 if not product_sold_data:
                     product = DB.products.find_one({"qrcode_ids": qr_id})
-                    saved_image_urls = []
-                    for i in range(len(product['variants'])):
-                        image_result_url = product['variants'][i]['result_image']
-                        saved_image_urls.append(image_result_url)
-
                     if product:
+
+                        saved_image_urls = []
+                        total_price = 0
+                        quantity = 0
+
+                        for i in range(len(product['variants'])):
+                            image_result_url = product['variants'][i]['result_image']
+                            saved_image_urls.append(image_result_url)
+
+                        try:
+                            price_per_item = int(product.get("selling_price", 0))
+                        except ValueError:
+                            price_per_item = 0
+
+                        variants = product.get("variants", [])
+                        quantity = len(variants)
+                        total_price = price_per_item * quantity
+
+                        product_entry = {
+                            "qrcode_id": qr_id,
+                            "product_id": product["_id"],
+                            "product_name": product.get("product_name", "N/A"),
+                            "quantity": quantity,
+                            "price_per_item": price_per_item,
+                            "total_price": total_price,
+                            "product_result_images": saved_image_urls
+                        }
+
+                        products_list.append(product_entry)
+
                         product_sold = {
                             "qr_id": qr_id,
                             "user_id": users_id_doc['_id'],
                             "invoice_id": invoice_id,
-                            "product_id": product['_id'],
-                            "product_name": product.get("product_name", "N/A"),
                             "total_amount": scanned_data['total_bill'],
                             'original_amount': scanned_data['original_amount'],
                             'discounted_amount': scanned_data['discounted_amount'],
@@ -1091,7 +1182,9 @@ def sales(request):
                             "product_result_images": saved_image_urls,
                             "customer_phone": scanned_data['phone'],
                             "customer_name": scanned_data['customer_name'],
-                            "sold_on": datetime.now()
+                            "sold_on": datetime.now(),
+                            "products": products_list
+
                         }
                         DB.products_sold.insert_one(product_sold)
                         DB.products.update_one(
@@ -1105,7 +1198,7 @@ def sales(request):
                 else:
                     return JsonResponse({"error": "Product already sold."}, status=400)
             
-            result = send_invoice_whatsapp_message(
+            send_invoice_whatsapp_message(
                 recipient_number=scanned_data['phone'],
                 user_name=scanned_data['customer_name'],
                 company_name=users_id_doc['shop_name'],
@@ -1206,6 +1299,27 @@ def get_product_by_qrcode(request):
     return JsonResponse({"error": "Invalid request method."}, status=405)
 
 
+@csrf_exempt
+def get_product_sold_by_qrcode(request):
+    if request.method == "POST":
+        body = json.loads(request.body)
+        qr_id = body.get("qr_id")
+
+        if not qr_id:
+            return JsonResponse({"error": "No QR ID provided."}, status=400)
+
+        # Search where qr_id is in the array field qrcode_ids
+        product = DB.products_sold.find_one({"qr_id": qr_id})
+
+        if product:
+            product["_id"] = str(product["_id"])  # Make ObjectId serializable
+            return JsonResponse({'data': product})
+
+        return JsonResponse({"error": "Product not found."}, status=404)
+
+    return JsonResponse({"error": "Invalid request method."}, status=405)
+
+
 def get_time_range(period):
     now = datetime.now()
     if period == "Last 24 hour":
@@ -1245,47 +1359,84 @@ def analytics(request):
         from_date = get_time_range(period)
         now = datetime.now()
 
+        def datetime_to_ms(dt):
+            return int(dt.timestamp() * 1000)
+
+        from_date_ms = datetime_to_ms(from_date)
+        now_ms = datetime_to_ms(now)
+
         # Filter products_sold based on actual datetime
         sales = list(DB.products_sold.find({
             "user_id": ObjectId(user_id),
-            "sold_on": { "$gte": from_date, "$lt": now }
+            "sold_on": { "$gte": from_date_ms, "$lt": now_ms }
         }))
+
+        def ms_to_datetime(ms):
+            return datetime.fromtimestamp(ms / 1000.0)
 
         # --- Stats Calculation ---
         total_profit = sum(s.get("discounted_amount", 0) for s in sales)
-        total_customers = len(set(s.get("customer_phone") for s in sales))
+        total_customers = len(set(s.get("customer_phone") for s in sales if s.get("customer_phone")))
         total_transactions = len(sales)
-        total_products = len(set(s.get("product_name") for s in sales))
+        total_products = len(set(s.get("product_id") for s in sales))
 
         # Revenue chart mock (group by hour or day for now, you can optimize later)
-        revenue_chart = []
         hourly = {}
         for s in sales:
-            hour_label = s["sold_on"].strftime("%H:00")  # group by hour
+            sold_datetime = ms_to_datetime(s["sold_on"])
+            hour_label = sold_datetime.strftime("%d-%m %H:00")
             hourly.setdefault(hour_label, 0)
             hourly[hour_label] += s.get("discounted_amount", 0)
 
-        for hour, revenue in sorted(hourly.items()):
-            revenue_chart.append({
-                "name": hour,
-                "revenue": revenue,
-                "ecommerce": revenue // 2  # just mock
+
+        revenue_chart = [
+            {"name": hour, "revenue": revenue, "ecommerce": revenue // 2}
+            for hour, revenue in sorted(hourly.items())
+        ]
+
+
+        # --- Top Products ---
+        # Count product_id occurrences
+        product_counter = Counter()
+        product_info = {}  # To store name and image
+
+        for s in sales:
+            pid = str(s.get("product_id"))
+            product_counter[pid] += 1
+            # Store info for display
+            if pid not in product_info:
+                product_info[pid] = {
+                    "name": s.get("product_name", ""),
+                    "image": s.get("product_result_images", [""])[0]  # use first image
+                }
+
+        # Build top 5 products
+        top_products = []
+        for pid, count in product_counter.most_common(5):
+            info = product_info[pid]
+            top_products.append({
+                "name": info["name"],
+                "image": info["image"],
+                "sales": count
             })
 
-        # Example static placeholders for top_products and top_transactions
-        top_products = [
-            {"name": "Denim Jacket", "image": "https://cdn.com/1.jpg", "sales": 200},
-            {"name": "Leather Bag", "image": "https://cdn.com/2.jpg", "sales": 160},
-        ]
-        top_transactions = [
-            {
-                "customer": { "id": "#23492", "name": "Jenny Wilson" },
-                "item": "Leather Bag",
-                "date": "2025-06-23",
-                "purchase": 2548,
-                "status": "live order"
-            }
-        ]
+
+        # --- Top Transactions ---
+        sorted_sales = sorted(sales, key=lambda x: x.get("total_amount", 0), reverse=True)
+        top_transactions = []
+        for s in sorted_sales[:5]:
+            sold_datetime = ms_to_datetime(s["sold_on"]).strftime("%d-%m-%Y")
+            top_transactions.append({
+                "customer": {
+                    "id": s.get("customer_phone", "N/A"),
+                    "name": s.get("customer_name", "Unknown")
+                },
+                "item": s.get("product_name", "Unknown"),
+                "date": sold_datetime,
+                "purchase": s.get("total_amount", 0),
+                "status": "completed"
+            })
+
 
         return JsonResponse({
             "stats": {
@@ -1318,7 +1469,67 @@ def dashboard(request):
     dashboard = None
     if valid:
         dashboard = 'dashboard'
+
+
+    recent_activities = []
+
+    def time_diff_string(timestamp):
+        now = datetime.now()
+        diff = now - timestamp
+
+        if diff.days >= 1:
+            return f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
+        elif diff.seconds >= 3600:
+            hours = diff.seconds // 3600
+            return f"{hours} hour{'s' if hours > 1 else ''} ago"
+        elif diff.seconds >= 60:
+            minutes = diff.seconds // 60
+            return f"{minutes} min ago"
+        return "just now"
+
+
 	
+    start_of_year = datetime(datetime.now().year, 1, 1)
+    now = datetime.now()
+
+    total_revenue_pipeline = [
+        {
+            "$match": {
+                "sold_on": {
+                    "$gte": start_of_year,
+                    "$lte": now
+                }
+            }
+        },
+        {
+            "$group": {
+                "_id": None,
+                "total_revenue": { "$sum": "$discounted_amount" }
+            }
+        }
+    ]
+
+    revenue_result = list(DB.products_sold.aggregate(total_revenue_pipeline))
+    total_revenue = revenue_result[0]["total_revenue"] if revenue_result else 0
+
+
+    sales_logs = list(DB.products_sold.find().sort("sold_on", -1).limit(5))
+    for sale in sales_logs:
+        recent_activities.append({
+            "type": "sold",
+            "product_name": sale.get("product_name", "Unnamed Product"),
+            "time": time_diff_string(sale.get("sold_on", datetime.now()))
+        })
+
+    # # Recent added products
+    # product_logs = list(DB.products.find().sort("created_at", -1).limit(5))
+    # for prod in product_logs:
+    #     recent_activities.append({
+    #         "type": "added",
+    #         "product_name": prod.get("product_name", "Unnamed Product"),
+    #         "time": time_diff_string(prod.get("created_at", datetime.now()))
+    #     })
+
     user_type = data.get('user_type')
     user_name = data.get('first_name')
 
@@ -1332,7 +1543,6 @@ def dashboard(request):
         "is_downloaded": False,
         "video_urls": { "$nin": ["", " "] }  # Exclude empty or whitespace strings
     })
-
 
     collection = DB.products_sold  # your collection
 
@@ -1355,8 +1565,18 @@ def dashboard(request):
     if user_type == 'Employee':
         return render(request, 'barcode.html', {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
 
-    return render(request, 'dashboard.html', { 'dashboard': 
-													   dashboard, 'user_type': user_type, 'first_name': user_name, 'image_count': image_count, 'video_count': video_count, "top_selling_products": top_selling})
+
+    return render(request, 'dashboard.html', {
+        'dashboard': dashboard,
+        'user_type': user_type,
+        'first_name': user_name,
+        'image_count': image_count,
+        'video_count': video_count,
+        'top_selling_products': top_selling,
+        'total_revenue': total_revenue,
+        'recent_activities': recent_activities
+    })
+
 
 def download_images_zip(request):
     # 1. Fetch all image documents that are not downloaded

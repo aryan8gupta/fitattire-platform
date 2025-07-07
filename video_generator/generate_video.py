@@ -1,4 +1,5 @@
-from moviepy.editor import ImageClip, ColorClip, CompositeVideoClip, concatenate_videoclips, AudioFileClip
+from moviepy.editor import ImageClip, ColorClip, CompositeVideoClip, concatenate_videoclips, AudioFileClip, vfx
+from moviepy.video.fx.crop import crop
 from PIL import Image, ImageDraw, ImageFont
 from moviepy.audio.fx.all import audio_fadein
 import numpy as np
@@ -8,7 +9,26 @@ import random
 import os
 from Inventify.base import BASE_DIR
 
+import requests
+import tempfile
+from io import BytesIO
+
+
 font_path = os.path.join(BASE_DIR, 'static/assets/fonts/DejaVuSans-Bold.ttf')
+
+
+def create_text_box(text, font_path, font_size, box_size=(800, 100), text_color="black", box_color=(255, 255, 255), padding=10):
+    W, H = box_size
+    font = ImageFont.truetype(font_path, font_size)
+    img = Image.new("RGBA", box_size, box_color)
+    draw = ImageDraw.Draw(img)
+    text_bbox = draw.textbbox((0, 0), text, font=font)
+    text_w = text_bbox[2] - text_bbox[0]
+    text_h = text_bbox[3] - text_bbox[1]
+    text_x = (W - text_w) // 2
+    text_y = (H - text_h) // 2
+    draw.text((text_x, text_y), text, font=font, fill=text_color)
+    return img
 
 
 def create_text_image(
@@ -30,8 +50,8 @@ def create_text_image(
         # Estimate line height using bounding box
         bbox = draw.textbbox((0, 0), "A", font=font)
         line_height = bbox[3] - bbox[1]
+        line_spacing = int(line_height * 0.4)  # ✅ add 40% spacing
 
-        # Re-wrap text with the current font size
         lines = []
         current_line = ""
         for word in words:
@@ -48,7 +68,7 @@ def create_text_image(
         if current_line:
             lines.append(current_line)
 
-        total_text_height = line_height * len(lines)
+        total_text_height = (line_height + line_spacing) * len(lines) - line_spacing
         if total_text_height + 2 * padding <= box_height or fontsize <= 10:
             break
         fontsize -= 1
@@ -57,7 +77,6 @@ def create_text_image(
     img = Image.new("RGBA", (box_width, box_height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
-    # Start drawing vertically centered
     y = (box_height - total_text_height) // 2
     for line in lines:
         bbox = draw.textbbox((0, 0), line, font=font)
@@ -69,11 +88,84 @@ def create_text_image(
         elif align == "right":
             x = box_width - line_width - padding
         else:
-            x = padding  # fallback
+            x = padding
+
         draw.text((x, y), line, font=font, fill=color)
-        y += line_height
+        y += line_height + line_spacing  # ✅ spacing applied
 
     return img
+
+
+
+
+# def create_text_image2(
+#     text,
+#     fontsize,
+#     box_size,
+#     color="white",
+#     align="center",
+#     padding=10
+# ):
+#     box_width, box_height = box_size
+#     words = text.split()
+#     temp_img = Image.new("RGB", box_size)
+#     draw = ImageDraw.Draw(temp_img)
+
+#     while True:
+#         font = ImageFont.truetype(font_path, fontsize)
+
+#         # Estimate line height using bounding box
+#         bbox = draw.textbbox((0, 0), "A", font=font)
+#         line_height = bbox[3] - bbox[1]
+
+#         # Re-wrap text with the current font size
+#         lines = []
+#         current_line = ""
+#         for word in words:
+#             test_line = f"{current_line} {word}".strip()
+#             test_bbox = draw.textbbox((0, 0), test_line, font=font)
+#             test_line_width = test_bbox[2] - test_bbox[0]
+
+#             if test_line_width + 2 * padding <= box_width:
+#                 current_line = test_line
+#             else:
+#                 if current_line:
+#                     lines.append(current_line)
+#                 current_line = word
+#         if current_line:
+#             lines.append(current_line)
+
+#         total_text_height = line_height * len(lines)
+#         if total_text_height + 2 * padding <= box_height or fontsize <= 10:
+#             break
+#         fontsize -= 1
+
+#     # Create the final image with transparent background
+#     img = Image.new("RGBA", (box_width, box_height), (0, 0, 0, 0))
+#     draw = ImageDraw.Draw(img)
+
+#     # Start drawing vertically centered
+#     y = (box_height - total_text_height) // 2
+#     for line in lines:
+#         bbox = draw.textbbox((0, 0), line, font=font)
+#         line_width = bbox[2] - bbox[0]
+#         if align == "center":
+#             x = (box_width - line_width) // 2
+#         elif align == "left":
+#             x = padding
+#         elif align == "right":
+#             x = box_width - line_width - padding
+#         else:
+#             x = padding  # fallback
+#         draw.text((x, y), line, font=font, fill=color)
+#         y += line_height
+
+#     return img
+
+
+
+
+
 
 
 # def create_text_image(
@@ -365,60 +457,6 @@ def create_text_image(
 
 # 3rd Video part Starts ----------------------------------------------->
 
-# from moviepy.editor import *
-# from moviepy.video.fx import resize, crop
-# import os
-# import uuid
-
-# def generate_reel_video(image_paths, output_path, audio_path="audio/music.mp3"):
-#     if len(image_paths) < 3:
-#         print("[INFO] Not enough images to generate video.")
-#         return None
-
-#     clips = []
-#     for path in image_paths:
-#         try:
-#             img_clip = ImageClip(path, duration=7).resize(height=1920)
-#             img_clip = crop(img_clip, width=1080, height=1920, x_center=img_clip.w/2, y_center=img_clip.h/2)
-#             zoomed = img_clip.fx(vfx.zoom_in, final_scale=1.2, duration=7)
-#             faded = zoomed.fadein(1).fadeout(1)
-#             clips.append(faded)
-#         except Exception as e:
-#             print(f"[ERROR] Failed to process image {path}: {e}")
-
-#     if not clips:
-#         print("[ERROR] No valid image clips created.")
-#         return None
-
-#     final_video = concatenate_videoclips(clips, method="compose")
-
-#     if audio_path and os.path.exists(audio_path):
-#         try:
-#             audio = AudioFileClip(audio_path).subclip(0, final_video.duration)
-#             final_video = final_video.set_audio(audio)
-#         except Exception as e:
-#             print(f"[WARNING] Audio loading failed: {e}")
-
-#     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-
-#     try:
-#         final_video.write_videofile(output_path, fps=24, codec='libx264', audio_codec='aac')
-#         print("[SUCCESS] Video generated:", output_path)
-#         azure_url = upload_video_to_azure(output_path, blob_name=output_path)
-#         return azure_url
-#     except Exception as e:
-#         print("[ERROR] Failed to write video file:", e)
-#         return None
-
-
-from moviepy.editor import ImageClip, CompositeVideoClip, concatenate_videoclips, AudioFileClip, vfx
-from moviepy.video.fx.crop import crop
-import requests
-import tempfile
-from io import BytesIO
-from PIL import Image
-
-
 def create_title_or_end_clip(
     background_url=None,       # Make optional
     background_color=None,     # New argument
@@ -491,80 +529,269 @@ def create_title_or_end_clip(
 
 
 
-def create_title_or_end_clip_2(
-    background_url,
-    logo_url,
-    text_lines,
-    is_first_clip,
-    video_size=(1080, 1920),
-    duration=5,
-    font_size=80
-):
-    W, H = video_size
+# def create_title_or_end_clip_2(
+#     background_url,
+#     logo_url,
+#     text_lines,
+#     is_first_clip,
+#     video_size=(1080, 1920),
+#     duration=5,
+#     font_size=80
+# ):
+#     W, H = video_size
 
-    # Download and prepare background
-    bg_response = requests.get(background_url)
-    background = Image.open(BytesIO(bg_response.content)).convert("RGB").resize((W, H))
+#     # Download and prepare background
+#     bg_response = requests.get(background_url)
+#     background = Image.open(BytesIO(bg_response.content)).convert("RGB").resize((W, H))
 
-    # Download and resize logo
-    logo_response = requests.get(logo_url)
-    logo = Image.open(BytesIO(logo_response.content)).convert("RGBA")
-    logo.thumbnail((300, 300), Image.ANTIALIAS)
+#     # Download and resize logo
+#     logo_response = requests.get(logo_url)
+#     logo = Image.open(BytesIO(logo_response.content)).convert("RGBA")
+#     logo.thumbnail((300, 300), Image.ANTIALIAS)
 
-    # Create a semi-transparent box (overlay) for text and logo
-    box_width, box_height = int(W * 0.9), int(H * 0.6)
-    # overlay = Image.new("RGBA", (box_width, box_height), (0, 0, 0, 180))
-    if is_first_clip:
-        overlay = Image.new("RGBA", (box_width, box_height), (0, 0, 0, 160))  # Fully transparent
-    else:
-        overlay = Image.new("RGBA", (box_width, box_height), (0, 0, 0, 160))  # Semi-transparent box
-
-
-    # Paste logo at top-center of overlay
-    overlay_draw = ImageDraw.Draw(overlay)
-    logo_x = (box_width - logo.width) // 2
-    overlay.paste(logo, (logo_x, 20), logo)
-
-    # Generate and paste text images line by line
-    text_clips = []
-    line_y = logo.height + 5
-    line_height = (box_height - line_y - 5) // len(text_lines)
-
-    print("700")
-    for i, line in enumerate(text_lines):
-        text_content = line[0] # Extract the string from the tuple
-        font_size = line[1]    # Extract the font size from the tuple (if applicable, adjust as needed)
-        background_color = line[2] # Extract the background color (if applicable)
-
-        box_size = (box_width, line_height)
-        text_img = create_text_image(
-            text=text_content,
-            fontsize=font_size,
-            box_size=box_size,
-            align="center",
-            color=background_color
-        )
-        overlay.paste(text_img, (0, line_y + i * line_height), text_img)
+#     # Create a semi-transparent box (overlay) for text and logo
+#     box_width, box_height = int(W * 0.9), int(H * 0.6)
+#     # overlay = Image.new("RGBA", (box_width, box_height), (0, 0, 0, 180))
+#     if is_first_clip:
+#         overlay = Image.new("RGBA", (box_width, box_height), (0, 0, 0, 160))  # Fully transparent
+#     else:
+#         overlay = Image.new("RGBA", (box_width, box_height), (0, 0, 0, 160))  # Semi-transparent box
 
 
-    print("800")
-    # Combine background and overlay
-    final_img = background.convert("RGBA")
-    overlay_x = (W - box_width) // 2
-    overlay_y = (H - box_height) // 2
-    final_img.paste(overlay, (overlay_x, overlay_y), overlay)
+#     # Paste logo at top-center of overlay
+#     overlay_draw = ImageDraw.Draw(overlay)
+#     logo_x = (box_width - logo.width) // 2
+#     overlay.paste(logo, (logo_x, 20), logo)
 
-    # Save and convert to MoviePy ImageClip
-    clip_path = "temp_images/intro_or_outro.png"
+#     # Generate and paste text images line by line
+#     text_clips = []
+#     line_y = logo.height + 5
+#     line_height = (box_height - line_y - 5) // len(text_lines)
+
+#     print("700")
+#     for i, line in enumerate(text_lines):
+#         text_content = line[0] # Extract the string from the tuple
+#         font_size = line[1]    # Extract the font size from the tuple (if applicable, adjust as needed)
+#         background_color = line[2] # Extract the background color (if applicable)
+
+#         box_size = (box_width, line_height)
+#         text_img = create_text_image(
+#             text=text_content,
+#             fontsize=font_size,
+#             box_size=box_size,
+#             align="center",
+#             color=background_color
+#         )
+#         overlay.paste(text_img, (0, line_y + i * line_height), text_img)
+
+
+#     print("800")
+#     # Combine background and overlay
+#     final_img = background.convert("RGBA")
+#     overlay_x = (W - box_width) // 2
+#     overlay_y = (H - box_height) // 2
+#     final_img.paste(overlay, (overlay_x, overlay_y), overlay)
+
+#     # Save and convert to MoviePy ImageClip
+#     clip_path = "temp_images/intro_or_outro.png"
+#     os.makedirs("temp_images", exist_ok=True)
+#     final_img.save(clip_path)
+#     print("950")
+
+#     image_clip = ImageClip(clip_path, duration=duration)
+#     return image_clip
+
+
+def create_product_name_clip(product_name, bg_color, text_color="white"):
+    W, H = 1080, 1920
     os.makedirs("temp_images", exist_ok=True)
-    final_img.save(clip_path)
-    print("950")
 
-    image_clip = ImageClip(clip_path, duration=duration)
-    return image_clip
+    # Step 1: Create full-color background
+    background = Image.new("RGB", (W, H), bg_color)
+
+    # Step 2: Create centered text image (transparent)
+    text_img = create_text_image(
+        text=product_name.upper(),
+        fontsize=80,
+        box_size=(W, 300),  # Text box size (height of 300 is enough)
+        color=text_color,
+        align="center"
+    )
+
+    # Step 3: Paste text in center of full screen
+    y = (H - text_img.height) // 2
+    background.paste(text_img, (0, y), text_img)  # Keep transparency
+
+    # Step 4: Save and return MoviePy ImageClip
+    temp_path = f"temp_images/product_name_{random.randint(1000,9999)}.png"
+    background.save(temp_path)
+
+    return ImageClip(temp_path).set_duration(2.5)
 
 
-def generate_reel_video(image_urls, output_path, users_shop_address, users_shop_name):
+
+def generate_reel_video(video_groups, output_path, users_shop_address, users_shop_name, product_info):
+    total_images = sum(len(group["image_urls"]) for group in video_groups)
+    print("Total images:", total_images)
+
+    if total_images < 8:
+        print("[INFO] Not enough images to generate video.")
+        return None
+
+    os.makedirs("temp_images", exist_ok=True)
+    clips = []
+    print("1")
+
+    # FIRST CLIP: Title page
+    first_clip = create_title_or_end_clip(
+        background_color="#bf1836",
+        logo_url="https://fitattirestorage.blob.core.windows.net/fitattire-assets/Screenshot 2025-06-08 at 7.30.15 PM.png",
+        text_lines=[
+            ("END OF SEASON SALE", 60, "white"),
+            ("20-50% OFF", 80, "yellow"),
+            ("Buy 3 Sets, Save More!", 60, "white"),
+            ("Extra Discount Applied at Checkout", 50, "white"),
+            ("ADD TO YOUR CART NOW", 60, "black")  
+        ],
+        is_first_clip = True
+    )
+    print("100")
+
+    # LAST CLIP: End page
+    last_clip = create_title_or_end_clip(
+        background_color="#0A1F44",
+        logo_url="https://fitattirestorage.blob.core.windows.net/fitattire-assets/Screenshot 2025-06-08 at 7.30.15 PM.png",
+        text_lines=[
+            ("RELAXED AND TRENDY FIT PRODUCTS", 60, "white"),
+            ("VISIT OUR SHOP FOR MORE STYLES", 60, "#FFD700"),
+            (f"Shop Name: {users_shop_name}", 60, "#FFD700"),
+            (f"Shop Address: {users_shop_address}", 60, "#FFD700"),
+            ("For More Product Updates", 50, "white"),
+            ("Follow us on Instagram & WhatsApp", 50, "white")
+        ],
+        is_first_clip = False
+    )
+
+       # --- Process Each Product Group ---
+    for group in video_groups:
+        product_name = group["product_name"]
+        image_urls = group["image_urls"]
+
+        name_clip = create_product_name_clip(product_name, bg_color="#00008B")  # or any color
+        clips.append(name_clip)
+
+
+
+        # Process each image in the group
+        for url in image_urls:
+            try:
+                response = requests.get(url)
+                response.raise_for_status()
+                img = Image.open(BytesIO(response.content)).convert("RGB")
+
+                original_w, original_h = img.size
+
+                # === Resize Logic ===
+                if original_h >= 1650:
+                    # Big image → scale down to 1650px height
+                    target_height = 1650
+                else:
+                    # Small image → scale up to 1450px height
+                    target_height = 1450
+
+                # Initial resize to target height (maintain aspect ratio)
+                scale = target_height / original_h
+                new_w = int(original_w * scale)
+                new_h = target_height
+                img = img.resize((new_w, new_h), Image.ANTIALIAS)
+
+                # ✅ If it's a small image → reduce width slightly (manually shrink it)
+                if original_h < 1650:
+                    shrink_ratio = 0.9  # shrink width by 10%
+                    shrunk_w = int(img.width * shrink_ratio)
+                    img = img.resize((shrunk_w, img.height), Image.ANTIALIAS)
+
+                # === Paste on 1080x1920 background ===
+                bg = Image.new("RGB", (1080, 1920), (245, 245, 245))  # Light gray
+                x = (1080 - img.width) // 2
+                y = (1920 - img.height) // 2
+                bg.paste(img, (x, y))
+
+                # === Save and load into MoviePy ===
+                temp_path = f"temp_images/image_{random.randint(1000,9999)}.jpg"
+                bg.save(temp_path)
+
+                img_clip = ImageClip(temp_path, duration=5)
+                zoomed = img_clip.fx(vfx.resize, lambda t: 1 + 0.05 * t).fadein(1).fadeout(1)
+                clips.append(zoomed)
+
+            except Exception as e:
+                print(f"[ERROR] Failed to process image: {url} — {e}")
+
+
+    if not clips:
+        print("4")
+        print("[ERROR] No valid image clips created.")
+        return None
+
+    full_clips = [first_clip] + clips + [last_clip]
+    final_video = concatenate_videoclips(full_clips, method="compose")
+
+    # full_clips = [first_clip] + [last_clip]
+    # final_video = concatenate_videoclips(full_clips, method="compose")
+
+    audio_paths = [
+        "https://fitattirestorage.blob.core.windows.net/fitattire-assets/output/videos/Wahran(PagalWorldl).mp3",
+        "https://fitattirestorage.blob.core.windows.net/fitattire-assets/output/videos/breathe-chill-lofi-beats-362644.mp3",
+        "https://fitattirestorage.blob.core.windows.net/fitattire-assets/output/videos/coffee-bar-chill-lofi-beats-362645.mp3"
+    ]
+
+    try:
+        # Pick a random audio path from the list
+        audio_path = random.choice(audio_paths)
+
+        # Handle HTTP/HTTPS or local file
+        if audio_path.startswith("http://") or audio_path.startswith("https://"):
+            response = requests.get(audio_path)
+            response.raise_for_status()
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
+                temp_audio_file.write(response.content)
+                temp_audio_path = temp_audio_file.name
+        else:
+            temp_audio_path = audio_path
+
+        # Attach the audio (match duration from 46s onwards)
+        audio = AudioFileClip(temp_audio_path).subclip(46, 46 + final_video.duration)
+        final_video = final_video.set_audio(audio)
+        print("[INFO] Audio attached:", final_video.audio)
+    except Exception as e:
+        print(f"[WARNING] Audio load failed: {e}")
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    try:
+        final_video.write_videofile(
+            output_path,
+            fps=24,
+            codec='libx264',
+            audio_codec='aac',
+            temp_audiofile='temp-audio.m4a',
+            remove_temp=True,
+            ffmpeg_params=["-movflags", "faststart"]
+        )
+        print("[SUCCESS] Video generated at:", output_path)
+        return output_path
+    except Exception as e:
+        print("[ERROR] Failed to write video file:", e)
+        return None
+    finally:
+        for file in os.listdir("temp_images"):
+            os.remove(os.path.join("temp_images", file))
+
+
+
+
+def generate_reel_video3(image_urls, output_path, users_shop_address, users_shop_name):
     if len(image_urls) < 3:
         print("[INFO] Not enough images to generate video.")
         return None
@@ -707,89 +934,89 @@ def generate_reel_video(image_urls, output_path, users_shop_address, users_shop_
 
 
 
-def generate_reel_video_1(image_urls, output_path, audio_path="https://fitattirestorage.blob.core.windows.net/fitattire-assets/output/videos/Wahran(PagalWorldl).mp3"):
-    if len(image_urls) < 3:
-        print("[INFO] Not enough images to generate video.")
-        return None
+# def generate_reel_video_1(image_urls, output_path, audio_path="https://fitattirestorage.blob.core.windows.net/fitattire-assets/output/videos/Wahran(PagalWorldl).mp3"):
+#     if len(image_urls) < 3:
+#         print("[INFO] Not enough images to generate video.")
+#         return None
 
-    os.makedirs("temp_images", exist_ok=True)
-    clips = []
-    print("1")
+#     os.makedirs("temp_images", exist_ok=True)
+#     clips = []
+#     print("1")
 
-    for i, url in enumerate(image_urls):
-        try:
-            response = requests.get(url)
-            response.raise_for_status()
-            img = Image.open(BytesIO(response.content)).convert("RGB")
+#     for i, url in enumerate(image_urls):
+#         try:
+#             response = requests.get(url)
+#             response.raise_for_status()
+#             img = Image.open(BytesIO(response.content)).convert("RGB")
 
-            temp_path = f"temp_images/image_{i}.jpg"
-            img.save(temp_path)
-            print("2")
+#             temp_path = f"temp_images/image_{i}.jpg"
+#             img.save(temp_path)
+#             print("2")
 
-            img_clip = ImageClip(temp_path, duration=7).resize(height=1920)
-            img_clip = crop(img_clip, width=1080, height=1920, x_center=img_clip.w / 2, y_center=img_clip.h / 2)
+#             img_clip = ImageClip(temp_path, duration=7).resize(height=1920)
+#             img_clip = crop(img_clip, width=1080, height=1920, x_center=img_clip.w / 2, y_center=img_clip.h / 2)
 
-            # ✅ Corrected zoom effect
-            zoomed = img_clip.fx(vfx.resize, lambda t: 1 + 0.02 * t)
+#             # ✅ Corrected zoom effect
+#             zoomed = img_clip.fx(vfx.resize, lambda t: 1 + 0.02 * t)
 
-            faded = zoomed.fadein(1).fadeout(1)
-            print("3")
+#             faded = zoomed.fadein(1).fadeout(1)
+#             print("3")
 
-            clips.append(faded)
+#             clips.append(faded)
 
-        except Exception as e:
-            print(f"[ERROR] Failed to process image {url}: {e}")
+#         except Exception as e:
+#             print(f"[ERROR] Failed to process image {url}: {e}")
 
-    if not clips:
-        print("4")
-        print("[ERROR] No valid image clips created.")
-        return None
+#     if not clips:
+#         print("4")
+#         print("[ERROR] No valid image clips created.")
+#         return None
 
-    final_video = concatenate_videoclips(clips, method="compose")
+#     final_video = concatenate_videoclips(clips, method="compose")
 
-    if audio_path:
-        try:
-            if audio_path.startswith("http://") or audio_path.startswith("https://"):
-                # Download the file to a temporary location
-                response = requests.get(audio_path)
-                response.raise_for_status()
+#     if audio_path:
+#         try:
+#             if audio_path.startswith("http://") or audio_path.startswith("https://"):
+#                 # Download the file to a temporary location
+#                 response = requests.get(audio_path)
+#                 response.raise_for_status()
 
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
-                    temp_audio_file.write(response.content)
-                    temp_audio_path = temp_audio_file.name
-            else:
-                temp_audio_path = audio_path
+#                 with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio_file:
+#                     temp_audio_file.write(response.content)
+#                     temp_audio_path = temp_audio_file.name
+#             else:
+#                 temp_audio_path = audio_path
 
-            # Load and attach audio
-            audio = AudioFileClip(temp_audio_path).subclip(46, 46 + final_video.duration)
-            final_video = final_video.set_audio(audio)
-            print("[INFO] Audio attached:", final_video.audio)
+#             # Load and attach audio
+#             audio = AudioFileClip(temp_audio_path).subclip(46, 46 + final_video.duration)
+#             final_video = final_video.set_audio(audio)
+#             print("[INFO] Audio attached:", final_video.audio)
 
-        except Exception as e:
-            print(f"[WARNING] Audio load failed: {e}")
+#         except Exception as e:
+#             print(f"[WARNING] Audio load failed: {e}")
 
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+#     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    try:
-        # final_video.write_videofile(output_path, fps=24, codec='libx264', audio_codec='aac')
-        final_video.write_videofile(
-            output_path,
-            fps=24,
-            codec='libx264',              # H.264 for max compatibility
-            audio_codec='aac',            # Required by Instagram & browsers
-            temp_audiofile='temp-audio.m4a',
-            remove_temp=True,
-            ffmpeg_params=["-movflags", "faststart"]  # Important for Chrome & streaming
-        )
-        print("[SUCCESS] Video generated at:", output_path)
-        return output_path
-    except Exception as e:
-        print("[ERROR] Failed to write video file:", e)
-        return None
-    finally:
-        # Cleanup downloaded images
-        for file in os.listdir("temp_images"):
-            os.remove(os.path.join("temp_images", file))
+#     try:
+#         # final_video.write_videofile(output_path, fps=24, codec='libx264', audio_codec='aac')
+#         final_video.write_videofile(
+#             output_path,
+#             fps=24,
+#             codec='libx264',              # H.264 for max compatibility
+#             audio_codec='aac',            # Required by Instagram & browsers
+#             temp_audiofile='temp-audio.m4a',
+#             remove_temp=True,
+#             ffmpeg_params=["-movflags", "faststart"]  # Important for Chrome & streaming
+#         )
+#         print("[SUCCESS] Video generated at:", output_path)
+#         return output_path
+#     except Exception as e:
+#         print("[ERROR] Failed to write video file:", e)
+#         return None
+#     finally:
+#         # Cleanup downloaded images
+#         for file in os.listdir("temp_images"):
+#             os.remove(os.path.join("temp_images", file))
 
 
 def start_video_generation(video_groups, video_output_path, users_shop_address, users_shop_name):
@@ -798,10 +1025,9 @@ def start_video_generation(video_groups, video_output_path, users_shop_address, 
         local_video_path = generate_reel_video(video_groups, video_output_path, users_shop_address, users_shop_name)
         print("6571")
         if local_video_path:
-            # Upload to Azure
-            azure_url = upload_video_to_azure(local_video_path)
-            print("[SUCCESS] Video uploaded to Azure:", azure_url)
-            return azure_url
+            print("[SUCCESS] Video saved locally at:", local_video_path)
+            return local_video_path
+
         else:
             print("[ERROR] No video path returned.")
             return None
@@ -810,11 +1036,27 @@ def start_video_generation(video_groups, video_output_path, users_shop_address, 
         print("[CRITICAL] Video generation failed in background:", e)
 
 
-
-
 # 3rd Video part Ends ----------------------------------------------->
 
 # ----------------------------------------------------------------------->
 # ----------------------------------------------------------------------->
 # ----------------------------------------------------------------------->
 # ----------------------------------------------------------------------->
+
+# 4th video part starts -->
+
+def start_video_generation_2(video_groups, video_output_path, users_shop_address, users_shop_name):
+    try:
+        print("[INFO] Background video generation started...")
+        local_video_path = generate_reel_video(video_groups, video_output_path, users_shop_address, users_shop_name)
+        print("6571")
+        if local_video_path:
+            print("[SUCCESS] Video saved locally at:", local_video_path)
+            return local_video_path
+
+        else:
+            print("[ERROR] No video path returned.")
+            return None
+
+    except Exception as e:
+        print("[CRITICAL] Video generation failed in background:", e)

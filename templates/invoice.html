@@ -176,10 +176,12 @@
               <tr>
                   <th>Images</th>
                   <th>Product Name</th>
+                  <th>Product ID</th>
                   <th>Qty</th>
+                  <th>Price</th>
               </tr>
               </thead>
-              {% for record in records %}
+              {% for item in products %}
                 <tbody>
                   <tr>
                     <td>
@@ -187,8 +189,10 @@
                         <img src="{{ img_url }}" alt="Product Image" style="height: 60px; margin: 5px; border-radius: 6px;" />
                       {% endfor %}
                     </td>
-                    <td>{{ record.product_name }}</td>
-                    <td>1</td>
+                    <td>{{ item.product_name }}</td>
+                    <td>{{ item.qr_id }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>₹{{ item.total_price }}</td>
                   </tr>
                 </tbody>
               {% endfor %}

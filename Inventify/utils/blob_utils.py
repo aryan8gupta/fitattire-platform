@@ -4,6 +4,8 @@ import uuid
 import os
 import mimetypes
 import re
+from urllib.parse import urlparse
+
 
 def upload_image_to_azure(file_input, blob_name=None):
     # Build Azure blob service client
@@ -38,6 +40,8 @@ def upload_image_to_azure(file_input, blob_name=None):
         filename = get_next_azure_filename(container_client, 'generated_text_image', 'jpg', 'generated')
     elif (blob_name == "shop_logo"):
         filename = get_next_azure_filename(container_client, 'shop_logo', 'jpg', 'shop_logo')
+    elif (blob_name == "tempfiles"):
+        filename = get_next_azure_filename(container_client, 'tempfiles', 'jpg', 'tempfiles')
 
     blob_name = f"output/{filename}"
 
@@ -152,3 +156,31 @@ def upload_video_to_azure(file_input):
 
     # Return Azure Blob URL
     return f"{settings.AZURE_BLOB_URL}/{blob_name}"
+
+
+def extract_blob_path_from_url(url):
+    """
+    Converts full URL to just the blob path.
+    Example:
+    https://your.blob.core.windows.net/container/output/tempfiles/img-1.jpg
+    ➜ output/tempfiles/img-1.jpg
+    """
+    path = urlparse(url).path  # /container/output/tempfiles/xyz.jpg
+    parts = path.strip("/").split("/", 1)  # remove leading slash, split once
+    return parts[1] if len(parts) > 1 else None
+
+
+def delete_blob_from_azure(blob_path):
+    """
+    Deletes a blob like: output/upscaled/result_image-23.jpg
+    """
+    account_url = f"https://{settings.AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net"
+    blob_service_client = BlobServiceClient(account_url=account_url, credential=settings.AZURE_STORAGE_ACCOUNT_KEY)
+    container_client = blob_service_client.get_container_client(settings.AZURE_CONTAINER_NAME)
+
+    try:
+        blob_client = container_client.get_blob_client(blob_path)
+        blob_client.delete_blob()
+        print(f"🗑️ Deleted blob: {blob_path}")
+    except Exception as e:
+        print(f"❌ Failed to delete blob: {blob_path} | Error: {e}")
