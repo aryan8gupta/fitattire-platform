@@ -527,6 +527,7 @@ async function fetchAnalyticsData(range) {
   })
 
   const data = await res.json();
+  console.log("analytics response data :- ", data)
 
   updateStats(data.stats, range);
   renderTopTransactions(data.top_transactions);
@@ -539,6 +540,7 @@ function updateStats(statsData, range) {
   const arrowUpSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>`;
   const arrowDownSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>`;
 
+  console.log("updateStats data :-", statsData);
   const update = (id, value, change) => {
     const valueEl = document.getElementById(id + 'Value');
     const changeEl = document.getElementById(id + 'Change');

@@ -1383,7 +1383,7 @@ def analytics(request):
         # Revenue chart mock (group by hour or day for now, you can optimize later)
         hourly = {}
         for s in sales:
-            sold_datetime = ms_to_datetime(s["sold_on"])
+            sold_datetime = ms_to_datetime(s["sold_on"]["$date"])
             hour_label = sold_datetime.strftime("%d-%m %H:00")
             hourly.setdefault(hour_label, 0)
             hourly[hour_label] += s.get("discounted_amount", 0)
@@ -1422,10 +1422,10 @@ def analytics(request):
 
 
         # --- Top Transactions ---
-        sorted_sales = sorted(sales, key=lambda x: x.get("total_amount", 0), reverse=True)
+        sorted_sales = sorted(sales, key=lambda x: x.get("sold_on", {}).get("$date", 0), reverse=True)
         top_transactions = []
         for s in sorted_sales[:5]:
-            sold_datetime = ms_to_datetime(s["sold_on"]).strftime("%d-%m-%Y")
+            sold_datetime = ms_to_datetime(s["sold_on"]["$date"]).strftime("%d-%m-%Y")
             top_transactions.append({
                 "customer": {
                     "id": s.get("customer_phone", "N/A"),
@@ -1470,112 +1470,132 @@ def dashboard(request):
     if valid:
         dashboard = 'dashboard'
 
+    try:
 
-    recent_activities = []
+        recent_activities = []
 
-    def time_diff_string(timestamp):
+        def time_diff_string(timestamp):
+            now = datetime.now()
+            diff = now - timestamp
+
+            if diff.days >= 1:
+                return f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
+            elif diff.seconds >= 3600:
+                hours = diff.seconds // 3600
+                return f"{hours} hour{'s' if hours > 1 else ''} ago"
+            elif diff.seconds >= 60:
+                minutes = diff.seconds // 60
+                return f"{minutes} min ago"
+            return "just now"
+
+
+        
+        start_of_year = datetime(datetime.now().year, 1, 1)
         now = datetime.now()
-        diff = now - timestamp
 
-        if diff.days >= 1:
-            return f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
-        elif diff.seconds >= 3600:
-            hours = diff.seconds // 3600
-            return f"{hours} hour{'s' if hours > 1 else ''} ago"
-        elif diff.seconds >= 60:
-            minutes = diff.seconds // 60
-            return f"{minutes} min ago"
-        return "just now"
-
-
-	
-    start_of_year = datetime(datetime.now().year, 1, 1)
-    now = datetime.now()
-
-    total_revenue_pipeline = [
-        {
-            "$match": {
-                "sold_on": {
-                    "$gte": start_of_year,
-                    "$lte": now
+        total_revenue_pipeline = [
+            {
+                "$match": {
+                    "sold_on": {
+                        "$gte": start_of_year,
+                        "$lte": now
+                    }
+                }
+            },
+            {
+                "$group": {
+                    "_id": None,
+                    "total_revenue": { "$sum": "$discounted_amount" }
                 }
             }
-        },
-        {
-            "$group": {
-                "_id": None,
-                "total_revenue": { "$sum": "$discounted_amount" }
-            }
-        }
-    ]
+        ]
 
-    revenue_result = list(DB.products_sold.aggregate(total_revenue_pipeline))
-    total_revenue = revenue_result[0]["total_revenue"] if revenue_result else 0
+        revenue_result = list(DB.products_sold.aggregate(total_revenue_pipeline))
+        total_revenue = revenue_result[0]["total_revenue"] if revenue_result else 0
 
 
-    sales_logs = list(DB.products_sold.find().sort("sold_on", -1).limit(5))
-    for sale in sales_logs:
-        recent_activities.append({
-            "type": "sold",
-            "product_name": sale.get("product_name", "Unnamed Product"),
-            "time": time_diff_string(sale.get("sold_on", datetime.now()))
+        sales_logs = list(DB.products_sold.find().sort("sold_on", -1).limit(5))
+        for sale in sales_logs:
+            sold_time = sale.get("sold_on")
+
+            # Safely convert to datetime
+            if isinstance(sold_time, dict) and "$date" in sold_time:
+                sold_time = datetime.fromtimestamp(sold_time["$date"] / 1000.0)
+            elif isinstance(sold_time, (int, float)):
+                sold_time = datetime.fromtimestamp(sold_time / 1000.0)
+            elif isinstance(sold_time, str):
+                try:
+                    sold_time = datetime.fromisoformat(sold_time)
+                except Exception:
+                    sold_time = datetime.now()
+            elif not isinstance(sold_time, datetime):
+                sold_time = datetime.now()
+
+            recent_activities.append({
+                "type": "sold",
+                "product_name": sale.get("product_name", "Unnamed Product"),
+                "time": time_diff_string(sold_time)
+            })
+
+
+        # # Recent added products
+        # product_logs = list(DB.products.find().sort("created_at", -1).limit(5))
+        # for prod in product_logs:
+        #     recent_activities.append({
+        #         "type": "added",
+        #         "product_name": prod.get("product_name", "Unnamed Product"),
+        #         "time": time_diff_string(prod.get("created_at", datetime.now()))
+        #     })
+
+        user_type = data.get('user_type')
+        user_name = data.get('first_name')
+
+        # Count total image URLs in all documents that are not yet downloaded
+        image_docs = DB.images_download.find({"is_downloaded": False})
+        image_count = sum(len(doc.get("image_urls", [])) for doc in image_docs)
+
+        # Count total video documents not downloaded (1 video per doc)
+        # video_count = DB.videos_download.count_documents({"is_downloaded": False})
+        video_count = DB.videos_download.count_documents({
+            "is_downloaded": False,
+            "video_urls": { "$nin": ["", " "] }  # Exclude empty or whitespace strings
         })
 
-    # # Recent added products
-    # product_logs = list(DB.products.find().sort("created_at", -1).limit(5))
-    # for prod in product_logs:
-    #     recent_activities.append({
-    #         "type": "added",
-    #         "product_name": prod.get("product_name", "Unnamed Product"),
-    #         "time": time_diff_string(prod.get("created_at", datetime.now()))
-    #     })
+        collection = DB.products_sold  # your collection
 
-    user_type = data.get('user_type')
-    user_name = data.get('first_name')
+        pipeline = [
+            {
+                "$group": {
+                    "_id": "$product_id",  # Group by ObjectId of the product
+                    "total_quantity": { "$sum": 1 },
+                    "average_price": { "$avg": "$discounted_amount" },
+                    "product_name": { "$first": "$product_name" },
+                    "image": { "$first": { "$arrayElemAt": ["$product_result_images", 0] } }
+                }
+            },
+            { "$sort": SON([("total_quantity", -1)]) },
+            { "$limit": 5 }
+        ]
 
-    # Count total image URLs in all documents that are not yet downloaded
-    image_docs = DB.images_download.find({"is_downloaded": False})
-    image_count = sum(len(doc.get("image_urls", [])) for doc in image_docs)
+        top_selling = list(collection.aggregate(pipeline))
 
-    # Count total video documents not downloaded (1 video per doc)
-    # video_count = DB.videos_download.count_documents({"is_downloaded": False})
-    video_count = DB.videos_download.count_documents({
-        "is_downloaded": False,
-        "video_urls": { "$nin": ["", " "] }  # Exclude empty or whitespace strings
-    })
-
-    collection = DB.products_sold  # your collection
-
-    pipeline = [
-        {
-            "$group": {
-                "_id": "$product_id",  # Group by ObjectId of the product
-                "total_quantity": { "$sum": 1 },
-                "average_price": { "$avg": "$discounted_amount" },
-                "product_name": { "$first": "$product_name" },
-                "image": { "$first": { "$arrayElemAt": ["$product_result_images", 0] } }
-            }
-        },
-        { "$sort": SON([("total_quantity", -1)]) },
-        { "$limit": 5 }
-    ]
-
-    top_selling = list(collection.aggregate(pipeline))
-
-    if user_type == 'Employee':
-        return render(request, 'barcode.html', {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
+        if user_type == 'Employee':
+            return render(request, 'barcode.html', {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
 
 
-    return render(request, 'dashboard.html', {
-        'dashboard': dashboard,
-        'user_type': user_type,
-        'first_name': user_name,
-        'image_count': image_count,
-        'video_count': video_count,
-        'top_selling_products': top_selling,
-        'total_revenue': total_revenue,
-        'recent_activities': recent_activities
-    })
+        return render(request, 'dashboard.html', {
+            'dashboard': dashboard,
+            'user_type': user_type,
+            'first_name': user_name,
+            'image_count': image_count,
+            'video_count': video_count,
+            'top_selling_products': top_selling,
+            'total_revenue': total_revenue,
+            'recent_activities': recent_activities
+        })
+    
+    except Exception as e:
+        print("Dashboard Error:", str(e))
 
 
 def download_images_zip(request):

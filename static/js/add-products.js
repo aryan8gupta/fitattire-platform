@@ -73,7 +73,6 @@ document.querySelectorAll('.category-section').forEach(section => {
   let selectedSubCategory = "";
   let selectedFinalCategory = "";
   let selectedImagePath = "";
-  let currentMode = "model";
 
   categoryGrid.addEventListener('click', function (e) {
     const target = e.target.closest('[data-gender]');
@@ -287,62 +286,62 @@ document.querySelectorAll('.category-section').forEach(section => {
 // let selectedSubCategory = "";
 // let selectedFinalCategory = "";
 // let selectedImagePath = "";
-// let productGarmentImages = []; 
-// let productResultImages = []; 
+let productGarmentImages = []; 
+let productResultImages = []; 
 
-// let showGarmentImages = [];
-// let showResultImages = [];
+let showGarmentImages = [];
+let showResultImages = [];
 
-// let documentData = {
-//   gender: null,
-//   category: null,
-//   subCategory: null,
-//   finalCategory: null,
-//   modelImagePath: null,
-//   swapCategory: null
-// };
-// let idsArray = [];
-// let currentMode = "";
+let documentData = {
+  gender: null,
+  category: null,
+  subCategory: null,
+  finalCategory: null,
+  modelImagePath: null,
+  swapCategory: null
+};
+let idsArray = [];
+let currentMode = "";
 
-// const clothes_swap_category = document.getElementById("swap_category").value;
+const clothes_swap_category = document.getElementById("swap_category").value;
 
 
-// function clearGrid(grid) {
-//   grid.innerHTML = '';
-// }
+function clearGrid(grid) {
+  grid.innerHTML = '';
+}
 
-// const mainImages = [];
-// const secondImages = [];
+const mainImages = [];
+const secondImages = [];
 
-// document.getElementById("mainImageInput").addEventListener("change", function (e) {
-//   const file = e.target.files[0];
-//   if (file) {
-//     const imageUrl = URL.createObjectURL(file);
-//     document.getElementById("mainImagePreview").src = imageUrl;
-//     mainImages.push(imageUrl); // store image URL in array
-//   }
-// });
+document.getElementById("mainImageInput").addEventListener("change", function (e) {
+  const file = e.target.files[0];
+  if (file) {
+    const imageUrl = URL.createObjectURL(file);
+    document.getElementById("mainImagePreview").src = imageUrl;
+    mainImages.push(imageUrl); // store image URL in array
+  }
+});
 
-// document.getElementById("secondImageInput").addEventListener("change", function (e) {
-//   const file = e.target.files[0];
-//   if (file) {
-//     const imageUrl = URL.createObjectURL(file);
-//     document.getElementById("secondImagePreview").src = imageUrl;
-//     secondImages.push(imageUrl); // store image URL in array
-//   }
-// });
+document.getElementById("secondImageInput").addEventListener("change", function (e) {
+  const file = e.target.files[0];
+  if (file) {
+    const imageUrl = URL.createObjectURL(file);
+    document.getElementById("secondImagePreview").src = imageUrl;
+    secondImages.push(imageUrl); // store image URL in array
+  }
+});
 
-// document.getElementById("modelConversionBtn").addEventListener("click", () => {
-//   currentMode = "model";
-//   document.getElementById("modelConversionWrapper").style.display = "block";
-//   document.getElementById("nomodelConversionWrapper").style.display = "none";
-// });
+document.getElementById("modelConversionBtn").addEventListener("click", () => {
+  currentMode = "model";
+  document.getElementById("modelConversionWrapper").style.display = "block";
+  document.getElementById("nomodelConversionWrapper").style.display = "none";
+});
 
-// document.getElementById("noModelConversionBtn").addEventListener("click", () => {
-//   currentMode = "nomodel";
-//   document.getElementById("modelConversionWrapper").style.display = "none";
-//   document.getElementById("nomodelConversionWrapper").style.display = "block";
-// });
+document.getElementById("noModelConversionBtn").addEventListener("click", () => {
+  currentMode = "nomodel";
+  document.getElementById("modelConversionWrapper").style.display = "none";
+  document.getElementById("nomodelConversionWrapper").style.display = "block";
+});
 
 
 
