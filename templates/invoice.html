@@ -181,21 +181,21 @@
                   <th>Price</th>
               </tr>
               </thead>
-              {% for item in products %}
-                <tbody>
+              <tbody>
+                {% for item in products %}
                   <tr>
                     <td>
-                      {% for img_url in record.product_result_images %}
+                      {% for img_url in item.product_result_images %}
                         <img src="{{ img_url }}" alt="Product Image" style="height: 60px; margin: 5px; border-radius: 6px;" />
                       {% endfor %}
                     </td>
                     <td>{{ item.product_name }}</td>
-                    <td>{{ item.qr_id }}</td>
+                    <td>{{ item.qrcode_id }}</td>
                     <td>{{ item.quantity }}</td>
-                    <td>₹{{ item.total_price }}</td>
+                    <td>₹{{ item.total_selling_price }}</td>
                   </tr>
-                </tbody>
-              {% endfor %}
+                {% endfor %}
+              </tbody>
           </table>
 
           <hr class="strong-hr">

@@ -58,32 +58,70 @@ Object.keys(data).forEach(gender => {
   });
 });
 
+let selectedGender = "";
+let selectedCategory = "";
+let selectedSubCategory = "";
+let selectedFinalCategory = "";
+let selectedImagePath = "";
+let currentMode = "";
+
+
+let mainImages = [];
+let secondImages = [];
+
+let showMainImages = [];
+let showSecondImages = [];
+
+document.getElementById("mainImageInput").addEventListener("change", function (e) {
+  const file = e.target.files[0];
+  if (file) {
+    const imageUrl = URL.createObjectURL(file);
+    document.getElementById("mainImagePreview").src = imageUrl;
+    mainImages.push(file); // store image URL in array
+    showMainImages.push(imageUrl)
+  }
+});
+
+document.getElementById("secondImageInput").addEventListener("change", function (e) {
+  const file = e.target.files[0];
+  if (file) {
+    const imageUrl = URL.createObjectURL(file);
+    document.getElementById("secondImagePreview").src = imageUrl;
+    secondImages.push(file); // store image URL in array
+    showSecondImages.push(imageUrl)
+  }
+});
+
+document.getElementById("modelConversionBtn").addEventListener("click", () => {
+  currentMode = "model";
+  document.getElementById("modelConversionWrapper").style.display = "block";
+  document.getElementById("nomodelConversionWrapper").style.display = "none";
+});
+
+document.getElementById("noModelConversionBtn").addEventListener("click", () => {
+  currentMode = "nomodel";
+  document.getElementById("modelConversionWrapper").style.display = "none";
+  document.getElementById("nomodelConversionWrapper").style.display = "block";
+});
+
+
 // === MULTI-BLOCK LOGIC ===
+
+const resetCategorySections = []; // store reset handlers
+
 document.querySelectorAll('.category-section').forEach(section => {
   const categoryGrid = section.querySelector('.category-grid');
   const subCategoryGrid = section.querySelector('.sub-category-grid');
   const finalCategoryGrid = section.querySelector('.final-category-grid');
   const finalSubCategoryGrid = section.querySelector('.final-sub-category-grid');
   const imagesSection = section.querySelector('.images-section');
-  const heading = section.querySelector('#image-section-heading');
-  const detailBox = section.querySelector('#result-image-box');
+  const heading = section.querySelector('.image-section-heading');
+  const detailBox = document.getElementById("result-image-box");
+  const productDetailsSection = document.getElementById("product-details");
 
-  let selectedGender = "";
-  let selectedCategory = "";
-  let selectedSubCategory = "";
-  let selectedFinalCategory = "";
-  let selectedImagePath = "";
-
-  categoryGrid.addEventListener('click', function (e) {
-    const target = e.target.closest('[data-gender]');
-    if (!target) return;
-    selectedGender = target.dataset.gender;
-    categoryGrid.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
-    target.classList.add('active');
-    showSubCategories(selectedGender);
-  });
-
-  function clearGrid(grid) { grid.innerHTML = ''; }
+  function clearGrid(grid) {
+    if (grid) grid.innerHTML = '';
+  }
 
   function createCategoryItem(name, icon = 'fas fa-tshirt') {
     const div = document.createElement('div');
@@ -93,9 +131,17 @@ document.querySelectorAll('.category-section').forEach(section => {
   }
 
   function showSubCategories(gender) {
+    if (gender === "None") {
+      [subCategoryGrid, finalCategoryGrid, finalSubCategoryGrid, imagesSection].forEach(clearGrid);
+      if (heading) heading.style.display = 'none';
+      if (detailBox) detailBox.style.display = "none";
+      return;
+    }
+
     [subCategoryGrid, finalCategoryGrid, finalSubCategoryGrid, imagesSection].forEach(clearGrid);
-    heading.style.display = 'none';
-    detailBox.style.display = "none";
+    if (heading) heading.style.display = 'none';
+    if (detailBox) detailBox.style.display = "none";
+
     if (!gender || !data[gender]) return;
 
     Object.keys(data[gender]).forEach(category => {
@@ -110,8 +156,8 @@ document.querySelectorAll('.category-section').forEach(section => {
 
   function showFinalCategories(gender, category) {
     [finalCategoryGrid, finalSubCategoryGrid, imagesSection].forEach(clearGrid);
-    heading.style.display = 'none';
-    detailBox.style.display = "none";
+    if (heading) heading.style.display = 'none';
+    if (detailBox) detailBox.style.display = "none";
 
     const sub = data[gender][category];
     if (Array.isArray(sub)) {
@@ -119,7 +165,14 @@ document.querySelectorAll('.category-section').forEach(section => {
         const item = createCategoryItem(subCat);
         item.addEventListener('click', () => {
           selectedSubCategory = subCat;
-          showImages(gender, subCat);
+          if (currentMode === "model") {
+            showImages(gender, subCat);
+          } else {
+            if (heading) heading.style.display = 'none';
+            if (detailBox) detailBox.style.display = 'none';
+            clearGrid(imagesSection);
+            productDetailsSection.style.display = "block";
+          }
         });
         finalCategoryGrid.appendChild(item);
       });
@@ -137,14 +190,21 @@ document.querySelectorAll('.category-section').forEach(section => {
 
   function showFinalSubCategories(gender, category, subCat) {
     [finalSubCategoryGrid, imagesSection].forEach(clearGrid);
-    heading.style.display = 'none';
-    detailBox.style.display = "none";
+    if (heading) heading.style.display = 'none';
+    if (detailBox) detailBox.style.display = "none";
 
     data[gender][category][subCat].forEach(final => {
       const item = createCategoryItem(final);
       item.addEventListener('click', () => {
         selectedFinalCategory = final;
-        showImages(gender, final);
+        if (currentMode === "model") {
+          showImages(gender, final);
+        } else {
+          if (heading) heading.style.display = 'none';
+          if (detailBox) detailBox.style.display = 'none';
+          clearGrid(imagesSection);
+          productDetailsSection.style.display = "block";
+        }
       });
       finalSubCategoryGrid.appendChild(item);
     });
@@ -152,8 +212,10 @@ document.querySelectorAll('.category-section').forEach(section => {
 
   function showImages(gender, final) {
     clearGrid(imagesSection);
-    heading.style.display = 'block';
-    heading.textContent = `Choose Models`;
+    if (heading) {
+      heading.style.display = 'block';
+      heading.textContent = `Choose Models`;
+    }
     const key = `${gender}:${final}`;
     const imageList = images[key];
     if (!imageList) return;
@@ -169,14 +231,176 @@ document.querySelectorAll('.category-section').forEach(section => {
       img.addEventListener('click', () => {
         imagesSection.querySelectorAll('img').forEach(i => i.classList.remove('active'));
         img.classList.add('active');
-        detailBox.style.display = "block";
+        if (detailBox) detailBox.style.display = "block";
         selectedImagePath = img.src;
       });
 
       imagesSection.appendChild(img);
     });
   }
+
+  categoryGrid.addEventListener('click', function (e) {
+    const target = e.target.closest('[data-gender]');
+    if (!target) return;
+    selectedGender = target.dataset.gender;
+    categoryGrid.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
+    target.classList.add('active');
+    showSubCategories(selectedGender);
+  });
+
+  // ✅ Save this section's reset function
+  resetCategorySections.push(() => showSubCategories("None"));
 });
+
+
+
+// let subCategoryGrid, finalCategoryGrid, finalSubCategoryGrid, imagesSection, heading, detailBox, productDetailsSection;
+
+// // ✅ Clear a grid
+// function clearGrid(grid) {
+//   if (!grid) return;
+//   grid.innerHTML = '';
+// }
+
+// // ✅ Create a category item
+// function createCategoryItem(name, icon = 'fas fa-tshirt') {
+//   const div = document.createElement('div');
+//   div.className = 'category-item';
+//   div.innerHTML = `<i class="${icon}"></i><span>${name}</span>`;
+//   return div;
+// }
+
+// // ✅ Show Sub Categories
+// function showSubCategories(gender) {
+//   if (gender === "None") {
+//     clearGrid(subCategoryGrid);
+//     clearGrid(finalCategoryGrid);
+//     clearGrid(finalSubCategoryGrid);
+//     clearGrid(imagesSection);
+//     if (heading) heading.style.display = 'none';
+//     if (detailBox) detailBox.style.display = "none";
+//     return;
+//   }
+
+//   [subCategoryGrid, finalCategoryGrid, finalSubCategoryGrid, imagesSection].forEach(clearGrid);
+//   if (heading) heading.style.display = 'none';
+//   if (detailBox) detailBox.style.display = "none";
+
+//   if (!gender || !data[gender]) return;
+
+//   Object.keys(data[gender]).forEach(category => {
+//     const item = createCategoryItem(category);
+//     item.addEventListener('click', () => {
+//       selectedCategory = category;
+//       showFinalCategories(gender, category);
+//     });
+//     subCategoryGrid.appendChild(item);
+//   });
+// }
+
+// function showFinalCategories(gender, category) {
+//   [finalCategoryGrid, finalSubCategoryGrid, imagesSection].forEach(clearGrid);
+//   if (heading) heading.style.display = 'none';
+//   if (detailBox) detailBox.style.display = "none";
+
+//   const sub = data[gender][category];
+//   if (Array.isArray(sub)) {
+//     sub.forEach(subCat => {
+//       const item = createCategoryItem(subCat);
+//       item.addEventListener('click', () => {
+//         selectedSubCategory = subCat;
+//         if (currentMode === "model") {
+//           showImages(gender, subCat);
+//         } else {
+//           if (heading) heading.style.display = 'none';
+//           if (detailBox) detailBox.style.display = 'none';
+//           clearGrid(imagesSection);
+//           productDetailsSection.style.display = "block";
+//         }
+//       });
+//       finalCategoryGrid.appendChild(item);
+//     });
+//   } else {
+//     Object.keys(sub).forEach(subCat => {
+//       const item = createCategoryItem(subCat);
+//       item.addEventListener('click', () => {
+//         selectedSubCategory = subCat;
+//         showFinalSubCategories(gender, category, subCat);
+//       });
+//       finalCategoryGrid.appendChild(item);
+//     });
+//   }
+// }
+
+// function showFinalSubCategories(gender, category, subCat) {
+//   [finalSubCategoryGrid, imagesSection].forEach(clearGrid);
+//   if (heading) heading.style.display = 'none';
+//   if (detailBox) detailBox.style.display = "none";
+
+//   data[gender][category][subCat].forEach(final => {
+//     const item = createCategoryItem(final);
+//     item.addEventListener('click', () => {
+//       selectedFinalCategory = final;
+//       if (currentMode === "model") {
+//         showImages(gender, final);
+//       } else {
+//         if (heading) heading.style.display = 'none';
+//         if (detailBox) detailBox.style.display = 'none';
+//         clearGrid(imagesSection);
+//         productDetailsSection.style.display = "block";
+//       }
+//     });
+//     finalSubCategoryGrid.appendChild(item);
+//   });
+// }
+
+// function showImages(gender, final) {
+//   clearGrid(imagesSection);
+//   if (heading) heading.style.display = 'block';
+//   if (heading) heading.textContent = `Choose Models`;
+//   const key = `${gender}:${final}`;
+//   const imageList = images[key];
+//   if (!imageList) return;
+
+//   imageList.forEach(src => {
+//     const img = document.createElement('img');
+//     img.src = src;
+//     img.alt = final;
+//     img.loading = "lazy";
+//     img.style = "width: 200px; height: 250px; object-fit: contain; margin: 10px;";
+//     img.className = 'image-item';
+
+//     img.addEventListener('click', () => {
+//       imagesSection.querySelectorAll('img').forEach(i => i.classList.remove('active'));
+//       img.classList.add('active');
+//       if (detailBox) detailBox.style.display = "block";
+//       selectedImagePath = img.src;
+//     });
+
+//     imagesSection.appendChild(img);
+//   });
+// }
+
+
+// document.querySelectorAll('.category-section').forEach(section => {
+//   const categoryGrid = section.querySelector('.category-grid');
+//   subCategoryGrid = section.querySelector('.sub-category-grid');
+//   finalCategoryGrid = section.querySelector('.final-category-grid');
+//   finalSubCategoryGrid = section.querySelector('.final-sub-category-grid');
+//   imagesSection = section.querySelector('.images-section');
+//   heading = section.querySelector('.image-section-heading');
+//   detailBox = document.getElementById("result-image-box");
+//   productDetailsSection = document.getElementById("product-details");
+
+//   categoryGrid.addEventListener('click', function (e) {
+//     const target = e.target.closest('[data-gender]');
+//     if (!target) return;
+//     selectedGender = target.dataset.gender;
+//     categoryGrid.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
+//     target.classList.add('active');
+//     showSubCategories(selectedGender); // ✅ Now accessible
+//   });
+// });
 
 
 
@@ -301,47 +525,7 @@ let documentData = {
   swapCategory: null
 };
 let idsArray = [];
-let currentMode = "";
-
-const clothes_swap_category = document.getElementById("swap_category").value;
-
-
-function clearGrid(grid) {
-  grid.innerHTML = '';
-}
-
-const mainImages = [];
-const secondImages = [];
-
-document.getElementById("mainImageInput").addEventListener("change", function (e) {
-  const file = e.target.files[0];
-  if (file) {
-    const imageUrl = URL.createObjectURL(file);
-    document.getElementById("mainImagePreview").src = imageUrl;
-    mainImages.push(imageUrl); // store image URL in array
-  }
-});
-
-document.getElementById("secondImageInput").addEventListener("change", function (e) {
-  const file = e.target.files[0];
-  if (file) {
-    const imageUrl = URL.createObjectURL(file);
-    document.getElementById("secondImagePreview").src = imageUrl;
-    secondImages.push(imageUrl); // store image URL in array
-  }
-});
-
-document.getElementById("modelConversionBtn").addEventListener("click", () => {
-  currentMode = "model";
-  document.getElementById("modelConversionWrapper").style.display = "block";
-  document.getElementById("nomodelConversionWrapper").style.display = "none";
-});
-
-document.getElementById("noModelConversionBtn").addEventListener("click", () => {
-  currentMode = "nomodel";
-  document.getElementById("modelConversionWrapper").style.display = "none";
-  document.getElementById("nomodelConversionWrapper").style.display = "block";
-});
+const clothes_swap_category = document.getElementById("swap_category")?.value || "Not Provided";
 
 
 
@@ -605,8 +789,6 @@ resultImageInput.addEventListener('change', function () {
 });
 
 
-
-
 /*--------------------------------------------------------------
 # Script-2 
 --------------------------------------------------------------*/
@@ -745,42 +927,87 @@ resultImageInput.addEventListener('change', function () {
   /*--------------------------------------------------------------
   # Select Color Section
   --------------------------------------------------------------*/
-  const dropdown = document.getElementById("color-select");
-  const optionsContainer = dropdown.nextElementSibling;
-  const hiddenInput1 = document.getElementById("product-color");
-  const selectedValue1 = dropdown.querySelector(".selected-value-color");
+  const colorBtn = document.getElementById("color-select");
+  colorBtn.addEventListener("click", handleColorDropDownBtn);
 
-  dropdown.addEventListener("click", () => {
-    dropdown.classList.toggle("open");
-  });
+  const colorBtn2 = document.getElementById("color-select-2");
+  colorBtn2.addEventListener("click", handleColorDropDownBtn);
 
-  optionsContainer.querySelectorAll("div").forEach(option => {
-    option.addEventListener("click", (e) => {
-      const value = e.target.getAttribute("data-value");
-      const text = e.target.textContent;
-      selectedValue1.textContent = text;
-      hiddenInput1.value = value;
-      dropdown.classList.remove("open");
-    });
-  });
+  function handleColorDropDownBtn() {
+    if (currentMode === "model") {
+      const dropdown = document.getElementById("color-select");
+      const optionsContainer = dropdown.nextElementSibling;
+      const hiddenInput1 = document.getElementById("product-color");
+      const selectedValue1 = dropdown.querySelector(".selected-value-color");
 
-  // Close dropdown if clicked outside
-  document.addEventListener("click", (e) => {
-    if (!dropdown.contains(e.target) && !optionsContainer.contains(e.target)) {
-      dropdown.classList.remove("open");
+      dropdown.classList.toggle("open");
+
+      optionsContainer.querySelectorAll("div").forEach(option => {
+        option.addEventListener("click", (e) => {
+          const value = e.target.getAttribute("data-value");
+          const text = e.target.textContent;
+          selectedValue1.textContent = text;
+          hiddenInput1.value = value;
+          dropdown.classList.remove("open");
+        });
+      });
+
+      // Close dropdown if clicked outside
+      document.addEventListener("click", (e) => {
+        if (!dropdown.contains(e.target) && !optionsContainer.contains(e.target)) {
+          dropdown.classList.remove("open");
+        }
+      });
+
+    } else if (currentMode === "nomodel") {
+      const dropdown = document.getElementById("color-select-2");
+      const optionsContainer = dropdown.nextElementSibling;
+      const hiddenInput1 = document.getElementById("product-color-2");
+      const selectedValue1 = dropdown.querySelector(".selected-value-color");
+
+      dropdown.classList.toggle("open");
+
+      optionsContainer.querySelectorAll("div").forEach(option => {
+        option.addEventListener("click", (e) => {
+          const value = e.target.getAttribute("data-value");
+          const text = e.target.textContent;
+          selectedValue1.textContent = text;
+          hiddenInput1.value = value;
+          dropdown.classList.remove("open");
+        });
+      });
+
+      // Close dropdown if clicked outside
+      document.addEventListener("click", (e) => {
+        if (!dropdown.contains(e.target) && !optionsContainer.contains(e.target)) {
+          dropdown.classList.remove("open");
+        }
+      });
     }
-  });
-  function getSelectedColor() {
-    const manualColor = document.getElementById("manual-color-input").value.trim();
-    const dropdownColor = document.getElementById("product-color").value.trim();
-
-    // Priority: manual color
-    if (manualColor !== "") {
-      return manualColor;
-    }
-    return dropdownColor;
   }
 
+  function getSelectedColor() {
+    if (currentMode === "nomodel") {
+      const manualColor = document.getElementById("manual-color-input-2").value.trim();
+      const dropdownColor = document.getElementById("product-color-2").value.trim();
+
+      // Priority: manual color
+      if (manualColor !== "") {
+        return manualColor;
+      }
+      return dropdownColor;
+
+    } else if  (currentMode === "model") {
+      const manualColor = document.getElementById("manual-color-input").value.trim();
+      const dropdownColor = document.getElementById("product-color").value.trim();
+
+      // Priority: manual color
+      if (manualColor !== "") {
+        return manualColor;
+      }
+      return dropdownColor;
+    }
+  }
 
   /*--------------------------------------------------------------
   # Handle Variant Button Section
@@ -788,6 +1015,9 @@ resultImageInput.addEventListener('change', function () {
 
   const btn5 = document.getElementById("submit-variant-btn");
   btn5.addEventListener("click", handleSubmitVariant);
+
+  const btn6 = document.getElementById("submit-variant-btn-2");
+  btn6.addEventListener("click", handleSubmitVariant2);
 
   let productData = {
     qrcode_ids: [],
@@ -800,6 +1030,47 @@ resultImageInput.addEventListener('change', function () {
     product_selling_price: 0,
     product_colors: []
   };
+
+  function handleSubmitVariant2() {
+    console.log("Add NoModel Variant Function Started")
+    // If brand etc not set, read them once
+    if (!productData.brand_name) {
+      productData.brand_name = document.getElementById('brand-name-2').value;
+      productData.product_name = document.getElementById('product-name-2').value;
+      productData.product_fabric = document.getElementById('product-fabric-2').value;
+      productData.product_quantity = document.getElementById('product-quantity-2').value;
+      productData.product_price = document.getElementById('product-price-2').value;
+      productData.product_selling_price = document.getElementById('selling-price-2').value;
+      productData.product_sizes = Array.from(document.querySelectorAll('input[name="size"]:checked')).map(cb => cb.value);
+
+      if (!productData.brand_name || !productData.product_name || !productData.product_fabric || !productData.product_quantity || !productData.product_price || !productData.product_selling_price || productData.product_sizes.length === 0) {
+        alert("Please fill all the main product fields before adding variants.");
+        return;
+      }
+    }
+
+    const productColor = getSelectedColor();
+    productData.product_colors.push(productColor);
+
+    documentData = {
+      gender: selectedGender,
+      category: selectedCategory,
+      subCategory: selectedSubCategory,
+      finalCategory: selectedFinalCategory,
+      modelImagePath: selectedImagePath,
+      swapCategory: clothes_swap_category
+    };
+
+    console.log("Current productData:", productData);
+    console.log("Current documentData:", documentData);
+    console.log("scannedIds: ", scannedIds);
+
+    // Update the table with the new variant added
+    updateVariantsTable();
+
+    // Reset variant-specific fields (images, color)
+    resetVariantFields();
+  }
 
   function handleSubmitVariant() {
     // Then call backend to decrease credits
@@ -816,7 +1087,7 @@ resultImageInput.addEventListener('change', function () {
     // })
     // .catch(err => console.error("Failed to decrease credits:", err));
 
-    console.log("Add Variant Function Started")
+    console.log("Add Model Variant Function Started")
     // If brand etc not set, read them once
     if (!productData.brand_name) {
       productData.brand_name = document.getElementById('brand-name').value;
@@ -885,6 +1156,7 @@ resultImageInput.addEventListener('change', function () {
 
     console.log(productGarmentImages)
     console.log(productResultImages)
+  
 
     documentData = {
       gender: selectedGender,
@@ -926,18 +1198,18 @@ resultImageInput.addEventListener('change', function () {
   function updateVariantsTable() {
     const tableBody = document.getElementById("tableBody");
     tableBody.innerHTML = ""; // clear existing rows
+    const tableBody2 = document.getElementById("tableBody-2");
+    tableBody2.innerHTML = ""; // clear existing rows
 
 
-    if (currentMode = "nomodel") {
-      const mainImg = mainImages[i] || "https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png";
-      const secondImg = secondImages[i] || "https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png";
-
+    if (currentMode === "nomodel") {
       for (let i = 0; i < productData.product_colors.length; i++) {
+
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${i + 1}</td>
-          <td><img src="${mainImg}" alt="Result Image" width="60" height="95"></td>
-          <td><img src="${secondImg}" alt="Garment Image" width="60" height="90"></td>
+          <td><img src="${showMainImages[i]}" alt="Result Image" width="60" height="95"></td>
+          <td><img src="${showSecondImages[i]}" alt="Garment Image" width="60" height="90"></td>
           <td>${productData.product_colors[i]}</td>
           <td style="padding: 0;">
             <div style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%; padding: 10px;">
@@ -947,7 +1219,7 @@ resultImageInput.addEventListener('change', function () {
             </div>
           </td>
         `;
-        tableBody.appendChild(row);
+        tableBody2.appendChild(row);
       }
       // Attach event listeners to all delete icons
       const deleteIcons = document.querySelectorAll(".delete-icon");
@@ -958,8 +1230,7 @@ resultImageInput.addEventListener('change', function () {
         });
       });
 
-    } else if (currentMode = "model") {
-
+    } else if (currentMode === "model") {
       for (let i = 0; i < productData.product_colors.length; i++) {
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -989,15 +1260,27 @@ resultImageInput.addEventListener('change', function () {
   }
 
   function deleteVariant(index) {
-    productData.product_colors.splice(index, 1);
+    if (currentMode === "model") {
 
-    showResultImages.splice(index, 1);
-    showGarmentImages.splice(index, 1);
+      productData.product_colors.splice(index, 1);
 
-    productResultImages.splice(index, 1);
-    productGarmentImages.splice(index, 1);
-  
-    updateVariantsTable(); // Re-render the table
+      showResultImages.splice(index, 1);
+      showGarmentImages.splice(index, 1);
+
+      productResultImages.splice(index, 1);
+      productGarmentImages.splice(index, 1);
+    
+      updateVariantsTable(); // Re-render the table
+
+    } else if (currentMode === "nomodel") {
+      productData.product_colors.splice(index, 1);
+
+      mainImages.splice(index, 1);
+      secondImages.splice(index, 1);
+    
+      updateVariantsTable(); // Re-render the table
+    }
+
   }
   
 
@@ -1005,77 +1288,146 @@ resultImageInput.addEventListener('change', function () {
   # Multiple QR Code Scanner Section
   --------------------------------------------------------------*/
   const scanBtn = document.getElementById("scan-btn");
-  const cancelBtn = document.getElementById("cancel-btn");
-  const readerDiv = document.getElementById("reader");
-  const scannedItemsDiv = document.getElementById("scanned-items");
-  const html5QrCode = new Html5Qrcode("reader");
+  scanBtn.addEventListener("click", handleScanBtn);
 
-  let isScanning = false;
+  const scanBtn2 = document.getElementById("scan-btn-2");
+  scanBtn2.addEventListener("click", handleScanBtn);
+
   const scannedIds = new Set(); // to avoid duplicates
 
-  scanBtn.addEventListener("click", async () => {
-    scanBtn.style.display = "none";
-    cancelBtn.style.display = "block";
-    readerDiv.style.display = "block";
+  async function handleScanBtn() {
+    if (currentMode === "model") {
+      console.log("model scanbtn")
+      const scanBtn = document.getElementById("scan-btn");
+      const cancelBtn = document.getElementById("cancel-btn");
+      const readerDiv = document.getElementById("reader");
+      const scannedItemsDiv = document.getElementById("scanned-items");
+      const html5QrCode = new Html5Qrcode("reader");
 
-    try {
-      const devices = await Html5Qrcode.getCameras();
-      if (devices.length === 0) {
-        alert("No cameras found.");
-        return;
-      }
+      let isScanning = false;
 
-      let cameraId = devices[0].id;
-      for (let device of devices) {
-        if (/back|rear/i.test(device.label)) {
-            cameraId = device.id;
-            break;
+      scanBtn.style.display = "none";
+      cancelBtn.style.display = "block";
+      readerDiv.style.display = "block";
+
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        if (devices.length === 0) {
+          alert("No cameras found.");
+          return;
         }
-      }
 
-      await html5QrCode.start(
-        cameraId,
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        (decodedText) => {
-
-          const shortId = decodedText.slice(-10); // ✅ get last 10 characters
-          if (!scannedIds.has(shortId)) {
-            scannedIds.add(shortId);
-            const div = document.createElement("div");
-            div.className = "scanned-item";
-            div.innerText = shortId; // ✅ show only shortId
-            scannedItemsDiv.appendChild(div);
+        let cameraId = devices[0].id;
+        for (let device of devices) {
+          if (/back|rear/i.test(device.label)) {
+              cameraId = device.id;
+              break;
           }
-          
-          // Optional: Send to backend
-          // fetch("/save-qrcode", {
-          //   method: "POST",
-          //   headers: { "Content-Type": "application/json" },
-          //   body: JSON.stringify({ qr_id: decodedText })
-          // });
         }
-      );
 
-      isScanning = true;
+        await html5QrCode.start(
+          cameraId,
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          (decodedText) => {
 
-    } catch (err) {
-      alert("Error accessing the camera. Please allow permission.");
-      console.error(err);
-      cancelBtn.style.display = "none";
-      scanBtn.style.display = "block";
-    }
-  });
+            const shortId = decodedText.slice(-10); // ✅ get last 10 characters
+            if (!scannedIds.has(shortId)) {
+              scannedIds.add(shortId);
+              const div = document.createElement("div");
+              div.className = "scanned-item";
+              div.innerText = shortId; // ✅ show only shortId
+              scannedItemsDiv.appendChild(div);
+            }
+          
+          }
+        );
 
-  cancelBtn.addEventListener("click", () => {
-      if (isScanning) {
-          html5QrCode.stop().then(() => {
-              isScanning = false;
-              cancelBtn.style.display = "none";
-              readerDiv.style.display = "none";
-              scanBtn.style.display = "block";
-          });
+        isScanning = true;
+
+      } catch (err) {
+        alert("Error accessing the camera. Please allow permission.");
+        console.error(err);
+        cancelBtn.style.display = "none";
+        scanBtn.style.display = "block";
       }
-  });
+
+      cancelBtn.addEventListener("click", () => {
+          if (isScanning) {
+              html5QrCode.stop().then(() => {
+                  isScanning = false;
+                  cancelBtn.style.display = "none";
+                  readerDiv.style.display = "none";
+                  scanBtn.style.display = "block";
+              });
+          }
+      });
+
+    } else if (currentMode === "nomodel") {
+      console.log("no model scanbtn")
+      const scanBtn = document.getElementById("scan-btn-2");
+      const cancelBtn = document.getElementById("cancel-btn-2");
+      const readerDiv = document.getElementById("reader-2");
+      const scannedItemsDiv = document.getElementById("scanned-items-2");
+      const html5QrCode = new Html5Qrcode("reader-2");
+
+      let isScanning = false;
+
+      scanBtn.style.display = "none";
+      cancelBtn.style.display = "block";
+      readerDiv.style.display = "block";
+
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        if (devices.length === 0) {
+          alert("No cameras found.");
+          return;
+        }
+
+        let cameraId = devices[0].id;
+        for (let device of devices) {
+          if (/back|rear/i.test(device.label)) {
+              cameraId = device.id;
+              break;
+          }
+        }
+        await html5QrCode.start(
+          cameraId,
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          (decodedText) => {
+
+            const shortId = decodedText.slice(-10); // ✅ get last 10 characters
+            if (!scannedIds.has(shortId)) {
+              scannedIds.add(shortId);
+              const div = document.createElement("div");
+              div.className = "scanned-item-2";
+              div.innerText = shortId; // ✅ show only shortId
+              scannedItemsDiv.appendChild(div);
+            }
+          
+          }
+        );
+
+        isScanning = true;
+
+      } catch (err) {
+        alert("Error accessing the camera. Please allow permission.");
+        console.error(err);
+        cancelBtn.style.display = "none";
+        scanBtn.style.display = "block";
+      }
+
+      cancelBtn.addEventListener("click", () => {
+          if (isScanning) {
+              html5QrCode.stop().then(() => {
+                  isScanning = false;
+                  cancelBtn.style.display = "none";
+                  readerDiv.style.display = "none";
+                  scanBtn.style.display = "block";
+              });
+          }
+      });
+    }
+  }
 
   /*--------------------------------------------------------------
   # Load Previous Data
@@ -1115,77 +1467,275 @@ resultImageInput.addEventListener('change', function () {
   /*--------------------------------------------------------------
   # Form Validation and Submission
   --------------------------------------------------------------*/
-  const productForm = document.querySelector('.product-form');
-  const submitButton = productForm ? productForm.querySelector('.submit-add-products-btn') : null;
-  const btnText = submitButton.querySelector('.btn-text');
-  const btnSpinner = submitButton.querySelector('.btn-spinner');
+  // const productForm = document.querySelector('.product-form');
+  // const submitButton = productForm ? productForm.querySelector('.submit-add-products-btn') : null;
+  // const btnText = submitButton.querySelector('.btn-text');
+  // const btnSpinner = submitButton.querySelector('.btn-spinner');
+  
 
-  if (submitButton) {
-    submitButton.addEventListener('click', async function(e) {
-        e.preventDefault();
-        const idsArray = Array.from(scannedIds); // ✅ move it here
+  // if (submitButton) {
+  //   submitButton.addEventListener('click', async function(e) {
+  //       console.log("no model submit working")
+  //       e.preventDefault();
+  //       const idsArray = Array.from(scannedIds); // ✅ move it here
+  //       productData.qrcode_ids = [...idsArray];
+
+  //       btnText.textContent = "Submitting";
+  //       btnSpinner.style.display = 'inline-block';
+
+
+  //       const formData = new FormData();
+  //       formData.append('document', JSON.stringify(productData));
+  //       formData.append('selectedmiddlebuttons', JSON.stringify(documentData));
+  //       formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+  //       if (currentMode === "model") {
+  //         // ✅ Garment images - always files
+  //         productGarmentImages.forEach((file, index) => {
+  //           formData.append(`garment_${index}`, file);
+  //         });
+
+  //         // ✅ Result images - could be file or URL
+  //         productResultImages.forEach((item, index) => {
+  //           if (item instanceof File) {
+  //             formData.append(`result_file_${index}`, item); // File
+  //           } else if (typeof item === 'string') {
+  //             formData.append(`result_url_${index}`, item); // URL
+  //           }
+  //         });
+
+  //       } else if (currentMode === "nomodel") {
+
+  //         if (mainImages.length > 0) {
+  //           mainImages.forEach((item, index) => {
+  //             formData.append(`result_file_${index}`, item); 
+  //           });
+  //         } else {
+  //           console.warn("No main images provided.");
+  //         }
+
+  //         if (secondImages.length > 0) {
+  //           secondImages.forEach((file, index) => {
+  //             formData.append(`garment_${index}`, file);
+  //           });
+  //         } else {
+  //           console.warn("No second images provided.");
+  //         }
+  //       }
+
+  //       try {
+  //         const response = await fetch('/add-products/', {
+  //             method: 'POST',
+  //             body: formData
+  //         });
+  
+  //         const contentType = response.headers.get("content-type");
+
+  //         if (contentType && contentType.includes("application/json")) {
+  //           const result = await response.json();
+  //           console.log(result);
+  
+  //           if (result.uploaded_urls === 'uploaded') {
+  //             alert('Product added successfully!');
+
+  //             // Save submitted data to localStorage
+  //             localStorage.setItem('lastSubmittedData', JSON.stringify(productData));
+
+  //             // Reset form
+  //             document.getElementById('brand-name').value = '';
+  //             document.getElementById('product-name').value = '';
+  //             document.getElementById('product-fabric').value = '';
+  //             document.getElementById('product-color').value = '';
+  //             document.getElementById('product-quantity').value = '';
+  //             document.getElementById('product-price').value = '';
+  //             document.getElementById('selling-price').value = '';
+  //             document.getElementById("scanned-items").innerHTML = '';
+
+  //             document.getElementById('brand-name-2').value = '';
+  //             document.getElementById('product-name-2').value = '';
+  //             document.getElementById('product-fabric-2').value = '';
+  //             document.getElementById('product-color-2').value = '';
+  //             document.getElementById('product-quantity-2').value = '';
+  //             document.getElementById('product-price-2').value = '';
+  //             document.getElementById('selling-price-2').value = '';
+  //             document.getElementById("scanned-items-2").innerHTML = '';
+              
+  //             document.querySelectorAll('input[name="size"]:checked').forEach(checkbox => {
+  //                 checkbox.checked = false;
+  //             });
+  //             scannedIds.clear();
+              
+  //             // Reset image preview
+  //             previewImage.src = 'https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png';
+
+  //             // Reset other fields
+  //             productData = {
+  //               qrcode_ids: [],
+  //               brand_name: '',
+  //               product_name: '',
+  //               product_fabric: '',
+  //               product_sizes: [],
+  //               product_quantity: 0,
+  //               product_price: 0,
+  //               product_selling_price: 0,
+  //               product_colors: []
+  //             };
+  //             if (currentMode === "model") {
+  //               document.getElementById('resultImage').src = '';
+  //               document.getElementById('resultImage').style.display = 'none';
+  //               document.querySelector('.selected-value-color').textContent = 'Select Color';
+  //               document.getElementById('manual-color-input').value = '';
+  //               document.getElementById('product-color').value = '';
+              
+  //             } else if (currentMode === "nomodel") {
+  //               document.querySelector('.selected-value-color-2').textContent = 'Select Color';
+  //               document.getElementById('manual-color-input-2').value = '';
+  //               document.getElementById('product-color-2').value = '';
+  //             }
+
+  //             showSubCategories("None");
+              
+  //             updateVariantsTable();
+  //           } else {
+  //             alert('Error: ' + (result.error || 'Something went wrong.'));
+  //           }
+
+  //         } else {
+  //           const text = await response.text();
+  //           console.error("❌ Not JSON. Response was:", text);
+  //           alert("Server returned an unexpected response.");
+  //         }
+
+  //       } catch (error) {
+  //           console.error('Submission error:', error);
+  //           alert('Network or server error occurred.');
+
+  //       } finally {
+  //         btnText.textContent = "Submit Form";
+  //         btnSpinner.style.display = 'none';
+  //       }
+
+  //   });
+  // }
+
+  productForm1 = document.querySelector('.product-form-model');
+  productForm2 = document.querySelector('.product-form-nomodel');
+
+  const submitBtn1 = productForm1.querySelector('.submit-add-products-btn');
+  submitBtn1.addEventListener("click", handleSubmitBtn);
+
+  const submitBtn2 = productForm2.querySelector('.submit-add-products-btn');
+  submitBtn2.addEventListener("click", handleSubmitBtn);
+
+  async function handleSubmitBtn() {
+
+    let productForm = null;
+    let submitButton = null;
+    let btnText = null;
+    let btnSpinner = null;
+    console.log(currentMode)
+
+    // Determine which form to use
+    if (currentMode === "model") {
+      productForm = document.querySelector('.product-form-model');
+    } else if (currentMode === "nomodel") {
+      productForm = document.querySelector('.product-form-nomodel');
+    }
+
+    if (productForm) {
+      submitButton = productForm.querySelector('.submit-add-products-btn');
+      btnText = submitButton.querySelector('.btn-text');
+      btnSpinner = submitButton.querySelector('.btn-spinner');
+    }
+
+    if (submitButton) {
+        console.log(`${currentMode} submit working`);
+
+        const idsArray = Array.from(scannedIds);
         productData.qrcode_ids = [...idsArray];
 
         btnText.textContent = "Submitting";
         btnSpinner.style.display = 'inline-block';
-
 
         const formData = new FormData();
         formData.append('document', JSON.stringify(productData));
         formData.append('selectedmiddlebuttons', JSON.stringify(documentData));
         formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
-        // ✅ Garment images - always files
-        productGarmentImages.forEach((file, index) => {
-          formData.append(`garment_${index}`, file);
-        });
+        if (currentMode === "model") {
+          console.log("adsfadf")
+          productGarmentImages.forEach((file, index) => {
+            formData.append(`garment_${index}`, file);
+          });
 
-        // ✅ Result images - could be file or URL
-        productResultImages.forEach((item, index) => {
-          if (item instanceof File) {
-            formData.append(`result_file_${index}`, item); // File
-          } else if (typeof item === 'string') {
-            formData.append(`result_url_${index}`, item); // URL
+          productResultImages.forEach((item, index) => {
+            if (item instanceof File) {
+              formData.append(`result_file_${index}`, item);
+            } else if (typeof item === 'string') {
+              formData.append(`result_url_${index}`, item);
+            }
+          });
+
+        } else if (currentMode === "nomodel") {
+
+          if (secondImages.length > 0) {
+            secondImages.forEach((file, index) => {
+              formData.append(`garment_${index}`, file);
+            });
+            
+          } else {
+            console.warn("No second images provided.");
           }
-        });
+
+          if (mainImages.length > 0) {
+            mainImages.forEach((item, index) => {
+              formData.append(`result_file_${index}`, item); 
+            });
+          } else {
+            console.warn("No main images provided.");
+          }
+        }
 
         try {
           const response = await fetch('/add-products/', {
-              method: 'POST',
-              body: formData
+            method: 'POST',
+            body: formData
           });
-  
+
           const contentType = response.headers.get("content-type");
 
           if (contentType && contentType.includes("application/json")) {
             const result = await response.json();
             console.log(result);
-  
+
             if (result.uploaded_urls === 'uploaded') {
               alert('Product added successfully!');
-
-              // Save submitted data to localStorage
               localStorage.setItem('lastSubmittedData', JSON.stringify(productData));
 
-              // Reset form
-              document.getElementById('brand-name').value = '';
-              document.getElementById('product-name').value = '';
-              document.getElementById('product-fabric').value = '';
-              document.getElementById('product-color').value = '';
-              document.getElementById('product-quantity').value = '';
-              document.getElementById('product-price').value = '';
-              document.getElementById('selling-price').value = '';
-              document.getElementById("scanned-items").innerHTML = '';
-              
+              // Reset inputs
+              const suffix = currentMode === 'model' ? '' : '-2';
+              document.getElementById(`brand-name${suffix}`).value = '';
+              document.getElementById(`product-name${suffix}`).value = '';
+              document.getElementById(`product-fabric${suffix}`).value = '';
+              document.getElementById(`product-color${suffix}`).value = '';
+              document.getElementById(`product-quantity${suffix}`).value = '';
+              document.getElementById(`product-price${suffix}`).value = '';
+              document.getElementById(`selling-price${suffix}`).value = '';
+              document.getElementById(`scanned-items${suffix}`).innerHTML = '';
+
               document.querySelectorAll('input[name="size"]:checked').forEach(checkbox => {
-                  checkbox.checked = false;
+                checkbox.checked = false;
               });
-              scannedIds.clear();
               
-              // Reset image preview
+              showResultImages = []
+              showGarmentImages = []
+
+              showMainImages = []
+              showSecondImages = []
+
+              scannedIds.clear();
               previewImage.src = 'https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png';
 
-              // Reset other fields
               productData = {
                 qrcode_ids: [],
                 brand_name: '',
@@ -1197,34 +1747,36 @@ resultImageInput.addEventListener('change', function () {
                 product_selling_price: 0,
                 product_colors: []
               };
-              
-              document.getElementById('resultImage').src = '';
-              document.getElementById('resultImage').style.display = 'none';
-              document.querySelector('.selected-value-color').textContent = 'Select Color';
-              document.getElementById('manual-color-input').value = '';
-              document.getElementById('product-color').value = '';
 
-              showSubCategories("None");
-              
+              if (currentMode === "model") {
+                document.getElementById('resultImage').src = '';
+                document.getElementById('resultImage').style.display = 'none';
+                document.querySelector('.selected-value-color').textContent = 'Select Color';
+                document.getElementById('manual-color-input').value = '';
+                document.getElementById('product-color').value = '';
+              } else {
+                document.querySelector('.selected-value-color').textContent = 'Select Color';
+                document.getElementById('manual-color-input-2').value = '';
+                document.getElementById('product-color-2').value = '';
+              }
+
+              // showSubCategories("None");
+              resetCategorySections.forEach(reset => reset());
               updateVariantsTable();
             } else {
               alert('Error: ' + (result.error || 'Something went wrong.'));
             }
-
           } else {
             const text = await response.text();
             console.error("❌ Not JSON. Response was:", text);
             alert("Server returned an unexpected response.");
           }
-
         } catch (error) {
-            console.error('Submission error:', error);
-            alert('Network or server error occurred.');
-
+          console.error('Submission error:', error);
+          alert('Network or server error occurred.');
         } finally {
           btnText.textContent = "Submit Form";
           btnSpinner.style.display = 'none';
         }
-
-    });
+    }
   }

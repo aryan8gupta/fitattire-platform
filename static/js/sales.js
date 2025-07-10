@@ -100,6 +100,8 @@ function searchNumber() {
 function addNumber() {
     const customer_name2 = document.getElementById("new-customer-name").value.trim();
     const phone = document.getElementById("new-customer-phone").value.trim();
+    const customerDetails = document.getElementById("customer-details");
+    const noDetails = document.getElementById("no-details");
 
     if (customer_name2 === "" || !/^\d{10}$/.test(phone)) {
         alert("Please enter a valid name and 10-digit mobile number.");
@@ -317,6 +319,7 @@ function displayAllRowsFromDataStore() {
 
                 deleteIcon.addEventListener("click", () => {
                     delete scannedProductData[qrId];
+                    qrcodeidsarray.filter(id => id !== qrId);
                     displayAllRowsFromDataStore();
                 });
 

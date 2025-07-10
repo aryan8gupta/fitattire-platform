@@ -305,6 +305,7 @@ body {
 @media (max-width: 768px) {
   .chart-box {
     padding: 16px;
+    flex: 1 1 100%;
   }
 
   .chart-title {
@@ -535,12 +536,14 @@ body {
   position: relative;
   overflow: hidden;
   border-radius: 0.5rem;
+  height: 300px;
 }
 
 .product-card img {
   width: 100%;
-  height: 12rem;
-  object-fit: cover;
+  height: 100%;
+  object-fit: contain;
+  display: block;
   border-radius: 0.5rem;
 }
 
@@ -578,55 +581,3 @@ body {
 .product-info .sales {
   font-size: 0.75rem;
 }
-
-
-
-
-
-/* #topProducts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.product-card {
-  position: relative;
-  width: 200px;
-  height: 280px;
-  border-radius: 12px;
-  overflow: hidden;
-  background-color: #fff;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-}
-
-.product-card img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.product-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.product-info {
-  color: #fff;
-  text-align: center;
-}
-
-.product-info h4 {
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.product-info p {
-  font-size: 14px;
-} */

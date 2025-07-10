@@ -1,68 +1,95 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block contain %}
-    <style>
-        .add_products {
-            width: 75vw; display: flex; justify-content: center; margin-bottom: 30px; margin-top: 20px;
-        }
-        .add_products button {
-          display: flex; justify-content: center; text-align: center; align-items: center; padding: 3px 10px 6px 10px; border-radius: 10px; color: white; background-color: blue; border: 0px solid black;
-        }
-        .filter{
-          display: flex; justify-content: end;
-        }
-        .head th {
-            color: darkblue;
-        }
-    </style>
 
-    <main id="main" class="main">
-        
-        <div class="add_products">
-            <h1 style="color: blue;">Products Sold</h1>
-        </div>
+  <style>
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid #ccc;
+      margin-top: 20px;
+    }
 
-        <div class="overflow-auto">
-          <div class="filter">
-            <button style="border: 0px solid black; background-color: #f6f9ff; " id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="bi bi-three-dots"></i></button>
-            <ul>
+    table {
+      width: 100%;
+      min-width: 950px;
+      border-collapse: collapse;
+    }
 
-              <div class="dropdown-menu">
-                <li class="dropdown-header text-start"><h6>Filter</h6></li>
-                <li><a class="dropdown-item" href="#" >Today</a></li>
-                <li><a class="dropdown-item" href="#">This Month</a></li>
-                <li><a class="dropdown-item" href="#">This Year</a></li>
-              </div>
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      white-space: nowrap;
+    }
 
-            </ul>
-          </div>
-        </div>
+    #searchInput {
+      width: 300px;
+      padding: 8px;
+      margin: 20px 0;
+    }
 
-        <table class="table table border border-info mt-3">
-            <thead>
-              <tr class="head">
-                <th scope="col">Preview</th>
-                <th scope="col">Product Name</th>
-                <th scope="col">Expirty Date</th>
-                <th scope="col">Cost Price</th>
-                <th scope="col">Selling Price</th>
-                <th scope="col">Date/Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for products in products_doc %}
-                <tr>
-                  <th scope="row"><img src="../static/img/{{products.image}}" style="height: 7vh; width: 4vw;"></th>
-                  <td>{{products.product_name}}</td>
-                  <td>{{products.expiry_date}}</td>
-                  <td>₹ {{products.cost_price}}</td>
-                  <td>₹ {{products.selling_price}}</td>
-                  <td>{{products.date_time}}</td>
-                </tr>
-              {% endfor %}
-            </tbody>
-        
-        </table>
-    </main> <!-- End #main -->
+    tr.clickable-row {
+      cursor: pointer;
+    }
+
+    tr.clickable-row:hover {
+      background-color: #f0f0f0;
+    }
+  </style>
+  <main id="main" class="main">
+
+
+    <h2>🧾 Products Sold</h2>
+
+    <input type="text" id="searchInput" placeholder="Search by QR/Product ID">
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Invoice ID</th>
+            <th>QR Code ID</th>
+            <th>Product Name</th>
+            <th>Qty</th>
+            <th>Price/Item</th>
+            <th>Total</th>
+            <th>Sold On</th>
+          </tr>
+        </thead>
+        <tbody id="soldTableBody">
+          {% for item in sold_rows %}
+          <tr class="clickable-row"
+              data-id="{{ item.qrcode_id|lower }}"
+              onclick="window.location.href='/invoice/{{ item.invoice_id }}/';">
+            <td>{{ forloop.counter }}</td>
+            <td>{{ item.invoice_id }}</td>
+            <td>{{ item.qrcode_id }}</td>
+            <td>{{ item.product_name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>₹{{ item.price_per_item }}</td>
+            <td>₹{{ item.total_price }}</td>
+            <td>{{ item.sold_on }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      const searchInput = document.getElementById('searchInput');
+      const rows = document.querySelectorAll('.clickable-row');
+
+      searchInput.addEventListener('input', () => {
+        const value = searchInput.value.toLowerCase();
+        rows.forEach(row => {
+          const id = row.dataset.id;
+          row.style.display = id.includes(value) ? '' : 'none';
+        });
+      });
+    </script>
+  </main>
+
 
 {% endblock %}

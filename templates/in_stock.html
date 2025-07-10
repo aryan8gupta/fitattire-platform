@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block contain %}
+
+    <style>
+        .status-red { background-color: #f8d7da; color: #721c24; }
+        .status-orange { background-color: #fff3cd; color: #856404; }
+        .status-green { background-color: #d4edda; color: #155724; }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid #ccc; /* optional: visible border around scroll area */
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+        
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc; /* 👈 this keeps cell borders */
+            white-space: nowrap;
+        }
+        
+
+        #searchInput {
+            width: 300px;
+            padding: 8px;
+            margin: 20px 0;
+        }
+
+        img.thumb {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+    </style>
+
+    <main id="main" class="main">
+
+        <h2>📦 In-Stock Products</h2>
+    
+        <input type="text" id="searchInput" placeholder="Search by Product Name or ID">
+    
+        <div class="table-container">
+            <table id="stockTable">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Image</th>
+                    <th>Product Name</th>
+                    <th>Product ID</th>
+                    <th>Color</th>
+                    <th>Quantity</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody id="productTableBody">
+                {% for product in products %}
+                <tr class="product-row"
+                    data-name="{{ product.product_name|lower }}"
+                    data-id="{{ product.qrcode_ids.0|lower }}">
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                    <img class="thumb" src="{{ product.variants.0.result_image }}" alt="Image">
+                    </td>
+                    <td>{{ product.product_name }}</td>
+                    <td>{{ product.qrcode_ids.0 }}</td>
+                    <td>{{ product.variants.0.color }}</td>
+                    <td>{{ product.product_quantity }}</td>
+                    <td class="
+                    {% if product.product_quantity < 2 %}
+                        status-red
+                    {% elif product.product_quantity < 5 %}
+                        status-orange
+                    {% else %}
+                        status-green
+                    {% endif %}
+                    ">
+                    {% if product.product_quantity < 2 %}
+                        🔴 Critical
+                    {% elif product.product_quantity < 5 %}
+                        🟠 Low
+                    {% else %}
+                        🟢 Good
+                    {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    
+        <script>
+            const searchInput = document.getElementById('searchInput');
+            const rows = document.querySelectorAll('.product-row');
+    
+            searchInput.addEventListener('input', () => {
+            const value = searchInput.value.toLowerCase();
+            rows.forEach(row => {
+                const name = row.dataset.name;
+                const id = row.dataset.id;
+                row.style.display = name.includes(value) || id.includes(value) ? '' : 'none';
+            });
+            });
+        </script>
+        
+    </main>
+
+{% endblock %}

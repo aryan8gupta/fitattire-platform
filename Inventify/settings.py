@@ -62,6 +62,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+ROOT_URLCONF = 'Inventify.urls'
 
 TEMPLATES = [
     {
@@ -79,6 +80,7 @@ TEMPLATES = [
     },
 ]
 
+WSGI_APPLICATION = 'Inventify.wsgi.application'
     
 import logging
 
@@ -86,12 +88,14 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# For Local
 # import pymongo
 # CONNECTION = pymongo.MongoClient('mongodb://localhost:27017')
 # # DB = CONNECTION.Inventory_Management
 # DB = CONNECTION.fitattire
 
 
+# For Production
 import pymongo
 my_var = os.getenv('Azure_Cosmos_Conn', 'Default Value')
 
@@ -126,7 +130,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata' 
 
 USE_I18N = True
 
@@ -151,3 +155,9 @@ STATICFILES_DIRS = [
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

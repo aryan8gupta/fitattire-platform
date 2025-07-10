@@ -19,7 +19,7 @@ urlpatterns = [
     path('api/decrease-credits/', views.decrease_credits, name='decrease_credits'),
 
     path('login/', views.login),
-    path('login2/', views.login),
+    # path('login2/', views.login),
     path('logout/', views.logout, name='logout'),
 
     path('dashboard/', views.dashboard),
@@ -28,18 +28,20 @@ urlpatterns = [
     path('employee/', views.employee),
     path('employee-signup/', views.employee_signup),
     
-    path('products/', views.products),
-    path('products-sold/', views.products_sold),
+    # path('products/', views.products),
     
-    path('products-add/', views.products_add),
+    # path('products-add/', views.products_add),
 
     path('add-products/', views.add_products),
     path('upload', views.upload_image),
+    path('in-stock/', views.in_stock_products),
+    path('products-sold/', views.products_sold_view),
+
 
     path('contact/', views.contact_us),
     path('analytics/', views.analytics),
 
-    path('barcode/', views.barcode),
+    # path('barcode/', views.barcode),
 
     path('exchange/', views.exchange),
     path("get-product-sold/", views.get_product_sold_by_qrcode),

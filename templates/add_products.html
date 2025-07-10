@@ -172,45 +172,10 @@
                             <div class="sub-category-grid"></div>
                             <div class="final-category-grid"></div>
                             <div class="final-sub-category-grid"></div>
-                          
-                            <div class="images-section"></div>
                             <h3 class="image-section-heading" style="display:none;">Choose Models</h3>
-                            <div class="result-image-box" style="display:none;"></div>
+                            <div class="images-section"></div>
+                        
                         </div>
-                          
-
-                        <!-- <div class="category-grid" id="category"></div> -->
-                        {% comment %} <div class="category-grid">
-                            <div class="category-item" data-gender="Men">
-                                <i class="fas fa-mars"></i>
-                                <span>Men</span>
-                            </div>
-                            <div class="category-item" data-gender="Women">
-                                <i class="fas fa-venus"></i>
-                                <span>Women</span>
-                            </div>
-                        </div>
-
-                        <div class="sub-category-grid" id="subcategory">
-                            <!-- Subcategories (Half Sleeve T-Shirts, etc.) -->
-                        </div>
-                        <div class="final-category-grid" id="finalcategory">
-                            <!-- Final categories (Polo T-shirt etc.) -->
-                        </div>
-                        <div class="final-sub-category-grid">
-                            <!-- Polo T-Shirts, Round Neck, etc. (4th level) — NO NEED NOW, handled inside final-category-grid -->
-                        </div>
-                        <div class="spinner" style="display: none;">
-                            <i class="fas fa-spinner fa-spin fa-3x"></i>
-                        </div>
-
-                        <!-- Image Section -------------------------------->
-                        <h2 id="image-section-heading" style="text-align:center; color:#333; font-size:28px; margin-top:30px; display:none;"></h2>
-                        <div class="images-section">
-                            <!-- All images will appear here -->
-                        </div> {% endcomment %}
-
-                        <!-- Image Section Ends --------------------------->
 
                         <!-- Result Section Starts --------------------------->
                         <div id="result-image-box" style="display: none;">
@@ -258,7 +223,7 @@
                     <h2>Product Details</h2>
                 </div>
                 <div class="card-body">
-                    <div class="product-form">
+                    <form class="product-form-model">
                         <div class="form-row">
                             <div class="input-group">
                                 <label for="brand-name">Brand Name</label>
@@ -369,8 +334,8 @@
                         <div class="qrcodes mt-2">
                             <h3>Scan QR Codes</h3>
 
-                            <button id="scan-btn" class="btn">Start Scanning</button>
-                            <button id="cancel-btn" class="btn" style="display:none;">Stop Scanning</button>
+                            <button type="button" id="scan-btn" class="btn">Start Scanning</button>
+                            <button type="button" id="cancel-btn" class="btn" style="display:none;">Stop Scanning</button>
 
                             <div id="reader" style="display:none;"></div>
 
@@ -388,7 +353,7 @@
                             </button>
                         </div>
 
-                    </div>
+                    </form>
                 </div>
             </div>
             </section>
@@ -480,30 +445,30 @@
                         <h2>Product Details</h2>
                     </div>
                     <div class="card-body">
-                        <div class="product-form">
+                        <form class="product-form-nomodel">
                             <div class="form-row">
                                 <div class="input-group">
-                                    <label for="brand-name">Brand Name</label>
-                                    <input type="text" id="brand-name" placeholder="Enter brand name" required>
+                                    <label for="brand-name-2">Brand Name</label>
+                                    <input type="text" id="brand-name-2" placeholder="Enter brand name" required>
                                 </div>
                                 <div class="input-group">
-                                    <label for="product-name">Product Name</label>
-                                    <input type="text" id="product-name" placeholder="Enter product name" required>
+                                    <label for="product-name-2">Product Name</label>
+                                    <input type="text" id="product-name-2" placeholder="Enter product name" required>
                                 </div>
                                 <div class="input-group">
-                                    <label for="product-fabric">Fabric</label>
-                                    <input type="text" id="product-fabric" placeholder="Enter Fabric name" required>
+                                    <label for="product-fabric-2">Fabric</label>
+                                    <input type="text" id="product-fabric-2" placeholder="Enter Fabric name" required>
                                 </div>
                             </div>
                             <div class="form-row">
     
                                 <div class="input-group">
-                                    <label for="color-select">Colors:</label>
+                                    <label for="color-select-2">Colors:</label>
                                     <!-- New manual color input field -->
-                                    <input type="text" id="manual-color-input" placeholder="Enter Custom Color" style="margin-bottom: 8px;" required/>
+                                    <input type="text" id="manual-color-input-2" placeholder="Enter Custom Color" style="margin-bottom: 8px;" required/>
     
                                     <div class="dropdown-wrapper">
-                                        <div class="custom-dropdown" id="color-select">
+                                        <div class="custom-dropdown" id="color-select-2">
                                             <span class="selected-value-color">Select Color</span>
                                             <i class='arrow fas fa-angle-down' style='font-size:24px'></i>
                                         </div>
@@ -521,12 +486,12 @@
                                     </div>
     
                                     <!-- Hidden field to hold the selected value for form submission -->
-                                    <input type="hidden" name="product-color" id="product-color" value="">
+                                    <input type="hidden" name="product-color" id="product-color-2" value="">
     
                                 </div>
     
                                 <div class="input-group-2">
-                                    <label id="label-sizes">Sizes:</label>
+                                    <label id="label-sizes-2">Sizes:</label>
                                     <div class="checkbox-group">
                                         <label class="checkbox-label">
                                             <input type="checkbox" name="size" value="XS">Extra Small(XS)
@@ -554,25 +519,25 @@
                             </div>
                             <div class="form-row">
                                 <div class="input-group">
-                                    <label for="product-quantity">Total Pieces Available</label>
-                                    <input type="number" id="product-quantity" placeholder="Enter quantity" required>
+                                    <label for="product-quantity-2">Total Pieces Available</label>
+                                    <input type="number" id="product-quantity-2" placeholder="Enter quantity" required>
                                 </div>
                                 <div class="input-group">
-                                    <label for="product-price">Product Price</label>
-                                    <input type="number" id="product-price" placeholder="Enter product price" required>
+                                    <label for="product-price-2">Product Price</label>
+                                    <input type="number" id="product-price-2" placeholder="Enter product price" required>
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="input-group">
-                                    <label for="selling-price">Selling Price</label>
-                                    <input type="number" id="selling-price" placeholder="Enter selling price" required>
+                                    <label for="selling-price-2">Selling Price</label>
+                                    <input type="number" id="selling-price-2" placeholder="Enter selling price" required>
                                 </div>
                                 <div class="input-group">
                                     <!-- Empty for alignment -->
                                 </div>
                             </div>
                             <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px">
-                                <button type="button" id="submit-variant-btn" class="btn">Submit & Add Another Variant</button>
+                                <button type="button" id="submit-variant-btn-2" class="btn">Submit & Add Another Variant</button>
                             </div>
                             <table>
                                 <thead>
@@ -584,20 +549,20 @@
                                     <th>Actions</th>
                                 </tr>
                                 </thead>
-                                <tbody id="tableBody">
+                                <tbody id="tableBody-2">
                                 <!-- Dynamic rows will be inserted here -->
                                 </tbody>
                             </table>
                             <div class="qrcodes mt-2">
                                 <h3>Scan QR Codes</h3>
     
-                                <button id="scan-btn" class="btn">Start Scanning</button>
-                                <button id="cancel-btn" class="btn" style="display:none;">Stop Scanning</button>
+                                <button type="button" id="scan-btn-2" class="btn">Start Scanning</button>
+                                <button type="button" id="cancel-btn-2" class="btn" style="display:none;">Stop Scanning</button>
     
-                                <div id="reader" style="display:none;"></div>
+                                <div id="reader-2" style="display:none;"></div>
     
-                                <div id="scanned-list">
-                                    <div id="scanned-items"></div>
+                                <div id="scanned-list-2">
+                                    <div id="scanned-items-2"></div>
                                 </div>
     
                                 <script src="https://unpkg.com/html5-qrcode"></script>
@@ -610,7 +575,7 @@
                                 </button>
                             </div>
     
-                        </div>
+                        </form>
                     </div>
                 </div>
             </section>

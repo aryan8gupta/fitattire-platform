@@ -6,9 +6,14 @@ from django.shortcuts import render, redirect;
 from django.http import HttpResponseRedirect, HttpResponse
 
 from collections import Counter
+from collections import OrderedDict as SON
 import bcrypt 
 import jwt
-from datetime import datetime, timedelta
+
+from django.utils import timezone
+from django.utils.timezone import localtime, make_aware
+from datetime import timedelta, datetime, timezone as dt_timezone
+
 from django.views.decorators.csrf import csrf_exempt
 # from Inventify.settings import DB, JWT_SECRET_KEY, MEDIA_ROOT
 from Inventify.deployment import DB, JWT_SECRET_KEY, MEDIA_ROOT
@@ -153,7 +158,7 @@ def generate_password(a):
 
 
 def generate_token(user_dict):
-    token = jwt.encode({"exp": datetime.now() + timedelta(days=7) , **user_dict}, JWT_SECRET_KEY, algorithm="HS256")
+    token = jwt.encode({"exp": localtime(timezone.now()) + timedelta(days=7) , **user_dict}, JWT_SECRET_KEY, algorithm="HS256")
     return token
 
 
@@ -265,6 +270,15 @@ def product_display(request, qr_id):
 
 
 def invoice(request, invoice_id):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
+
+    user_email = data.get('email')
 
     records = list(DB.products_sold.find({"invoice_id": invoice_id}))
     if records:
@@ -276,9 +290,7 @@ def invoice(request, invoice_id):
             except (ValueError, TypeError):
                 r["less"] = 0.0  # fallback if conversion fails
 
-        user_id = records[0].get('user_id')
-        user_record = DB.users.find_one({"_id": user_id})
-
+        user_record = DB.users.find_one({"email": user_email})
         users_shop_logo = user_record['shop_logo']
         users_shop_address = user_record['shop_address']
         users_shop_name = user_record['shop_name']
@@ -290,13 +302,12 @@ def invoice(request, invoice_id):
 
     return render(request, 'invoice.html',  {
         'records': records, 
-        'products': records[0].get('products', []),
+        'products': [product for r in records for product in r.get('products', [])],
         'business_shop_logo': users_shop_logo,
         'business_shop_address': users_shop_address,
         'business_shop_name': users_shop_name,
         'business_phone': users_phone,
     })
-
 
 def subscription(request):
     valid = False
@@ -690,8 +701,7 @@ def add_products(request):
     users_shop_logo = user_record['shop_logo']
     users_shop_address = user_record['shop_address']
     users_shop_name = user_record['shop_name']
-    users_id = user_record['_id']
-    print(users_id)
+    users_id = str(user_record['_id'])
 
     credits = user_record.get("credits_used", 0)
 
@@ -699,13 +709,11 @@ def add_products(request):
 
     if request.method == 'POST':
         try:
-            print("🔍 Reading POST data...")
-            logger.info("reading post data")
 
             # ✅ Safely get the data sent as FormData
             json_data1 = request.POST.get('document')
             json_data2 = request.POST.get('selectedmiddlebuttons')
-            logger.info("reading post data-2")
+            print("1")
 
             if not json_data1:
                 print("❌ 'document' is missing in POST")
@@ -717,25 +725,25 @@ def add_products(request):
             # Prepare to save uploaded garment images
             saved_garment_urls = []
             saved_result_urls = []
-            logger.info("reading post data-3")
+            print("2")
 
-            # garment_images in parsed_data1 are currently placeholders (filenames or base64 strings)
-            # We replace them with actual saved media URLs after saving files
+            i = 0
 
-            # Loop through all garment image files sent with keys 'garment_0', 'garment_1', ...
-            for i in range(len(parsed_data1['product_colors'])):
+            while True:
                 file_key1 = f'garment_{i}'
                 uploaded_garment_file = request.FILES.get(file_key1)
+                if not uploaded_garment_file:
+                    break
 
-                if uploaded_garment_file:
-                    uploaded_garment_url = upload_image_to_azure(uploaded_garment_file, blob_name="garment")
-                    saved_garment_urls.append(uploaded_garment_url)
-       
-                else:
-                    # No file sent for this variant, fallback or error handling
-                    saved_garment_urls.append('')  # or handle as you prefer
+                uploaded_garment_url = upload_image_to_azure(uploaded_garment_file, blob_name="garment")
+                saved_garment_urls.append(uploaded_garment_url)
 
-            logger.info("reading post data-4")
+                i += 1
+
+            # If no garment files were found, handle fallback (optional)
+            if not saved_garment_urls:
+                print("❗ No garment images found")
+
 
             # Handle result images (mixed types)
             index = 0
@@ -753,11 +761,6 @@ def add_products(request):
                     break  # Stop when no more result_x keys found
                 index += 1
 
-            logger.info("reading post data-5")
-
-            print(saved_garment_urls)
-            print(saved_result_urls)
-
             generated_urls=[]
             generated_images = []
             generated_colors = []
@@ -766,7 +769,7 @@ def add_products(request):
             category = parsed_data2.get('category', 'Jeans')
             gender = parsed_data2.get('gender', 'Women')
 
-            price_one_item = parsed_data1.get('product_selling_price', '0')
+            price_one_item = int(parsed_data1.get('product_selling_price', '0'))
             len_variants = len(parsed_data1['product_colors'])
             total_price = price_one_item * len_variants
 
@@ -774,7 +777,6 @@ def add_products(request):
             upgraded_product_price = int(parsed_data1['product_selling_price']) + random_integer
             product_discount = int(((random_integer)/(upgraded_product_price)) * 100)
 
-            logger.info("reading post data-6")
             # Build the variants array
             variants = []
             for i in range(len(parsed_data1['product_colors'])):
@@ -784,6 +786,7 @@ def add_products(request):
                     "result_image": saved_result_urls[i],
                 }
                 variants.append(variant)
+                print(variants)
                 # For Image Generation with Text
                 big_image_path = saved_result_urls[i]
                 garment_image_path = saved_garment_urls[i]
@@ -795,6 +798,8 @@ def add_products(request):
                     f"Fabric: {parsed_data1['product_fabric']}",
                     f"Color: {parsed_data1['product_colors'][i]}"
                 ]
+                print("9")
+                print(parsed_data1['qrcode_ids'][0])
                 # image_url_2 = create_offer_photo_with_right_image(
                 #     big_image_path=big_image_path,
                 #     output_path="generated",
@@ -809,11 +814,12 @@ def add_products(request):
                     logo_path=logo_path,
                     output_path="generated",
                     product_name=product_name,
-                    product_quantity=int(parsed_data1['product_quantity']),
+                    product_quantity=len_variants,
                     product_selling_price_total_amount=total_price,
                     product_id=parsed_data1['qrcode_ids'][0]
                 )
                 generated_urls.append(image_url_3)
+                print("10")
 
 
                 azure_generated_image_url = create_dynamic_photo_with_auto_closeup(
@@ -827,45 +833,58 @@ def add_products(request):
 
                 generated_colors.append(parsed_data1['product_colors'][i])
 
+            print("11")
+            def background_task_2():
 
-            response1 = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": (
-                            "You are a creative Instagram marketer who writes short, catchy, and trendy captions "
-                            "for fashion products in India. Use emojis and 3–5 relevant fashion hashtags. "
-                            "Keep the tone fun and engaging, and always be concise."
-                        )
-                    },
-                    {
-                        "role": "user",
-                        "content": f"""
-                            Generate an Instagram caption for the following fashion product carousel:
+                response1 = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": (
+                                "You are a creative Instagram marketer who writes short, catchy, and trendy captions "
+                                "for fashion products in India. Use emojis and 3–5 relevant fashion hashtags. "
+                                "Keep the tone fun and engaging, and always be concise."
+                            )
+                        },
+                        {
+                            "role": "user",
+                            "content": f"""
+                                Generate an Instagram caption for the following fashion product carousel:
 
-                            - 🛍️ Product Name: {product_name}  
-                            - 👕 Category: {category}  
-                            - 🧍 Gender: {gender}  
-                            - 🧵 Fabric: {parsed_data1['product_fabric']}  
-                            - 🎨 Available in {parsed_data1['product_quantity']} colors: {generated_colors}  
-                            - 💰 Mega Deal: ₹{total_price} total (based on all variants)  
-                            - 🔥 {product_discount}% OFF  
+                                - 🛍️ Product Name: {product_name}  
+                                - 👕 Category: {category}  
+                                - 🧍 Gender: {gender}  
+                                - 🧵 Fabric: {parsed_data1['product_fabric']}  
+                                - 🎨 Available in {parsed_data1['product_quantity']} colors: {generated_colors}  
+                                - 💰 Mega Deal: ₹{total_price} total (based on all variants)  
 
-                            💡 Include this line in the caption:  
-                            "To know more, enter the Product ID in the chat shown in the image!"  
+                                💡 Include this line in the caption:  
+                                "To know more, enter the Product ID in the chat shown in the image!"  
 
-                            📝 Caption Style:  
-                            - Keep it short and attention-grabbing  
-                            - Mention the discount/deal clearly  
-                            - Use emojis and make it carousel-appropriate  
-                            - Add 3–5 trendy fashion hashtags at the end
-                        """
-                    }
-                ]
-            )
+                                📝 Caption Style:  
+                                - Keep it short and attention-grabbing 
+                                - Keep it simple and understandable as their english is not very good 
+                                - Mention the discount/deal clearly  
+                                - Use emojis and make it carousel-appropriate  
+                                - Add 3–5 trendy fashion hashtags at the end
+                            """
+                        }
+                    ]
+                )
+                reply1 = response1.choices[0].message.content
+                if len(generated_urls) > 1:
+                    print_response1 = post_carousel_to_instagram(generated_urls, reply1)
+                    print("response-1: ", print_response1)
+                else:
+                    print_response1 = post_to_instagram(generated_urls, reply1)
+                    print("response-1: ", print_response1)
+            
+            thread2 = threading.Thread(target=background_task_2)
+            thread2.daemon = True
+            thread2.start()
 
-            reply1 = response1.choices[0].message.content
+            print("[INFO] Video generation thread-2 started.")
                 
             
             image_dict = {
@@ -873,7 +892,7 @@ def add_products(request):
                 "qr_ids": parsed_data1['qrcode_ids'],
                 "image_urls": generated_images,
                 "is_downloaded": False,
-                "created_at": datetime.now().strftime("%d-%m-%Y")
+                "created_at": localtime(timezone.now()).strftime("%d-%m-%Y")
             }
 
             DB.images_download.insert_one(image_dict)
@@ -899,29 +918,30 @@ def add_products(request):
                 "video_groups": video_groups,
                 "video_generated": False,
                 "is_downloaded": False,
-                "created_at": datetime.now().strftime("%d-%m-%Y")
+                "created_at": localtime(timezone.now()).strftime("%d-%m-%Y")
             }
 
             DB.videos_download.insert_one(video_dict)
 
-            video_record = list(DB.videos_downloaded.find(
+            video_records = list(DB.videos_downloaded.find(
                 {"user_id": users_id, "video_generated": False}
             ))
 
+            video_groups = []
             product_info = []
 
-            for record in video_record:
-                video_record = record.get("video_groups", [])
-                for group in video_record:
+            for record in video_records:
+                groups = record.get("video_groups", [])
+                for group in groups:
                     product_name = group.get("product_name")
                     image_urls = group.get("image_urls")
-
-                video_groups.append({"product_name": product_name, "image_urls": image_urls})
+                    video_groups.append({"product_name": product_name, "image_urls": image_urls})
 
             total_images = sum(len(group["image_urls"]) for group in video_groups)
 
-            if len(total_images) >= 8:
+            if total_images >= 8:
                 video_output_path = f"output/generated_reel_{uuid.uuid4().hex}.mp4"
+                print("234")
 
                 # SAFETY: Start thread and don't store the thread object
                 def background_task():
@@ -966,9 +986,6 @@ def add_products(request):
                     #     ]
                     # )
 
-                    print_response1 = post_carousel_to_instagram(generated_urls, reply1)
-                    print("response-1: ", print_response1)
-
                     reply_2 = response2.choices[0].message.content
                     
                     result = post_azure_video_to_instagram(video_url, reply_2)
@@ -993,6 +1010,7 @@ def add_products(request):
 
 
             products_dict = {
+                "user_id": users_id,
                 "qrcode_ids": parsed_data1['qrcode_ids'],
                 "product_gender": parsed_data2['gender'],
                 "product_category": parsed_data2['category'],
@@ -1007,7 +1025,8 @@ def add_products(request):
                 "product_price": parsed_data1['product_price'],
                 "selling_price": parsed_data1['product_selling_price'],
                 "product_discount": product_discount,
-                "variants": variants
+                "variants": variants,
+                "created_on": localtime(timezone.now())
             }
             # DB.products.create_index({"qrcode_ids": 1})
 
@@ -1022,6 +1041,85 @@ def add_products(request):
             
 
     return render(request, 'add_products.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'credits': credits})
+
+
+
+def in_stock_products(request):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
+	
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+
+    user_email = data.get('email')
+    user_record = DB.users.find_one({"email": user_email})
+    users_id = str(user_record['_id'])
+
+    products = list(DB.products.find({"user_id": users_id}).sort("product_quantity", 1))
+
+    for p in products:
+        p["_id"] = str(p["_id"])
+    
+    return render(request, 'in_stock.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, "products": products})
+
+
+
+def products_sold_view(request):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+
+    dashboard = 'dashboard' if valid else None
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+    user_email = data.get('email')
+
+    user_record = DB.users.find_one({"email": user_email})
+    users_id = str(user_record['_id'])
+
+    raw_sales = DB.products_sold.find({"user_id": users_id}).sort("sold_on", -1)
+
+    rows = []
+
+    for invoice in raw_sales:
+        sold_date = invoice.get("sold_on")
+        formatted_date = sold_date.strftime("%d-%m-%Y") if sold_date else ""
+
+        # Group products in same invoice by product_id
+        grouped_products = {}
+
+        for product in invoice.get("products", []):
+            pid = product.get("product_id")
+
+            if pid in grouped_products:
+                grouped_products[pid]["quantity"] += product.get("quantity", 0)
+                grouped_products[pid]["total_price"] += product.get("total_selling_price", 0)
+            else:
+                grouped_products[pid] = {
+                    "invoice_id": invoice.get("invoice_id"),
+                    "product_id": pid,
+                    "product_name": product.get("product_name"),
+                    "qrcode_id": product.get("qrcode_id"),
+                    "quantity": product.get("quantity", 0),
+                    "price_per_item": product.get("price_per_item"),
+                    "total_price": product.get("total_selling_price", 0),
+                    "sold_on": formatted_date
+                }
+
+        rows.extend(grouped_products.values())
+
+    return render(request, 'products_sold.html', {
+        'dashboard': dashboard,
+        'user_type': user_type,
+        'first_name': user_name,
+        "sold_rows": rows
+    })
 
 
 @csrf_exempt
@@ -1063,7 +1161,7 @@ def exchange(request):
                     if product:
                         exchange_dict = {
                             "qr_id": qr_id,
-                            "date": datetime.now().strftime("%d-%m-%Y"),
+                            "date": localtime(timezone.now()).strftime("%d-%m-%Y"),
                             "product_name": product.get("product_name", "N/A"),
                             "status": scanned_data.get("status"),
                         }
@@ -1120,7 +1218,7 @@ def sales(request):
 
     def generate_secure_invoice_id(length=10):
         alphabet = string.ascii_uppercase + string.digits
-        return 'INV-' + datetime.now().strftime("%Y") + ''.join(secrets.choice(alphabet) for _ in range(length))
+        return 'INV-' + localtime(timezone.now()).strftime("%Y") + ''.join(secrets.choice(alphabet) for _ in range(length))
 
     if request.method == "POST":
         try: 
@@ -1134,6 +1232,7 @@ def sales(request):
                     break
 
             products_list = []
+            product_sold = {}
             for qr_id in scanned_data["qr_ids"]:
                 product_sold_data = DB.product_sold.find_one({"qr_ids": qr_id})
                 if not product_sold_data:
@@ -1149,29 +1248,32 @@ def sales(request):
                             saved_image_urls.append(image_result_url)
 
                         try:
-                            price_per_item = int(product.get("selling_price", 0))
+                            selling_price_per_item = int(product.get("selling_price", 0))
+                            buy_price_per_item = int(product.get("product_price", 0))
                         except ValueError:
-                            price_per_item = 0
+                            selling_price_per_item = 0
+                            buy_price_per_item = 0
 
                         variants = product.get("variants", [])
                         quantity = len(variants)
-                        total_price = price_per_item * quantity
+                        total_selling_price = selling_price_per_item * quantity
+                        total_buyed_price = buy_price_per_item * quantity
 
                         product_entry = {
                             "qrcode_id": qr_id,
-                            "product_id": product["_id"],
+                            "product_id": str(product["_id"]),
                             "product_name": product.get("product_name", "N/A"),
                             "quantity": quantity,
-                            "price_per_item": price_per_item,
-                            "total_price": total_price,
+                            "price_per_item": selling_price_per_item,
+                            "total_buyed_price": total_buyed_price,
+                            "total_selling_price": total_selling_price,
                             "product_result_images": saved_image_urls
                         }
 
                         products_list.append(product_entry)
 
                         product_sold = {
-                            "qr_id": qr_id,
-                            "user_id": users_id_doc['_id'],
+                            "user_id": str(users_id_doc['_id']),
                             "invoice_id": invoice_id,
                             "total_amount": scanned_data['total_bill'],
                             'original_amount': scanned_data['original_amount'],
@@ -1182,11 +1284,10 @@ def sales(request):
                             "product_result_images": saved_image_urls,
                             "customer_phone": scanned_data['phone'],
                             "customer_name": scanned_data['customer_name'],
-                            "sold_on": datetime.now(),
+                            "sold_on": localtime(timezone.now()),
                             "products": products_list
 
                         }
-                        DB.products_sold.insert_one(product_sold)
                         DB.products.update_one(
                             {"qrcode_ids": qr_id},
                             {
@@ -1198,13 +1299,16 @@ def sales(request):
                 else:
                     return JsonResponse({"error": "Product already sold."}, status=400)
             
+            print(product_sold)
+                
+            DB.products_sold.insert_one(product_sold)
+            
             send_invoice_whatsapp_message(
                 recipient_number=scanned_data['phone'],
                 user_name=scanned_data['customer_name'],
                 company_name=users_id_doc['shop_name'],
                 amount=scanned_data['total_bill'],
                 invoice_id=invoice_id,
-                instagram_link=users_id_doc['instagram_url'],
             )
 
 
@@ -1222,26 +1326,30 @@ def search_whatsapp_number(request):
     if request.method == "POST":
         data = json.loads(request.body)
         phone = data.get("phone")
-        print("100")
 
         record = DB.customers.find_one({"phone": phone})
-        print(record)
 
         if record:
-            record_purchases = list(DB.products_sold.find({"phone_number": phone}))
+            record_purchases = list(DB.products_sold.find({"customer_phone": phone}))
             if record_purchases:
                 purchases = []
-                for p in record_purchases:
+                for sale in record_purchases:
+                    products = sale.get("products", [])
+
+                    product_name = products[0].get("product_name") if products else "Unnamed Product"
+                    product_quantity = products[0].get("quantity") if products else 0
+                    product_selling_price = products[0].get("total_selling_price") if products else 0
+                    
                     purchases.append({
-                        "product": p.get("product_name", ""),
-                        "qty": p.get("buyed_quantity", 0),
-                        "price": p.get("product_sold_price", 0)
+                        "product": product_name,
+                        "qty": product_quantity,
+                        "price": product_selling_price
                     })
 
                 return JsonResponse({
                     "found": True,
-                    "name": record.name,
-                    "phone": record.phone,
+                    "name": record['name'],
+                    "phone": record['phone'],
                     "purchases": purchases
                 })
             
@@ -1269,7 +1377,7 @@ def add_whatsapp_number(request):
         record = {
             'name': name,
             'phone': phone,
-            'created': datetime.now().strftime("%d-%m-%Y")
+            'created': localtime(timezone.now()).strftime("%d-%m-%Y")
         }
         DB.customers.insert_one(record)
 
@@ -1321,7 +1429,7 @@ def get_product_sold_by_qrcode(request):
 
 
 def get_time_range(period):
-    now = datetime.now()
+    now = localtime(timezone.now())
     if period == "Last 24 hour":
         return now - timedelta(hours=24)
     elif period == "Last week":
@@ -1331,6 +1439,7 @@ def get_time_range(period):
     elif period == "Last year":
         return now - timedelta(days=365)
     return now - timedelta(days=7)  # default
+
 
 @csrf_exempt
 def analytics(request):
@@ -1344,73 +1453,92 @@ def analytics(request):
 	
     user_type = data.get('user_type')
     user_name = data.get('first_name')
-
     user_email = data.get('email')
     user_record = DB.users.find_one({"email": user_email})
-    user_id = user_record['_id']
+    user_id = str(user_record['_id'])
+
+    def parse_timezone(sold_on):
+        try:
+            if isinstance(sold_on, dict) and "$date" in sold_on:
+                val = sold_on["$date"]
+                if isinstance(val, (int, float)):
+                    dt = datetime.fromtimestamp(val / 1000.0, tz=dt_timezone.utc)
+                elif isinstance(val, str):
+                    dt = datetime.fromisoformat(val.replace("Z", "+00:00"))
+                else:
+                    return localtime(timezone.now())
+            elif isinstance(sold_on, (int, float)):
+                dt = datetime.fromtimestamp(sold_on / 1000.0, tz=dt_timezone.utc)
+            elif isinstance(sold_on, str):
+                dt = datetime.fromisoformat(sold_on.replace("Z", "+00:00"))
+            elif isinstance(sold_on, datetime):
+                if sold_on.tzinfo is None:
+                    dt = make_aware(sold_on)
+                else:
+                    dt = sold_on
+            else:
+                return localtime(timezone.now())
+
+            return localtime(dt)  # ✅ Convert to Asia/Kolkata using Django settings
+        except Exception as e:
+            print("timezone parse error:", e)
+            return localtime(timezone.now())
+
 
     if request.method == "POST":
+        body = json.loads(request.body)
+        period = body.get('range', 'Last 24 hour')
 
-        data = json.loads(request.body)
-        period = data.get('range', 'Last 24 hour')
-        print("120")
-        print(period)
-        
         from_date = get_time_range(period)
-        now = datetime.now()
+        # from_date = localtime(timezone.now()) - timedelta(days=7)  # includes last 7 days
+        now = localtime(timezone.now())
 
-        def datetime_to_ms(dt):
-            return int(dt.timestamp() * 1000)
-
-        from_date_ms = datetime_to_ms(from_date)
-        now_ms = datetime_to_ms(now)
-
-        # Filter products_sold based on actual datetime
-        sales = list(DB.products_sold.find({
-            "user_id": ObjectId(user_id),
-            "sold_on": { "$gte": from_date_ms, "$lt": now_ms }
+        all_sales = list(DB.products_sold.find({
+            "user_id": user_id,
         }))
 
-        def ms_to_datetime(ms):
-            return datetime.fromtimestamp(ms / 1000.0)
+        # Filter sales in the given period (local/azure-safe)
+        sales = []
+        for s in all_sales:
+            sold_timezone = parse_timezone(s.get("sold_on"))
+            if from_date <= sold_timezone < now:
+                s["_sold_timezone"] = sold_timezone
+                sales.append(s)
 
-        # --- Stats Calculation ---
-        total_profit = sum(s.get("discounted_amount", 0) for s in sales)
+        # --- Stats ---
+        total_profit = sum(
+            (p.get("total_selling_price", 0) - p.get("total_buyed_price", 0))
+            for s in sales for p in s.get("products", [])
+        )
         total_customers = len(set(s.get("customer_phone") for s in sales if s.get("customer_phone")))
         total_transactions = len(sales)
-        total_products = len(set(s.get("product_id") for s in sales))
+        total_products = sum(len(s.get("products", [])) for s in sales)
 
-        # Revenue chart mock (group by hour or day for now, you can optimize later)
+        # --- Revenue Chart ---
         hourly = {}
         for s in sales:
-            sold_datetime = ms_to_datetime(s["sold_on"]["$date"])
-            hour_label = sold_datetime.strftime("%d-%m %H:00")
+            dt = s["_sold_timezone"]
+            hour_label = dt.strftime("%d-%m %H:00")
             hourly.setdefault(hour_label, 0)
-            hourly[hour_label] += s.get("discounted_amount", 0)
-
+            hourly[hour_label] += float(s.get("discounted_amount") or 0)
 
         revenue_chart = [
-            {"name": hour, "revenue": revenue, "ecommerce": revenue // 2}
+            {"name": hour, "revenue": revenue}
             for hour, revenue in sorted(hourly.items())
         ]
 
-
         # --- Top Products ---
-        # Count product_id occurrences
         product_counter = Counter()
-        product_info = {}  # To store name and image
-
+        product_info = {}
         for s in sales:
             pid = str(s.get("product_id"))
             product_counter[pid] += 1
-            # Store info for display
             if pid not in product_info:
                 product_info[pid] = {
                     "name": s.get("product_name", ""),
-                    "image": s.get("product_result_images", [""])[0]  # use first image
+                    "image": s.get("product_result_images", [""])[0]
                 }
 
-        # Build top 5 products
         top_products = []
         for pid, count in product_counter.most_common(5):
             info = product_info[pid]
@@ -1420,19 +1548,24 @@ def analytics(request):
                 "sales": count
             })
 
-
         # --- Top Transactions ---
-        sorted_sales = sorted(sales, key=lambda x: x.get("sold_on", {}).get("$date", 0), reverse=True)
+        top_sales = sorted(sales, key=lambda x: x.get("total_amount", 0), reverse=True)[:5]
+
         top_transactions = []
-        for s in sorted_sales[:5]:
-            sold_datetime = ms_to_datetime(s["sold_on"]["$date"]).strftime("%d-%m-%Y")
+        for s in top_sales:
+            sold_date = s["_sold_timezone"].strftime("%d-%m-%Y")
+
+            # Safely get first product name from the products array
+            products = s.get("products", [])
+            product_name = products[0].get("product_name", "Unknown") if products else "Unknown"
+
             top_transactions.append({
                 "customer": {
                     "id": s.get("customer_phone", "N/A"),
                     "name": s.get("customer_name", "Unknown")
                 },
-                "item": s.get("product_name", "Unknown"),
-                "date": sold_datetime,
+                "item": product_name,
+                "date": sold_date,
                 "purchase": s.get("total_amount", 0),
                 "status": "completed"
             })
@@ -1440,7 +1573,7 @@ def analytics(request):
 
         return JsonResponse({
             "stats": {
-                "revenue": {"value": total_profit, "change": 10},  # Add logic for change if needed
+                "revenue": {"value": total_profit, "change": 10},
                 "customers": {"value": total_customers, "change": 12},
                 "transactions": {"value": total_transactions, "change": 5},
                 "products": {"value": total_products, "change": 3}
@@ -1456,9 +1589,11 @@ def analytics(request):
             "top_transactions": top_transactions
         }, safe=False)
 
-
-    return render(request, 'analytics.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
-
+    return render(request, 'analytics.html', {
+        'dashboard': dashboard,
+        'user_type': user_type,
+        'first_name': user_name
+    })
 
 
 def dashboard(request):
@@ -1470,12 +1605,18 @@ def dashboard(request):
     if valid:
         dashboard = 'dashboard'
 
-    try:
+    # === User Info ===
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+    user_email = data.get('email')
+    user_record = DB.users.find_one({"email": user_email})
+    user_id = str(user_record['_id'])
 
+    try:
         recent_activities = []
 
         def time_diff_string(timestamp):
-            now = datetime.now()
+            now = localtime(timezone.now())
             diff = now - timestamp
 
             if diff.days >= 1:
@@ -1488,24 +1629,46 @@ def dashboard(request):
                 return f"{minutes} min ago"
             return "just now"
 
+        def parse_timezone(sold_on):
+            try:
+                if isinstance(sold_on, dict) and "$date" in sold_on:
+                    val = sold_on["$date"]
+                    if isinstance(val, (int, float)):
+                        dt = datetime.fromtimestamp(val / 1000.0, tz=dt_timezone.utc)
+                    elif isinstance(val, str):
+                        dt = datetime.fromisoformat(val.replace("Z", "+00:00"))
+                    else:
+                        return localtime(timezone.now())
+                elif isinstance(sold_on, (int, float)):
+                    dt = datetime.fromtimestamp(sold_on / 1000.0, tz=dt_timezone.utc)
+                elif isinstance(sold_on, str):
+                    dt = datetime.fromisoformat(sold_on.replace("Z", "+00:00"))
+                elif isinstance(sold_on, datetime):
+                    dt = make_aware(sold_on) if sold_on.tzinfo is None else sold_on
+                else:
+                    return localtime(timezone.now())
 
-        
-        start_of_year = datetime(datetime.now().year, 1, 1)
-        now = datetime.now()
+                return localtime(dt)  # ✅ convert to IST
+            except Exception as e:
+                print("parse_timezone error:", e)
+                return localtime(timezone.now())
+
+        # === Revenue Calculation ===
+        start_of_year = make_aware(datetime(localtime(timezone.now()).year, 1, 1))
+        now = localtime(timezone.now())
 
         total_revenue_pipeline = [
             {
                 "$match": {
-                    "sold_on": {
-                        "$gte": start_of_year,
-                        "$lte": now
-                    }
+                    "user_id": user_id,
+                    "sold_on": { "$gte": start_of_year, "$lte": now }
                 }
+
             },
             {
                 "$group": {
                     "_id": None,
-                    "total_revenue": { "$sum": "$discounted_amount" }
+                    "total_revenue": { "$sum": "$total_amount" }
                 }
             }
         ]
@@ -1513,75 +1676,68 @@ def dashboard(request):
         revenue_result = list(DB.products_sold.aggregate(total_revenue_pipeline))
         total_revenue = revenue_result[0]["total_revenue"] if revenue_result else 0
 
-
-        sales_logs = list(DB.products_sold.find().sort("sold_on", -1).limit(5))
+        # === Recent Activities ===
+        # sales_logs = list(DB.products_sold.find().sort("sold_on", -1).limit(5))
+        sales_logs = list(DB.products_sold.find({"user_id": user_id}).sort("sold_on", -1).limit(5))
         for sale in sales_logs:
-            sold_time = sale.get("sold_on")
+            sold_time = parse_timezone(sale.get("sold_on"))
 
-            # Safely convert to datetime
-            if isinstance(sold_time, dict) and "$date" in sold_time:
-                sold_time = datetime.fromtimestamp(sold_time["$date"] / 1000.0)
-            elif isinstance(sold_time, (int, float)):
-                sold_time = datetime.fromtimestamp(sold_time / 1000.0)
-            elif isinstance(sold_time, str):
-                try:
-                    sold_time = datetime.fromisoformat(sold_time)
-                except Exception:
-                    sold_time = datetime.now()
-            elif not isinstance(sold_time, datetime):
-                sold_time = datetime.now()
+            # Get the first product's name from the products array
+            products = sale.get("products", [])
+            product_name = products[0].get("product_name") if products else "Unnamed Product"
 
             recent_activities.append({
                 "type": "sold",
-                "product_name": sale.get("product_name", "Unnamed Product"),
+                "product_name": product_name,
                 "time": time_diff_string(sold_time)
             })
 
-
-        # # Recent added products
-        # product_logs = list(DB.products.find().sort("created_at", -1).limit(5))
-        # for prod in product_logs:
-        #     recent_activities.append({
-        #         "type": "added",
-        #         "product_name": prod.get("product_name", "Unnamed Product"),
-        #         "time": time_diff_string(prod.get("created_at", datetime.now()))
-        #     })
-
-        user_type = data.get('user_type')
-        user_name = data.get('first_name')
-
-        # Count total image URLs in all documents that are not yet downloaded
-        image_docs = DB.images_download.find({"is_downloaded": False})
+        # === Image Count ===
+        image_docs = DB.images_download.find({
+            "user_id": user_id,
+            "is_downloaded": False
+        })
         image_count = sum(len(doc.get("image_urls", [])) for doc in image_docs)
+        print(image_count)
 
-        # Count total video documents not downloaded (1 video per doc)
-        # video_count = DB.videos_download.count_documents({"is_downloaded": False})
+        # === Video Count ===
         video_count = DB.videos_download.count_documents({
+            "user_id": user_id,
             "is_downloaded": False,
-            "video_urls": { "$nin": ["", " "] }  # Exclude empty or whitespace strings
+            "video_urls": { "$nin": ["", " "] }
         })
 
-        collection = DB.products_sold  # your collection
-
+        # === Top Selling Products ===
         pipeline = [
             {
+                "$match": { "user_id": user_id }
+            },
+            {
+                "$unwind": "$products"  # ✅ Split the array
+            },
+            {
                 "$group": {
-                    "_id": "$product_id",  # Group by ObjectId of the product
-                    "total_quantity": { "$sum": 1 },
-                    "average_price": { "$avg": "$discounted_amount" },
-                    "product_name": { "$first": "$product_name" },
-                    "image": { "$first": { "$arrayElemAt": ["$product_result_images", 0] } }
+                    "_id": "$products.product_id",
+                    "total_quantity": { "$sum": "$products.quantity" },
+                    "average_price": { "$avg": "$products.price_per_item" },
+                    "product_name": { "$first": "$products.product_name" },
+                    "image": { "$first": { "$arrayElemAt": ["$products.product_result_images", 0] } }
                 }
             },
             { "$sort": SON([("total_quantity", -1)]) },
             { "$limit": 5 }
         ]
 
-        top_selling = list(collection.aggregate(pipeline))
+        top_selling = list(DB.products_sold.aggregate(pipeline))
+                
 
+        # === Render Page ===
         if user_type == 'Employee':
-            return render(request, 'barcode.html', {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
-
+            return render(request, 'barcode.html', {
+                'dashboard': dashboard,
+                'user_type': user_type,
+                'first_name': user_name
+            })
 
         return render(request, 'dashboard.html', {
             'dashboard': dashboard,
@@ -1593,14 +1749,172 @@ def dashboard(request):
             'total_revenue': total_revenue,
             'recent_activities': recent_activities
         })
-    
+
     except Exception as e:
         print("Dashboard Error:", str(e))
+        return render(request, 'error.html', {
+            'error_message': str(e)
+        })
+
+
+# def dashboard(request):
+#     valid = False
+#     data = {}
+#     if request.COOKIES.get('t'):
+#         valid, data = verify_token(request.COOKIES['t'])
+#     dashboard = None
+#     if valid:
+#         dashboard = 'dashboard'
+
+#     try:
+
+#         recent_activities = []
+
+#         def time_diff_string(timestamp):
+#             now = localtime(timezone.now())
+#             diff = now - timestamp
+
+#             if diff.days >= 1:
+#                 return f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
+#             elif diff.seconds >= 3600:
+#                 hours = diff.seconds // 3600
+#                 return f"{hours} hour{'s' if hours > 1 else ''} ago"
+#             elif diff.seconds >= 60:
+#                 minutes = diff.seconds // 60
+#                 return f"{minutes} min ago"
+#             return "just now"
+
+
+        
+#         start_of_year = timezone(localtime(timezone.now()).year, 1, 1)
+#         now = localtime(timezone.now())
+
+#         total_revenue_pipeline = [
+#             {
+#                 "$match": {
+#                     "sold_on": {
+#                         "$gte": start_of_year,
+#                         "$lte": now
+#                     }
+#                 }
+#             },
+#             {
+#                 "$group": {
+#                     "_id": None,
+#                     "total_revenue": { "$sum": "$discounted_amount" }
+#                 }
+#             }
+#         ]
+
+#         revenue_result = list(DB.products_sold.aggregate(total_revenue_pipeline))
+#         total_revenue = revenue_result[0]["total_revenue"] if revenue_result else 0
+
+
+#         sales_logs = list(DB.products_sold.find().sort("sold_on", -1).limit(5))
+#         for sale in sales_logs:
+#             sold_time = sale.get("sold_on")
+
+#             # Safely convert to timezone
+#             if isinstance(sold_time, dict) and "$date" in sold_time:
+#                 sold_time = timezone.fromtimestamp(sold_time["$date"] / 1000.0)
+#             elif isinstance(sold_time, (int, float)):
+#                 sold_time = timezone.fromtimestamp(sold_time / 1000.0)
+#             elif isinstance(sold_time, str):
+#                 try:
+#                     sold_time = timezone.fromisoformat(sold_time)
+#                 except Exception:
+#                     sold_time = localtime(timezone.now())
+#             elif not isinstance(sold_time, timezone):
+#                 sold_time = localtime(timezone.now())
+
+#             recent_activities.append({
+#                 "type": "sold",
+#                 "product_name": sale.get("product_name", "Unnamed Product"),
+#                 "time": time_diff_string(sold_time)
+#             })
+
+
+#         # # Recent added products
+#         # product_logs = list(DB.products.find().sort("created_at", -1).limit(5))
+#         # for prod in product_logs:
+#         #     recent_activities.append({
+#         #         "type": "added",
+#         #         "product_name": prod.get("product_name", "Unnamed Product"),
+#         #         "time": time_diff_string(prod.get("created_at", localtime(timezone.now())))
+#         #     })
+
+#         user_type = data.get('user_type')
+#         user_name = data.get('first_name')
+
+#         # Count total image URLs in all documents that are not yet downloaded
+#         image_docs = DB.images_download.find({"is_downloaded": False})
+#         image_count = sum(len(doc.get("image_urls", [])) for doc in image_docs)
+
+#         # Count total video documents not downloaded (1 video per doc)
+#         # video_count = DB.videos_download.count_documents({"is_downloaded": False})
+#         video_count = DB.videos_download.count_documents({
+#             "is_downloaded": False,
+#             "video_urls": { "$nin": ["", " "] }  # Exclude empty or whitespace strings
+#         })
+
+#         collection = DB.products_sold  # your collection
+
+#         pipeline = [
+#             {
+#                 "$group": {
+#                     "_id": "$product_id",  # Group by ObjectId of the product
+#                     "total_quantity": { "$sum": 1 },
+#                     "average_price": { "$avg": "$discounted_amount" },
+#                     "product_name": { "$first": "$product_name" },
+#                     "image": { "$first": { "$arrayElemAt": ["$product_result_images", 0] } }
+#                 }
+#             },
+#             { "$sort": SON([("total_quantity", -1)]) },
+#             { "$limit": 5 }
+#         ]
+
+#         top_selling = list(collection.aggregate(pipeline))
+
+#         if user_type == 'Employee':
+#             return render(request, 'barcode.html', {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
+
+
+#         return render(request, 'dashboard.html', {
+#             'dashboard': dashboard,
+#             'user_type': user_type,
+#             'first_name': user_name,
+#             'image_count': image_count,
+#             'video_count': video_count,
+#             'top_selling_products': top_selling,
+#             'total_revenue': total_revenue,
+#             'recent_activities': recent_activities
+#         })
+    
+#     except Exception as e:
+#         print("Dashboard Error:", str(e))
 
 
 def download_images_zip(request):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
+
+    # === User Info ===
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+    user_email = data.get('email')
+    user_record = DB.users.find_one({"email": user_email})
+    user_id = str(user_record['_id'])
+
     # 1. Fetch all image documents that are not downloaded
-    image_docs = list(DB.images_download.find({"is_downloaded": False}))
+    image_docs = list(DB.images_download.find({
+        "user_id": user_id,
+        "is_downloaded": False
+    }))
 
     # 2. Prepare a zip in memory
     zip_buffer = BytesIO()
@@ -1668,8 +1982,24 @@ def download_images_zip(request):
 
 
 def download_videos_zip(request):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
+
+    # === User Info ===
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+    user_email = data.get('email')
+    user_record = DB.users.find_one({"email": user_email})
+    user_id = str(user_record['_id'])
+
     # 1. Fetch all video documents not yet downloaded with valid URLs
     video_docs = list(DB.videos_download.find({
+        "user_id": user_id,
         "is_downloaded": False,
         "video_urls": {
             "$regex": r"^https://fitattirestorage\.blob\.core\.windows\.net/fitattire-assets/",
@@ -1934,7 +2264,7 @@ def barcode(request):
 	                    "profit": data['profit'],
 	                    "barcode": data['barcode'],
 	                    "image": data['image'],
-	                    "date_time": datetime.now(),
+	                    "date_time": localtime(timezone.now()),
                         "user_id": data['user_id'],
 	                }
                     DB.products_sold.insert_one(products_dict)
