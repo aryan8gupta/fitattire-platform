@@ -27,10 +27,6 @@ urlpatterns = [
     # Shop Owners ----------------------->
     path('employee/', views.employee),
     path('employee-signup/', views.employee_signup),
-    
-    # path('products/', views.products),
-    
-    # path('products-add/', views.products_add),
 
     path('add-products/', views.add_products),
     path('upload', views.upload_image),

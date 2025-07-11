@@ -1064,86 +1064,82 @@ def products_sold_view(request):
     user_email = data.get('email')
 
     user_record = DB.users.find_one({"email": user_email})
-    try: 
-        if not user_record:
-            return render(request, 'products_sold.html', {
-                'dashboard': dashboard,
-                'user_type': user_type,
-                'first_name': user_name,
-                'sold_rows': [],
-                'error': "User not found."
-            })
+    users_id = str(user_record['_id'])
 
-        users_id = str(user_record['_id'])
+    try:
+        raw_sales = list(DB.products_sold.find({"user_id": users_id}))
 
-        # raw_sales = list(DB.products_sold.find({"user_id": users_id}).sort("sold_on", -1))
-        # raw_sales = list(DB.products_sold.find({"user_id": users_id}))
-        # raw_sales = sorted(raw_sales, key=lambda x: x.get("sold_on", {}).get("$date", 0), reverse=True)
+        # ✅ Sort manually by sold_on timestamp (CosmosDB-safe)
+        def extract_timestamp(sold_on):
+            try:
+                if isinstance(sold_on, dict) and "$date" in sold_on:
+                    return int(sold_on["$date"])
+                elif isinstance(sold_on, (int, float)):
+                    return int(sold_on)
+                elif isinstance(sold_on, datetime):
+                    return int(sold_on.timestamp() * 1000)
+            except Exception as e:
+                print("❌ extract_timestamp error:", e)
+            return 0  # fallback
 
-        # rows = []
-        # if raw_sales:
-        #     for invoice in raw_sales:
-        #         sold_date = invoice.get("sold_on")
-        #         formatted_date = ""
+        raw_sales.sort(key=lambda x: extract_timestamp(x.get("sold_on")), reverse=True)
 
-        #         try:
-        #             # ✅ Handle different Cosmos DB date formats
-        #             if isinstance(sold_date, datetime):
-        #                 formatted_date = sold_date.strftime("%d-%m-%Y")
+        rows = []
+        for invoice in raw_sales:
+            sold_date = invoice.get("sold_on")
+            formatted_date = ""
 
-        #             elif isinstance(sold_date, dict) and "$date" in sold_date:
-        #                 timestamp_ms = sold_date["$date"]
-        #                 if isinstance(timestamp_ms, (int, float)):
-        #                     sold_date_obj = datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc)
-        #                     formatted_date = sold_date_obj.strftime("%d-%m-%Y")
-        #                 else:
-        #                     print("❌ Invalid $date format:", timestamp_ms)
+            try:
+                if isinstance(sold_date, datetime):
+                    formatted_date = sold_date.strftime("%d-%m-%Y")
+                elif isinstance(sold_date, dict) and "$date" in sold_date:
+                    timestamp_ms = sold_date["$date"]
+                    if isinstance(timestamp_ms, (int, float)):
+                        sold_date_obj = datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc)
+                        formatted_date = sold_date_obj.strftime("%d-%m-%Y")
+                elif isinstance(sold_date, (int, float)):
+                    sold_date_obj = datetime.fromtimestamp(sold_date / 1000, tz=timezone.utc)
+                    formatted_date = sold_date_obj.strftime("%d-%m-%Y")
+            except Exception as e:
+                print("❌ Error parsing sold_on:", sold_date, e)
+                formatted_date = ""
 
-        #             elif isinstance(sold_date, (int, float)):
-        #                 sold_date_obj = datetime.fromtimestamp(sold_date / 1000, tz=timezone.utc)
-        #                 formatted_date = sold_date_obj.strftime("%d-%m-%Y")
+            # === Group products by product_id in the same invoice ===
+            grouped_products = {}
 
-        #         except Exception as e:
-        #             print("❌ Error parsing sold_on:", sold_date, e)
-        #             formatted_date = ""
+            for product in invoice.get("products", []):
+                pid = product.get("product_id")
+                if not pid:
+                    continue
 
+                if pid in grouped_products:
+                    grouped_products[pid]["quantity"] += product.get("quantity", 0)
+                    grouped_products[pid]["total_price"] += product.get("total_selling_price", 0)
+                else:
+                    grouped_products[pid] = {
+                        "invoice_id": invoice.get("invoice_id"),
+                        "product_id": pid,
+                        "product_name": product.get("product_name"),
+                        "qrcode_id": product.get("qrcode_id"),
+                        "quantity": product.get("quantity", 0),
+                        "price_per_item": product.get("price_per_item"),
+                        "total_price": product.get("total_selling_price", 0),
+                        "sold_on": formatted_date
+                    }
 
-
-        #         # Group products in same invoice by product_id
-        #         grouped_products = {}
-
-        #         for product in invoice.get("products", []):
-        #             pid = product.get("product_id")
-
-        #             if not pid:
-        #                 continue
-
-        #             if pid in grouped_products:
-        #                 grouped_products[pid]["quantity"] += product.get("quantity", 0)
-        #                 grouped_products[pid]["total_price"] += product.get("total_selling_price", 0)
-        #             else:
-        #                 grouped_products[pid] = {
-        #                     "invoice_id": invoice.get("invoice_id"),
-        #                     "product_id": pid,
-        #                     "product_name": product.get("product_name"),
-        #                     "qrcode_id": product.get("qrcode_id"),
-        #                     "quantity": product.get("quantity", 0),
-        #                     "price_per_item": product.get("price_per_item"),
-        #                     "total_price": product.get("total_selling_price", 0),
-        #                     "sold_on": formatted_date
-        #                 }
-
-        #         rows.extend(grouped_products.values())
+            rows.extend(grouped_products.values())
 
         return render(request, 'products_sold.html', {
             'dashboard': dashboard,
             'user_type': user_type,
             'first_name': user_name,
-            # "sold_rows": rows
+            "sold_rows": rows
         })
+
     except Exception as e:
-        logger.error("Failed System of products_sold.", e)
-        return render(request, 'login.html')
+        logger.error("❌ Failed in products_sold_view: %s", str(e))
+        return render(request, 'add_products.html', {'error_message': 'Something went wrong loading your sales data.'})
+
 
 @csrf_exempt
 def exchange(request):
@@ -1641,83 +1637,71 @@ def dashboard(request):
         def time_diff_string(timestamp):
             now = localtime(timezone.now())
             diff = now - timestamp
-
             if diff.days >= 1:
                 return f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
             elif diff.seconds >= 3600:
-                hours = diff.seconds // 3600
-                return f"{hours} hour{'s' if hours > 1 else ''} ago"
+                return f"{diff.seconds // 3600} hour(s) ago"
             elif diff.seconds >= 60:
-                minutes = diff.seconds // 60
-                return f"{minutes} min ago"
+                return f"{diff.seconds // 60} min ago"
             return "just now"
 
         def parse_timezone(sold_on):
             try:
                 if isinstance(sold_on, dict) and "$date" in sold_on:
                     val = sold_on["$date"]
-                    if isinstance(val, (int, float)):
-                        dt = datetime.fromtimestamp(val / 1000.0, tz=dt_timezone.utc)
-                    elif isinstance(val, str):
-                        dt = datetime.fromisoformat(val.replace("Z", "+00:00"))
-                    else:
-                        return localtime(timezone.now())
+                    dt = datetime.fromtimestamp(val / 1000.0, tz=dt_timezone.utc)
                 elif isinstance(sold_on, (int, float)):
                     dt = datetime.fromtimestamp(sold_on / 1000.0, tz=dt_timezone.utc)
                 elif isinstance(sold_on, str):
                     dt = datetime.fromisoformat(sold_on.replace("Z", "+00:00"))
                 elif isinstance(sold_on, datetime):
-                    dt = make_aware(sold_on) if sold_on.tzinfo is None else sold_on
+                    dt = sold_on if sold_on.tzinfo else make_aware(sold_on)
                 else:
                     return localtime(timezone.now())
-
-                return localtime(dt)  # ✅ convert to IST
+                return localtime(dt)
             except Exception as e:
                 print("parse_timezone error:", e)
                 return localtime(timezone.now())
 
         # === Revenue Calculation ===
-        start_of_year = make_aware(datetime(localtime(timezone.now()).year, 1, 1))
         now = localtime(timezone.now())
-
-        # Convert to timestamps (ms) for Cosmos DB compatibility
-        start_of_year_ts = int(start_of_year.timestamp() * 1000)
+        start_of_year = make_aware(datetime(now.year, 1, 1))
+        start_ts = int(start_of_year.timestamp() * 1000)
         now_ts = int(now.timestamp() * 1000)
 
-
-        total_revenue_pipeline = [
+        revenue_pipeline = [
             {
                 "$match": {
                     "user_id": user_id,
-                    "sold_on": { "$gte": start_of_year_ts, "$lte": now_ts }
+                    "sold_on": {"$gte": start_ts, "$lte": now_ts}
                 }
-
             },
             {
                 "$group": {
                     "_id": None,
-                    "total_revenue": { "$sum": "$total_amount" }
+                    "total_revenue": {"$sum": "$total_amount"}
                 }
             }
         ]
 
-        revenue_result = list(DB.products_sold.aggregate(total_revenue_pipeline))
+        revenue_result = list(DB.products_sold.aggregate(revenue_pipeline))
         total_revenue = revenue_result[0]["total_revenue"] if revenue_result else 0
 
-        # === Recent Activities ===
-        # sales_logs = list(DB.products_sold.find().sort("sold_on", -1).limit(5))
-        sales_logs = list(DB.products_sold.find({"user_id": user_id}).sort("sold_on", -1).limit(5))
+        # === Recent Activities (no sorting in DB) ===
+        sales_logs = list(DB.products_sold.find({"user_id": user_id}))
         for sale in sales_logs:
             sold_time = parse_timezone(sale.get("sold_on"))
+            sale["_sold_on_dt"] = sold_time
 
-            # Get the first product's name from the products array
-            products = sale.get("products", [])
-            product_name = products[0].get("product_name") if products else "Unnamed Product"
+        # Sort in Python
+        sorted_sales = sorted(sales_logs, key=lambda x: x["_sold_on_dt"], reverse=True)[:5]
 
+        for sale in sorted_sales:
+            product_name = sale.get("products", [{}])[0].get("product_name", "Unnamed Product")
             recent_activities.append({
                 "type": "sold",
                 "product_name": product_name,
-                "time": time_diff_string(sold_time)
+                "time": time_diff_string(sale["_sold_on_dt"])
             })
 
         # === Image Count ===
@@ -1726,30 +1710,25 @@ def dashboard(request):
             "is_downloaded": False
         }))
         image_count = sum(len(doc.get("image_urls", [])) for doc in image_docs)
-        print(image_count)
 
         # === Video Count ===
         video_count = DB.videos_download.count_documents({
             "user_id": user_id,
             "is_downloaded": False,
-            "video_urls": { "$nin": ["", " "] }
+            "video_urls": {"$nin": ["", " "]}
         })
 
         # === Top Selling Products ===
         pipeline = [
-            {
-                "$match": { "user_id": user_id }
-            },
-            {
-                "$unwind": "$products"  # ✅ Split the array
-            },
+            { "$match": { "user_id": user_id }},
+            { "$unwind": "$products" },
             {
                 "$group": {
                     "_id": "$products.product_id",
-                    "total_quantity": { "$sum": "$products.quantity" },
-                    "average_price": { "$avg": "$products.price_per_item" },
-                    "product_name": { "$first": "$products.product_name" },
-                    "image": { "$first": { "$arrayElemAt": ["$products.product_result_images", 0] } }
+                    "total_quantity": {"$sum": "$products.quantity"},
+                    "average_price": {"$avg": "$products.price_per_item"},
+                    "product_name": {"$first": "$products.product_name"},
+                    "image": {"$first": {"$arrayElemAt": ["$products.product_result_images", 0]}}
                 }
             },
             { "$sort": SON([("total_quantity", -1)]) },
@@ -1757,7 +1736,6 @@ def dashboard(request):
         ]
 
         top_selling = list(DB.products_sold.aggregate(pipeline))
-                
 
         # === Render Page ===
         if user_type == 'Employee':
@@ -1780,7 +1758,7 @@ def dashboard(request):
 
     except Exception as e:
         print("Dashboard Error:", str(e))
-        return render(request, 'error.html', {
+        return render(request, 'analytics.html', {
             'error_message': str(e)
         })
 
@@ -1830,46 +1808,6 @@ def download_images_zip(request):
     response = HttpResponse(zip_buffer.read(), content_type='application/zip')
     response['Content-Disposition'] = 'attachment; filename="images_download.zip"'
     return response
-
-
-# def download_videos_zip(request):
-#     # 1. Fetch all video documents not yet downloaded
-#     # video_docs = list(DB.videos_download.find({"is_downloaded": False}))
-#     video_docs = list(DB.videos_download.find({
-#         "is_downloaded": False,
-#         "video_url": {
-#             "$regex": r"^https://fitattirestorage\.blob\.core\.windows\.net/fitattire-assets/",
-#             "$options": "i"  # optional, makes it case-insensitive
-#         }
-#     }))
-
-
-#     # 2. Prepare a zip file in memory
-#     zip_buffer = BytesIO()
-#     with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
-#         for idx, doc in enumerate(video_docs):
-#             video_url = doc.get("video_url")
-#             if not video_url:
-#                 continue
-#             try:
-#                 response = requests.get(video_url, stream=True)
-#                 if response.status_code == 200:
-#                     ext = video_url.split(".")[-1].split("?")[0]  # Remove any query string
-#                     filename = f"video_{idx+1}.{ext}"
-#                     zip_file.writestr(filename, response.content)
-#                 else:
-#                     print(f"Failed to fetch {video_url}: Status {response.status_code}")
-#             except Exception as e:
-#                 print(f"Error downloading {video_url}: {e}")
-
-#     # 3. Mark all fetched video docs as downloaded
-#     DB.videos_download.update_many({"is_downloaded": False}, {"$set": {"is_downloaded": True}})
-
-#     # 4. Send zip file as download response
-#     zip_buffer.seek(0)
-#     response = HttpResponse(zip_buffer.read(), content_type='application/zip')
-#     response['Content-Disposition'] = 'attachment; filename="videos_download.zip"'
-#     return response
 
 
 def download_videos_zip(request):
@@ -1929,132 +1867,6 @@ def download_videos_zip(request):
     response = HttpResponse(zip_buffer.read(), content_type='application/zip')
     response['Content-Disposition'] = 'attachment; filename="videos_download.zip"'
     return response
-
-
-
-@csrf_exempt
-def products_add(request):
-    valid = False
-    data = {}
-    if request.COOKIES.get('t'):
-        valid, data = verify_token(request.COOKIES['t'])
-    dashboard = None
-    if valid:
-        dashboard = 'dashboard'
-	
-    user_type = data.get('user_type')
-    user_name = data.get('first_name')
-    
-    
-
-    if request.method == 'POST':
-        try:
-            products_name = request.POST.get("product_name")
-            products_doc = DB.products.find_one({"product_name": products_name})
-            if not products_doc:
-
-                products_name = request.POST.get("product_name")
-                products_quantity = request.POST.get("quantity")
-                products_cost_price = request.POST.get("cost_price")
-                products_selling_price = request.POST.get("selling_price")
-                products_expiry_date = request.POST.get("expiry_date")
-                products_barcode = request.POST.get("barcode")
-                products_image = request.POST.get("img")
-
-                products_profit = (int(products_selling_price) - int(products_cost_price)) * int(products_quantity)
-
-                a = request.GET.get('q', '')
-
-                products_dict = {
-	                "product_name": products_name,
-	                "bought_quantity": products_quantity,
-	                "left_quantity": products_quantity,
-	                "cost_price": products_cost_price,
-	                "selling_price": products_selling_price,
-	                "expiry_date": products_expiry_date,
-	                "profit": products_profit,
-	                "barcode": products_barcode,
-	                "image": products_image,
-                    "user_id": ObjectId(a),
-
-	            }
-                DB.products.insert_one(products_dict)
-
-                products_details1 = list(DB.products.find({'user_id': ObjectId(a)}))
-
-                return render(request, 'products.html',  { 'dashboard': 
-													   dashboard, 'user_type': user_type, 'first_name': user_name,  'products_details': products_details1})
-                
-            else:
-                raise Exception
-            
-        except:
-            messages.warning(request, "Already Registered")
-            return render(request, 'products_add.html',  { 'dashboard': 
-													   dashboard, 'user_type': user_type, 'first_name': user_name})
-            
-    else:
-        return render(request, 'products_add.html', { 'dashboard': 
-													   dashboard, 'user_type': user_type, 'first_name': user_name})
-
-
-
-def products(request):
-    valid = False
-    data = {}
-    if request.COOKIES.get('t'):
-        valid, data = verify_token(request.COOKIES['t'])
-    dashboard = None
-    if valid:
-        dashboard = 'dashboard'
-	
-    user_type = data.get('user_type')
-    user_name = data.get('first_name')
-     
-    if user_type == "Admin":
-    
-        b = request.GET.get('q', '')
-        users_doc = DB.users.find_one({"email": b})
-        product_user_id = users_doc['_id']
-        
-        products_details1 = list(DB.products.find({'user_id': product_user_id}))
-
-        return render(request, 'products.html', { 'dashboard': 
-													   dashboard, 'user_type': user_type, 'first_name': user_name, 'products_details': products_details1, "users_id": product_user_id})
-    
-    elif user_type == "Shop Owners":
-        user_email = data.get('email')
-        users_doc = DB.users.find_one({"email": user_email})
-        product_user_id = users_doc['_id']
-
-        products_details = list(DB.products.find({'user_id': product_user_id}))
-
-        return render(request, 'products.html', { 'dashboard': 
-													   dashboard, 'user_type': user_type, 'first_name': user_name, 'products_details': products_details, "users_id": product_user_id})
-
-
-
-
-def products_sold(request):
-    valid = False
-    data = {}
-    if request.COOKIES.get('t'):
-        valid, data = verify_token(request.COOKIES['t'])
-    dashboard = None
-    if valid:
-        dashboard = 'dashboard'
-	
-    user_type = data.get('user_type')
-    user_name = data.get('first_name')
-    user_email = data.get('email')
-
-    users_id_doc = DB.users.find_one({'email': user_email})
-
-    products_doc = list(DB.products_sold.find({'user_id': users_id_doc['_id']}))
-    
-    return render(request, 'products_sold.html', { 'dashboard': 
-													   dashboard, 'user_type': user_type, 'first_name': user_name, 'products_doc': products_doc})
-
 
 
 def contact_us(request):
