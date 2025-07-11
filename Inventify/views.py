@@ -966,25 +966,6 @@ def add_products(request):
                             }
                         ]
                     )
-                    # response = client.chat.completions.create(
-                    #     model="gpt-3.5-turbo",
-                    #     messages=[
-                    #         {"role": "system", "content": "You are a creative Instagram marketer who writes short, catchy, and trendy captions for fashion products in India. Use emojis and hashtags where relevant. And be concise."},
-                    #         {
-                    #             "role": "user",
-                    #             "content": f"""Generate an Instagram caption for the following product:
-                    #                 Product Name: {product_name}
-                    #                 Product Category: {category}
-                    #                 Product Gender: {gender}
-                    #                 Product Fabric: {parsed_data1['product_fabric']}
-                    #                 Product Price: ₹{parsed_data1['product_price']}
-                    #                 Product Selling Price: ₹{parsed_data1['product_selling_price']}
-                    #                 Product Color: {parsed_data1['product_colors'][i]}
-
-                    #                 Keep it short, attention-grabbing, and its a video of the product with different variants of the product with information like Mega Deal, {product_discount}% off, to know more about the product, enter the product id in the chat given in the image and add 3–5 relevant fashion hashtags."""
-                    #         }
-                    #     ]
-                    # )
 
                     reply_2 = response2.choices[0].message.content
                     
@@ -1081,38 +1062,62 @@ def products_sold_view(request):
     user_email = data.get('email')
 
     user_record = DB.users.find_one({"email": user_email})
+    if not user_record:
+        return render(request, 'products_sold.html', {
+            'dashboard': dashboard,
+            'user_type': user_type,
+            'first_name': user_name,
+            'sold_rows': [],
+            'error': "User not found."
+        })
+
     users_id = str(user_record['_id'])
 
-    raw_sales = DB.products_sold.find({"user_id": users_id}).sort("sold_on", -1)
+    raw_sales = list(DB.products_sold.find({"user_id": users_id}).sort("sold_on", -1))
 
     rows = []
+    if raw_sales:
+        for invoice in raw_sales:
+            sold_date = invoice.get("sold_on")
+            formatted_date = ""
 
-    for invoice in raw_sales:
-        sold_date = invoice.get("sold_on")
-        formatted_date = sold_date.strftime("%d-%m-%Y") if sold_date else ""
+            try:
+                if isinstance(sold_date, datetime):
+                    formatted_date = sold_date.strftime("%d-%m-%Y")
+                elif isinstance(sold_date, dict) and "$date" in sold_date:
+                    timestamp_ms = sold_date["$date"]
+                    sold_date_obj = datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc)
+                    formatted_date = sold_date_obj.strftime("%d-%m-%Y")
+                elif isinstance(sold_date, int):
+                    sold_date_obj = datetime.fromtimestamp(sold_date / 1000, tz=timezone.utc)
+                    formatted_date = sold_date_obj.strftime("%d-%m-%Y")
+            except Exception as e:
+                print("❌ Error parsing sold_on:", sold_date, e)
+                formatted_date = ""
 
-        # Group products in same invoice by product_id
-        grouped_products = {}
 
-        for product in invoice.get("products", []):
-            pid = product.get("product_id")
+            # Group products in same invoice by product_id
+            grouped_products = {}
 
-            if pid in grouped_products:
-                grouped_products[pid]["quantity"] += product.get("quantity", 0)
-                grouped_products[pid]["total_price"] += product.get("total_selling_price", 0)
-            else:
-                grouped_products[pid] = {
-                    "invoice_id": invoice.get("invoice_id"),
-                    "product_id": pid,
-                    "product_name": product.get("product_name"),
-                    "qrcode_id": product.get("qrcode_id"),
-                    "quantity": product.get("quantity", 0),
-                    "price_per_item": product.get("price_per_item"),
-                    "total_price": product.get("total_selling_price", 0),
-                    "sold_on": formatted_date
-                }
+            for product in invoice.get("products", []):
+                pid = product.get("product_id")
 
-        rows.extend(grouped_products.values())
+                if pid in grouped_products:
+                    grouped_products[pid]["quantity"] += product.get("quantity", 0)
+                    grouped_products[pid]["total_price"] += product.get("total_selling_price", 0)
+                else:
+                    grouped_products[pid] = {
+                        "invoice_id": invoice.get("invoice_id"),
+                        "product_id": pid,
+                        "product_name": product.get("product_name"),
+                        "qrcode_id": product.get("qrcode_id"),
+                        "quantity": product.get("quantity", 0),
+                        "price_per_item": product.get("price_per_item"),
+                        "total_price": product.get("total_selling_price", 0),
+                        "sold_on": formatted_date
+                    }
+
+            rows.extend(grouped_products.values())
 
     return render(request, 'products_sold.html', {
         'dashboard': dashboard,
@@ -1657,11 +1662,16 @@ def dashboard(request):
         start_of_year = make_aware(datetime(localtime(timezone.now()).year, 1, 1))
         now = localtime(timezone.now())
 
+        # Convert to timestamps (ms) for Cosmos DB compatibility
+        start_of_year_ts = int(start_of_year.timestamp() * 1000)
+        now_ts = int(now.timestamp() * 1000)
+
+
         total_revenue_pipeline = [
             {
                 "$match": {
                     "user_id": user_id,
-                    "sold_on": { "$gte": start_of_year, "$lte": now }
+                    "sold_on": { "$gte": start_of_year_ts, "$lte": now_ts }
                 }
 
             },
@@ -1693,10 +1703,10 @@ def dashboard(request):
             })
 
         # === Image Count ===
-        image_docs = DB.images_download.find({
+        image_docs = list(DB.images_download.find({
             "user_id": user_id,
             "is_downloaded": False
-        })
+        }))
         image_count = sum(len(doc.get("image_urls", [])) for doc in image_docs)
         print(image_count)
 
@@ -1755,143 +1765,6 @@ def dashboard(request):
         return render(request, 'error.html', {
             'error_message': str(e)
         })
-
-
-# def dashboard(request):
-#     valid = False
-#     data = {}
-#     if request.COOKIES.get('t'):
-#         valid, data = verify_token(request.COOKIES['t'])
-#     dashboard = None
-#     if valid:
-#         dashboard = 'dashboard'
-
-#     try:
-
-#         recent_activities = []
-
-#         def time_diff_string(timestamp):
-#             now = localtime(timezone.now())
-#             diff = now - timestamp
-
-#             if diff.days >= 1:
-#                 return f"{diff.days} day{'s' if diff.days > 1 else ''} ago"
-#             elif diff.seconds >= 3600:
-#                 hours = diff.seconds // 3600
-#                 return f"{hours} hour{'s' if hours > 1 else ''} ago"
-#             elif diff.seconds >= 60:
-#                 minutes = diff.seconds // 60
-#                 return f"{minutes} min ago"
-#             return "just now"
-
-
-        
-#         start_of_year = timezone(localtime(timezone.now()).year, 1, 1)
-#         now = localtime(timezone.now())
-
-#         total_revenue_pipeline = [
-#             {
-#                 "$match": {
-#                     "sold_on": {
-#                         "$gte": start_of_year,
-#                         "$lte": now
-#                     }
-#                 }
-#             },
-#             {
-#                 "$group": {
-#                     "_id": None,
-#                     "total_revenue": { "$sum": "$discounted_amount" }
-#                 }
-#             }
-#         ]
-
-#         revenue_result = list(DB.products_sold.aggregate(total_revenue_pipeline))
-#         total_revenue = revenue_result[0]["total_revenue"] if revenue_result else 0
-
-
-#         sales_logs = list(DB.products_sold.find().sort("sold_on", -1).limit(5))
-#         for sale in sales_logs:
-#             sold_time = sale.get("sold_on")
-
-#             # Safely convert to timezone
-#             if isinstance(sold_time, dict) and "$date" in sold_time:
-#                 sold_time = timezone.fromtimestamp(sold_time["$date"] / 1000.0)
-#             elif isinstance(sold_time, (int, float)):
-#                 sold_time = timezone.fromtimestamp(sold_time / 1000.0)
-#             elif isinstance(sold_time, str):
-#                 try:
-#                     sold_time = timezone.fromisoformat(sold_time)
-#                 except Exception:
-#                     sold_time = localtime(timezone.now())
-#             elif not isinstance(sold_time, timezone):
-#                 sold_time = localtime(timezone.now())
-
-#             recent_activities.append({
-#                 "type": "sold",
-#                 "product_name": sale.get("product_name", "Unnamed Product"),
-#                 "time": time_diff_string(sold_time)
-#             })
-
-
-#         # # Recent added products
-#         # product_logs = list(DB.products.find().sort("created_at", -1).limit(5))
-#         # for prod in product_logs:
-#         #     recent_activities.append({
-#         #         "type": "added",
-#         #         "product_name": prod.get("product_name", "Unnamed Product"),
-#         #         "time": time_diff_string(prod.get("created_at", localtime(timezone.now())))
-#         #     })
-
-#         user_type = data.get('user_type')
-#         user_name = data.get('first_name')
-
-#         # Count total image URLs in all documents that are not yet downloaded
-#         image_docs = DB.images_download.find({"is_downloaded": False})
-#         image_count = sum(len(doc.get("image_urls", [])) for doc in image_docs)
-
-#         # Count total video documents not downloaded (1 video per doc)
-#         # video_count = DB.videos_download.count_documents({"is_downloaded": False})
-#         video_count = DB.videos_download.count_documents({
-#             "is_downloaded": False,
-#             "video_urls": { "$nin": ["", " "] }  # Exclude empty or whitespace strings
-#         })
-
-#         collection = DB.products_sold  # your collection
-
-#         pipeline = [
-#             {
-#                 "$group": {
-#                     "_id": "$product_id",  # Group by ObjectId of the product
-#                     "total_quantity": { "$sum": 1 },
-#                     "average_price": { "$avg": "$discounted_amount" },
-#                     "product_name": { "$first": "$product_name" },
-#                     "image": { "$first": { "$arrayElemAt": ["$product_result_images", 0] } }
-#                 }
-#             },
-#             { "$sort": SON([("total_quantity", -1)]) },
-#             { "$limit": 5 }
-#         ]
-
-#         top_selling = list(collection.aggregate(pipeline))
-
-#         if user_type == 'Employee':
-#             return render(request, 'barcode.html', {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name})
-
-
-#         return render(request, 'dashboard.html', {
-#             'dashboard': dashboard,
-#             'user_type': user_type,
-#             'first_name': user_name,
-#             'image_count': image_count,
-#             'video_count': video_count,
-#             'top_selling_products': top_selling,
-#             'total_revenue': total_revenue,
-#             'recent_activities': recent_activities
-#         })
-    
-#     except Exception as e:
-#         print("Dashboard Error:", str(e))
 
 
 def download_images_zip(request):
