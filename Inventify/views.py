@@ -1073,7 +1073,9 @@ def products_sold_view(request):
 
     users_id = str(user_record['_id'])
 
-    raw_sales = list(DB.products_sold.find({"user_id": users_id}).sort("sold_on", -1))
+    # raw_sales = list(DB.products_sold.find({"user_id": users_id}).sort("sold_on", -1))
+    raw_sales = list(DB.products_sold.find({"user_id": users_id}))
+    raw_sales = sorted(raw_sales, key=lambda x: x.get("sold_on", {}).get("$date", 0), reverse=True)
 
     rows = []
     if raw_sales:
@@ -1082,18 +1084,26 @@ def products_sold_view(request):
             formatted_date = ""
 
             try:
+                # ✅ Handle different Cosmos DB date formats
                 if isinstance(sold_date, datetime):
                     formatted_date = sold_date.strftime("%d-%m-%Y")
+
                 elif isinstance(sold_date, dict) and "$date" in sold_date:
                     timestamp_ms = sold_date["$date"]
-                    sold_date_obj = datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc)
-                    formatted_date = sold_date_obj.strftime("%d-%m-%Y")
-                elif isinstance(sold_date, int):
+                    if isinstance(timestamp_ms, (int, float)):
+                        sold_date_obj = datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc)
+                        formatted_date = sold_date_obj.strftime("%d-%m-%Y")
+                    else:
+                        print("❌ Invalid $date format:", timestamp_ms)
+
+                elif isinstance(sold_date, (int, float)):
                     sold_date_obj = datetime.fromtimestamp(sold_date / 1000, tz=timezone.utc)
                     formatted_date = sold_date_obj.strftime("%d-%m-%Y")
+
             except Exception as e:
                 print("❌ Error parsing sold_on:", sold_date, e)
                 formatted_date = ""
+
 
 
             # Group products in same invoice by product_id
@@ -1101,6 +1111,9 @@ def products_sold_view(request):
 
             for product in invoice.get("products", []):
                 pid = product.get("product_id")
+
+                if not pid:
+                    continue
 
                 if pid in grouped_products:
                     grouped_products[pid]["quantity"] += product.get("quantity", 0)
@@ -2534,13 +2547,6 @@ def update(request):
 	    												   dashboard, 'user_type': user_type, 'first_name': user_name, 'employee_detail': employee_detail, 'show': '2'})
         except:
             return redirect("/employee/")
-    
-    
-import logging
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 @csrf_exempt
