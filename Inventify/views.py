@@ -1055,90 +1055,95 @@ def products_sold_view(request):
     data = {}
     if request.COOKIES.get('t'):
         valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
 
-    dashboard = 'dashboard' if valid else None
     user_type = data.get('user_type')
     user_name = data.get('first_name')
     user_email = data.get('email')
 
     user_record = DB.users.find_one({"email": user_email})
-    if not user_record:
+    try: 
+        if not user_record:
+            return render(request, 'products_sold.html', {
+                'dashboard': dashboard,
+                'user_type': user_type,
+                'first_name': user_name,
+                'sold_rows': [],
+                'error': "User not found."
+            })
+
+        users_id = str(user_record['_id'])
+
+        # raw_sales = list(DB.products_sold.find({"user_id": users_id}).sort("sold_on", -1))
+        # raw_sales = list(DB.products_sold.find({"user_id": users_id}))
+        # raw_sales = sorted(raw_sales, key=lambda x: x.get("sold_on", {}).get("$date", 0), reverse=True)
+
+        # rows = []
+        # if raw_sales:
+        #     for invoice in raw_sales:
+        #         sold_date = invoice.get("sold_on")
+        #         formatted_date = ""
+
+        #         try:
+        #             # ✅ Handle different Cosmos DB date formats
+        #             if isinstance(sold_date, datetime):
+        #                 formatted_date = sold_date.strftime("%d-%m-%Y")
+
+        #             elif isinstance(sold_date, dict) and "$date" in sold_date:
+        #                 timestamp_ms = sold_date["$date"]
+        #                 if isinstance(timestamp_ms, (int, float)):
+        #                     sold_date_obj = datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc)
+        #                     formatted_date = sold_date_obj.strftime("%d-%m-%Y")
+        #                 else:
+        #                     print("❌ Invalid $date format:", timestamp_ms)
+
+        #             elif isinstance(sold_date, (int, float)):
+        #                 sold_date_obj = datetime.fromtimestamp(sold_date / 1000, tz=timezone.utc)
+        #                 formatted_date = sold_date_obj.strftime("%d-%m-%Y")
+
+        #         except Exception as e:
+        #             print("❌ Error parsing sold_on:", sold_date, e)
+        #             formatted_date = ""
+
+
+
+        #         # Group products in same invoice by product_id
+        #         grouped_products = {}
+
+        #         for product in invoice.get("products", []):
+        #             pid = product.get("product_id")
+
+        #             if not pid:
+        #                 continue
+
+        #             if pid in grouped_products:
+        #                 grouped_products[pid]["quantity"] += product.get("quantity", 0)
+        #                 grouped_products[pid]["total_price"] += product.get("total_selling_price", 0)
+        #             else:
+        #                 grouped_products[pid] = {
+        #                     "invoice_id": invoice.get("invoice_id"),
+        #                     "product_id": pid,
+        #                     "product_name": product.get("product_name"),
+        #                     "qrcode_id": product.get("qrcode_id"),
+        #                     "quantity": product.get("quantity", 0),
+        #                     "price_per_item": product.get("price_per_item"),
+        #                     "total_price": product.get("total_selling_price", 0),
+        #                     "sold_on": formatted_date
+        #                 }
+
+        #         rows.extend(grouped_products.values())
+
         return render(request, 'products_sold.html', {
             'dashboard': dashboard,
             'user_type': user_type,
             'first_name': user_name,
-            'sold_rows': [],
-            'error': "User not found."
+            # "sold_rows": rows
         })
-
-    users_id = str(user_record['_id'])
-
-    # raw_sales = list(DB.products_sold.find({"user_id": users_id}).sort("sold_on", -1))
-    raw_sales = list(DB.products_sold.find({"user_id": users_id}))
-    raw_sales = sorted(raw_sales, key=lambda x: x.get("sold_on", {}).get("$date", 0), reverse=True)
-
-    rows = []
-    if raw_sales:
-        for invoice in raw_sales:
-            sold_date = invoice.get("sold_on")
-            formatted_date = ""
-
-            try:
-                # ✅ Handle different Cosmos DB date formats
-                if isinstance(sold_date, datetime):
-                    formatted_date = sold_date.strftime("%d-%m-%Y")
-
-                elif isinstance(sold_date, dict) and "$date" in sold_date:
-                    timestamp_ms = sold_date["$date"]
-                    if isinstance(timestamp_ms, (int, float)):
-                        sold_date_obj = datetime.fromtimestamp(timestamp_ms / 1000, tz=timezone.utc)
-                        formatted_date = sold_date_obj.strftime("%d-%m-%Y")
-                    else:
-                        print("❌ Invalid $date format:", timestamp_ms)
-
-                elif isinstance(sold_date, (int, float)):
-                    sold_date_obj = datetime.fromtimestamp(sold_date / 1000, tz=timezone.utc)
-                    formatted_date = sold_date_obj.strftime("%d-%m-%Y")
-
-            except Exception as e:
-                print("❌ Error parsing sold_on:", sold_date, e)
-                formatted_date = ""
-
-
-
-            # Group products in same invoice by product_id
-            grouped_products = {}
-
-            for product in invoice.get("products", []):
-                pid = product.get("product_id")
-
-                if not pid:
-                    continue
-
-                if pid in grouped_products:
-                    grouped_products[pid]["quantity"] += product.get("quantity", 0)
-                    grouped_products[pid]["total_price"] += product.get("total_selling_price", 0)
-                else:
-                    grouped_products[pid] = {
-                        "invoice_id": invoice.get("invoice_id"),
-                        "product_id": pid,
-                        "product_name": product.get("product_name"),
-                        "qrcode_id": product.get("qrcode_id"),
-                        "quantity": product.get("quantity", 0),
-                        "price_per_item": product.get("price_per_item"),
-                        "total_price": product.get("total_selling_price", 0),
-                        "sold_on": formatted_date
-                    }
-
-            rows.extend(grouped_products.values())
-
-    return render(request, 'products_sold.html', {
-        'dashboard': dashboard,
-        'user_type': user_type,
-        'first_name': user_name,
-        "sold_rows": rows
-    })
-
+    except Exception as e:
+        logger.error("Failed System of products_sold.", e)
+        return render(request, 'login.html')
 
 @csrf_exempt
 def exchange(request):
