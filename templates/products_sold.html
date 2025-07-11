@@ -61,18 +61,24 @@
         <tbody id="soldTableBody">
           {% for item in sold_rows %}
           <tr class="clickable-row"
-              data-id="{{ item.qrcode_id|lower }}"
-              onclick="window.location.href='/invoice/{{ item.invoice_id }}/';">
+              data-id="{{ item.qrcode_id|default:''|lower }}"
+              onclick="window.location.href='/invoice/{{ item.invoice_id|default:'N/A' }}/';">
             <td>{{ forloop.counter }}</td>
-            <td>{{ item.invoice_id }}</td>
-            <td>{{ item.qrcode_id }}</td>
-            <td>{{ item.product_name }}</td>
-            <td>{{ item.quantity }}</td>
-            <td>₹{{ item.price_per_item }}</td>
-            <td>₹{{ item.total_price }}</td>
-            <td>{{ item.sold_on }}</td>
+            <td>{{ item.invoice_id|default:'N/A' }}</td>
+            <td>{{ item.qrcode_id|default:'N/A' }}</td>
+            <td>{{ item.product_name|default:'Unknown' }}</td>
+            <td>{{ item.quantity|default:0 }}</td>
+            <td>₹{{ item.price_per_item|default:0 }}</td>
+            <td>₹{{ item.total_price|default:0 }}</td>
+            <td>{{ item.sold_on|default:"-" }}</td>
           </tr>
           {% endfor %}
+          {% if not sold_rows %}
+            <tr>
+              <td colspan="8" style="text-align:center;">No products sold yet.</td>
+            </tr>
+          {% endif %}
+
         </tbody>
       </table>
     </div>
