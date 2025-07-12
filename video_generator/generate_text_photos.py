@@ -136,6 +136,77 @@ def crop_and_zoom_upper(image_path, zoom_factor=2):
 
 
 
+def create_text_image_with_line_spacing(
+    text,
+    fontsize,
+    box_size,
+    color="black",
+    align="left",
+    padding=10,
+    wrapped_line_spacing=10  # ✅ This controls space between wrapped lines
+):
+    box_width, box_height = box_size
+    words = text.split()
+    temp_img = Image.new("RGB", box_size)
+    draw = ImageDraw.Draw(temp_img)
+
+    while True:
+        font = ImageFont.truetype(font_path, fontsize)
+
+        # Estimate height of one line
+        bbox = draw.textbbox((0, 0), "A", font=font)
+        line_height = bbox[3] - bbox[1]
+
+        lines = []
+        current_line = ""
+        for word in words:
+            test_line = f"{current_line} {word}".strip()
+            test_bbox = draw.textbbox((0, 0), test_line, font=font)
+            line_width = test_bbox[2] - test_bbox[0]
+
+            if line_width + 2 * padding <= box_width:
+                current_line = test_line
+            else:
+                if current_line:
+                    lines.append(current_line)
+                current_line = word
+        if current_line:
+            lines.append(current_line)
+
+        total_text_height = (
+            len(lines) * line_height + (len(lines) - 1) * wrapped_line_spacing
+        )
+
+        if total_text_height + 2 * padding <= box_height or fontsize <= 10:
+            break
+        fontsize -= 1
+
+    # Create final transparent output image
+    img = Image.new("RGBA", (box_width, box_height), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    y = (box_height - total_text_height) // 2
+    for line in lines:
+        line_bbox = draw.textbbox((0, 0), line, font=font)
+        line_width = line_bbox[2] - line_bbox[0]
+        line_height = line_bbox[3] - line_bbox[1]
+
+        if align == "center":
+            x = (box_width - line_width) // 2
+        elif align == "left":
+            x = padding
+        elif align == "right":
+            x = box_width - line_width - padding
+        else:
+            x = padding
+
+        draw.text((x, y), line, font=font, fill=color)
+        y += line_height + wrapped_line_spacing  # ✅ apply spacing between lines
+
+    return img
+
+
+
 def create_dynamic_photo_with_auto_closeup_1(
         big_image_path,
         logo_path,
@@ -169,13 +240,14 @@ def create_dynamic_photo_with_auto_closeup_1(
     text_block_width = 320
 
     for line in texts:
-        text_img = create_text_image(
+        text_img = create_text_image_with_line_spacing(
             line,
             fontsize=25,
-            box_size=(text_block_width, 120),
+            box_size=(text_block_width, 140),
             color="black",
             align="left",
-            padding=2
+            padding=2,
+            wrapped_line_spacing=12
         )
         text_clip = ImageClip(np.array(text_img)).set_position((20, line_y_offset))
         text_clips.append(text_clip)
@@ -260,15 +332,15 @@ def create_dynamic_photo_with_auto_closeup_2(
     text_block_width = 260
 
     for line in texts:
-        text_img = create_text_image(
+        text_img = create_text_image_with_line_spacing(
             line,
             fontsize=25,
-            box_size=(text_block_width, 120),
+            box_size=(text_block_width, 140),
             color="black",
             align="left",
-            padding=2
+            padding=2,
+            wrapped_line_spacing=12
         )
-
         text_clip = ImageClip(np.array(text_img)).set_position((20, line_y_offset))
         text_clips.append(text_clip)
         line_y_offset += 80  # 60 (height) + 10 spacing

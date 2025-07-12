@@ -177,7 +177,7 @@
                   <th>Images</th>
                   <th>Product Name</th>
                   <th>Product ID</th>
-                  <th>Qty</th>
+                  <th>Sets</th>
                   <th>Price</th>
               </tr>
               </thead>
@@ -190,8 +190,8 @@
                       {% endfor %}
                     </td>
                     <td>{{ item.product_name }}</td>
-                    <td>{{ item.qrcode_id }}</td>
-                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.qrcode_ids }}</td>
+                    <td>{{ item.sets_sold }}</td>
                     <td>₹{{ item.total_selling_price }}</td>
                   </tr>
                 {% endfor %}

@@ -271,7 +271,7 @@ function displayAllRowsFromDataStore() {
         
         const variants = data.variants || [];
 
-        product_sum = data.selling_price * variants.length
+        product_sum = data.product_selling_price * variants.length
         total_sum = total_sum + product_sum
 
         variants.forEach((variant, index) => {
@@ -289,7 +289,7 @@ function displayAllRowsFromDataStore() {
 
                 const stockTd = document.createElement("td");
                 stockTd.rowSpan = rowSpan;
-                stockTd.textContent = data.product_quantity || 0;
+                stockTd.textContent = data.sets_available || 0;
 
                 const productNameTd = document.createElement("td");
                 productNameTd.rowSpan = rowSpan;
@@ -297,7 +297,7 @@ function displayAllRowsFromDataStore() {
 
                 const priceTd = document.createElement("td");
                 priceTd.rowSpan = rowSpan;
-                priceTd.textContent = data.selling_price ? `₹${data.selling_price * variants.length}` : "N/A";
+                priceTd.textContent = data.product_selling_price ? `₹${data.product_selling_price * variants.length}` : "N/A";
 
                 const actionTd = document.createElement("td");
                 actionTd.rowSpan = rowSpan;

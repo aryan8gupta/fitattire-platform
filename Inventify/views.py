@@ -803,8 +803,8 @@ def add_products(request):
                 logo_path = users_shop_logo
                 output_path = "generated"
                 texts = [
-                    f"Product ID: ₹{product_name}",
-                    f"Product Name: ₹{parsed_data1['product_selling_price']}",
+                    f"ID: {parsed_data1['qrcode_ids'][0]}",
+                    f"Name: {product_name}",
                     f"Price: ₹{parsed_data1['product_selling_price']}",
                     f"Sizes: {parsed_data1['product_sizes']}",
                     f"Fabric: {parsed_data1['product_fabric']}",
@@ -831,7 +831,6 @@ def add_products(request):
                     product_id=parsed_data1['qrcode_ids'][0]
                 )
                 generated_urls.append(image_url_3)
-                print("10")
 
                 if garment_image is None:
                     azure_generated_image_url = create_dynamic_photo_with_auto_closeup_1(
@@ -853,7 +852,6 @@ def add_products(request):
 
                 generated_colors.append(parsed_data1['product_colors'][i])
 
-            print("11")
             def background_task_2():
 
                 response1 = client.chat.completions.create(
@@ -1129,7 +1127,6 @@ def products_sold_view(request):
 
 
             for product in invoice.get("products", []):
-                total_products_sold += product.get("sets_sold", 0)
                 pid = product.get("product_id")
 
                 grouped_products[pid] = {
@@ -1137,7 +1134,7 @@ def products_sold_view(request):
                     "product_id": pid,
                     "product_name": product.get("product_name"),
                     "qrcode_id": product.get("qrcode_ids"),
-                    "quantity": total_products_sold,
+                    "quantity": product.get("sets_size"),
                     "price_per_item": product.get("price_per_item"),
                     "total_price": invoice.get("total_amount"),
                     "sold_on": formatted_date
@@ -1378,19 +1375,23 @@ def search_whatsapp_number(request):
             record_purchases = list(DB.products_sold.find({"customer_phone": phone}))
             if record_purchases:
                 purchases = []
+                total_products_sold = 0 
+
                 for sale in record_purchases:
                     products = sale.get("products", [])
-                    total_products_sold += products[0].get("sets_sold", 0)
 
-                    product_name = products[0].get("product_name") if products else "Unnamed Product"
-                    product_quantity = total_products_sold
-                    product_selling_price = products[0].get("total_selling_price") if products else 0
-                    
-                    purchases.append({
-                        "product": product_name,
-                        "qty": product_quantity,
-                        "price": product_selling_price
-                    })
+                    if products:
+                        total_products_sold += products[0].get("sets_sold", 0)
+
+                        product_name = products[0].get("product_name") if products else "Unnamed Product"
+                        product_quantity = total_products_sold
+                        product_selling_price = products[0].get("total_selling_price") if products else 0
+                        
+                        purchases.append({
+                            "product": product_name,
+                            "qty": product_quantity,
+                            "price": product_selling_price
+                        })
 
                 return JsonResponse({
                     "found": True,
