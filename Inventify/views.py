@@ -1,5 +1,4 @@
 from django.conf import settings
-from bson import ObjectId
 from bson.son import SON
 from django.contrib import messages;
 from django.shortcuts import render, redirect;
@@ -18,7 +17,7 @@ from django.views.decorators.csrf import csrf_exempt
 # from Inventify.settings import DB, JWT_SECRET_KEY, MEDIA_ROOT
 from Inventify.deployment import DB, JWT_SECRET_KEY, MEDIA_ROOT
 from .models import YourModel
-from video_generator.generate_text_photos import create_dynamic_photo_with_auto_closeup, create_offer_photo_with_right_image, create_offer_photo_with_right_image_2
+from video_generator.generate_text_photos import create_dynamic_photo_with_auto_closeup_1, create_dynamic_photo_with_auto_closeup_2, create_offer_photo_with_right_image, create_offer_photo_with_right_image_2
 from video_generator.instagram_post_test import post_to_instagram, post_azure_video_to_instagram, post_carousel_to_instagram
 from video_generator.generate_video import start_video_generation, start_video_generation_2
 from video_generator.send_whatsapp import send_invoice_whatsapp_message
@@ -37,8 +36,6 @@ import time
 import random
 import string
 from django.http import JsonResponse
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
 from .utils.blob_utils import upload_image_to_azure
 
 from openai import OpenAI
@@ -257,9 +254,21 @@ def product_display(request, qr_id):
         qrcode = qr_id + "/"
 
         result = DB.products.find_one({"qrcode_ids": qrcode})
+        random_integer = random.randint(0, 50)
         if result:
-            random_integer = random.randint(50, 250)
-            return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'sold_count': random_integer, 'product': result, "show_edit": valid, 'product_id': qr_id})
+            piece = "available"
+            return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'sold_count': random_integer, 'product': result, "show_edit": valid, 'product_id': qr_id, "piece": piece})
+        else:
+            result2 = DB.products_sold.find_one({
+                "products": {
+                    "$elemMatch": {
+                        "qrcode_id": qrcode
+                    }
+                }
+            })
+            piece = "sold"
+            if result2:
+                return render(request, 'product_display.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'sold_count': random_integer, 'product': result2, "show_edit": valid, 'product_id': qr_id, "piece": piece})
 
         return render(request, 'product_display.html', {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'product': None})
 
@@ -780,19 +789,22 @@ def add_products(request):
             # Build the variants array
             variants = []
             for i in range(len(parsed_data1['product_colors'])):
+                garment_image = saved_garment_urls[i] if i < len(saved_garment_urls) else None
                 variant = {
                     "color": parsed_data1['product_colors'][i],
-                    "garment_image": saved_garment_urls[i],
+                    "garment_image": garment_image,
                     "result_image": saved_result_urls[i],
                 }
                 variants.append(variant)
                 print(variants)
                 # For Image Generation with Text
                 big_image_path = saved_result_urls[i]
-                garment_image_path = saved_garment_urls[i]
+                garment_image_path = garment_image
                 logo_path = users_shop_logo
                 output_path = "generated"
                 texts = [
+                    f"Product ID: ₹{product_name}",
+                    f"Product Name: ₹{parsed_data1['product_selling_price']}",
                     f"Price: ₹{parsed_data1['product_selling_price']}",
                     f"Sizes: {parsed_data1['product_sizes']}",
                     f"Fabric: {parsed_data1['product_fabric']}",
@@ -821,14 +833,22 @@ def add_products(request):
                 generated_urls.append(image_url_3)
                 print("10")
 
-
-                azure_generated_image_url = create_dynamic_photo_with_auto_closeup(
+                if garment_image is None:
+                    azure_generated_image_url = create_dynamic_photo_with_auto_closeup_1(
                     big_image_path=big_image_path,
                     logo_path=logo_path,
                     texts=texts,
                     output_path=output_path,
-                    garment_image_path=garment_image_path
-                )
+                ) 
+                else:
+                    azure_generated_image_url = create_dynamic_photo_with_auto_closeup_2(
+                        big_image_path=big_image_path,
+                        logo_path=logo_path,
+                        texts=texts,
+                        output_path=output_path,
+                        garment_image_path=garment_image_path
+                    )
+
                 generated_images.append(azure_generated_image_url)
 
                 generated_colors.append(parsed_data1['product_colors'][i])
@@ -1001,11 +1021,10 @@ def add_products(request):
                 "brand_name": parsed_data1['brand_name'],
                 "product_name": parsed_data1['product_name'],
                 "product_fabric": parsed_data1['product_fabric'],
-                "product_quantity": int(parsed_data1['product_quantity']),
+                "sets_available": int(parsed_data1['product_quantity']),
                 "sizes": parsed_data1['product_sizes'],
-                "product_price": parsed_data1['product_price'],
-                "selling_price": parsed_data1['product_selling_price'],
-                "product_discount": product_discount,
+                "product_bought_price": parsed_data1['product_price'],
+                "product_selling_price": parsed_data1['product_selling_price'],
                 "variants": variants,
                 "created_on": localtime(timezone.now())
             }
@@ -1041,7 +1060,7 @@ def in_stock_products(request):
     user_record = DB.users.find_one({"email": user_email})
     users_id = str(user_record['_id'])
 
-    products = list(DB.products.find({"user_id": users_id}).sort("product_quantity", 1))
+    products = list(DB.products.find({"user_id": users_id}).sort("sets_available", 1))
 
     for p in products:
         p["_id"] = str(p["_id"])
@@ -1106,26 +1125,23 @@ def products_sold_view(request):
 
             # === Group products by product_id in the same invoice ===
             grouped_products = {}
+            total_products_sold = 0
+
 
             for product in invoice.get("products", []):
+                total_products_sold += product.get("sets_sold", 0)
                 pid = product.get("product_id")
-                if not pid:
-                    continue
 
-                if pid in grouped_products:
-                    grouped_products[pid]["quantity"] += product.get("quantity", 0)
-                    grouped_products[pid]["total_price"] += product.get("total_selling_price", 0)
-                else:
-                    grouped_products[pid] = {
-                        "invoice_id": invoice.get("invoice_id"),
-                        "product_id": pid,
-                        "product_name": product.get("product_name"),
-                        "qrcode_id": product.get("qrcode_id"),
-                        "quantity": product.get("quantity", 0),
-                        "price_per_item": product.get("price_per_item"),
-                        "total_price": product.get("total_selling_price", 0),
-                        "sold_on": formatted_date
-                    }
+                grouped_products[pid] = {
+                    "invoice_id": invoice.get("invoice_id"),
+                    "product_id": pid,
+                    "product_name": product.get("product_name"),
+                    "qrcode_id": product.get("qrcode_ids"),
+                    "quantity": total_products_sold,
+                    "price_per_item": product.get("price_per_item"),
+                    "total_price": invoice.get("total_amount"),
+                    "sold_on": formatted_date
+                }
 
             rows.extend(grouped_products.values())
 
@@ -1190,7 +1206,7 @@ def exchange(request):
                             DB.products.update_one(
                                 {"qrcode_ids": qr_id},
                                 {
-                                    "$inc": {"product_quantity": -1},
+                                    "$inc": {"sets_available": -1},
                                     "$pull": {"qrcode_ids": qr_id}
                                 }
                             )
@@ -1253,73 +1269,83 @@ def sales(request):
             products_list = []
             product_sold = {}
             for qr_id in scanned_data["qr_ids"]:
-                product_sold_data = DB.product_sold.find_one({"qr_ids": qr_id})
+                product_sold_data = DB.product_sold.find_one({"qrcode_ids": qr_id})
                 if not product_sold_data:
                     product = DB.products.find_one({"qrcode_ids": qr_id})
+                    product_id = str(product["_id"])
+
                     if product:
 
-                        saved_image_urls = []
-                        total_price = 0
-                        quantity = 0
+                        exists = any(p["product_id"] == product_id for p in products_list)
 
-                        for i in range(len(product['variants'])):
-                            image_result_url = product['variants'][i]['result_image']
-                            saved_image_urls.append(image_result_url)
+                        if exists:
+                            for p in products_list:
+                                if p["product_id"] == product_id:
+                                    p["sets_sold"] += 1
+                                    p["total_selling_price"] = p["price_per_item"] * p["sets_size"] * p["sets_sold"]
 
-                        try:
-                            selling_price_per_item = int(product.get("selling_price", 0))
-                            buy_price_per_item = int(product.get("product_price", 0))
-                        except ValueError:
-                            selling_price_per_item = 0
-                            buy_price_per_item = 0
+                        else:
 
-                        variants = product.get("variants", [])
-                        quantity = len(variants)
-                        total_selling_price = selling_price_per_item * quantity
-                        total_buyed_price = buy_price_per_item * quantity
+                            saved_image_urls = []
+                            quantity = 0
 
-                        product_entry = {
-                            "qrcode_id": qr_id,
-                            "product_id": str(product["_id"]),
-                            "product_name": product.get("product_name", "N/A"),
-                            "quantity": quantity,
-                            "price_per_item": selling_price_per_item,
-                            "total_buyed_price": total_buyed_price,
-                            "total_selling_price": total_selling_price,
-                            "product_result_images": saved_image_urls
-                        }
+                            for i in range(len(product['variants'])):
+                                image_result_url = product['variants'][i]['result_image']
+                                saved_image_urls.append(image_result_url)
 
-                        products_list.append(product_entry)
+                            try:
+                                selling_price_per_item = int(product.get("product_selling_price", 0))
+                                buy_price_per_item = int(product.get("product_bought_price", 0))
+                            except ValueError:
+                                selling_price_per_item = 0
+                                buy_price_per_item = 0
 
-                        product_sold = {
-                            "user_id": str(users_id_doc['_id']),
-                            "invoice_id": invoice_id,
-                            "total_amount": scanned_data['total_bill'],
-                            'original_amount': scanned_data['original_amount'],
-                            'discounted_amount': scanned_data['discounted_amount'],
-                            'discount_percentage': scanned_data['discount_percentage'],
-                            'customer_given_amount': scanned_data['customer_amount'],
-                            'less': scanned_data['amount_less_more'],
-                            "product_result_images": saved_image_urls,
-                            "customer_phone": scanned_data['phone'],
-                            "customer_name": scanned_data['customer_name'],
-                            "sold_on": localtime(timezone.now()),
-                            "products": products_list
+                            variants = product.get("variants", [])
+                            quantity = len(variants)
+                            total_selling_price = selling_price_per_item * quantity
 
-                        }
+                            product_entry = {
+                                "qrcode_id": qr_id,
+                                "product_id": product_id,
+                                "product_name": product.get("product_name", "N/A"),
+                                "sets_sold": 1,
+                                "sets_size": quantity,
+                                "price_per_item": selling_price_per_item,
+                                "item_buyed_price": buy_price_per_item,
+                                "total_selling_price": total_selling_price,
+                                "product_result_images": saved_image_urls
+                            }
+
+                            products_list.append(product_entry)
+
                         DB.products.update_one(
                             {"qrcode_ids": qr_id},
                             {
-                                "$inc": {"product_quantity": -1},
+                                "$inc": {"sets_available": -1},
                                 "$pull": {"qrcode_ids": qr_id}
                             }
                         )
-                
+                    else:
+                        return JsonResponse({"error": "Product Not Found"}, status=400)
+                    
                 else:
                     return JsonResponse({"error": "Product already sold."}, status=400)
-            
-            print(product_sold)
                 
+            product_sold = {
+                "user_id": str(users_id_doc['_id']),
+                "invoice_id": invoice_id,
+                "total_amount": scanned_data['total_bill'],
+                'original_amount': scanned_data['original_amount'],
+                'discounted_amount': scanned_data['discounted_amount'],
+                'discount_percentage': scanned_data['discount_percentage'],
+                'customer_given_amount': scanned_data['customer_amount'],
+                'less': scanned_data['amount_less_more'],
+                "customer_phone": scanned_data['phone'],
+                "customer_name": scanned_data['customer_name'],
+                "sold_on": localtime(timezone.now()),
+                "products": products_list
+            }
+            
             DB.products_sold.insert_one(product_sold)
             
             send_invoice_whatsapp_message(
@@ -1354,9 +1380,10 @@ def search_whatsapp_number(request):
                 purchases = []
                 for sale in record_purchases:
                     products = sale.get("products", [])
+                    total_products_sold += products[0].get("sets_sold", 0)
 
                     product_name = products[0].get("product_name") if products else "Unnamed Product"
-                    product_quantity = products[0].get("quantity") if products else 0
+                    product_quantity = total_products_sold
                     product_selling_price = products[0].get("total_selling_price") if products else 0
                     
                     purchases.append({
@@ -1418,7 +1445,7 @@ def get_product_by_qrcode(request):
         product = DB.products.find_one({"qrcode_ids": qr_id})
 
         if product:
-            product["_id"] = str(product["_id"])  # Make ObjectId serializable
+            product["_id"] = str(product["_id"])
             return JsonResponse({'data': product})
 
         return JsonResponse({"error": "Product not found."}, status=404)
@@ -1436,10 +1463,10 @@ def get_product_sold_by_qrcode(request):
             return JsonResponse({"error": "No QR ID provided."}, status=400)
 
         # Search where qr_id is in the array field qrcode_ids
-        product = DB.products_sold.find_one({"qr_id": qr_id})
+        product = DB.product.find_one({"qrcode_ids": qr_id})
 
         if product:
-            product["_id"] = str(product["_id"])  # Make ObjectId serializable
+            product["_id"] = str(product["_id"])
             return JsonResponse({'data': product})
 
         return JsonResponse({"error": "Product not found."}, status=404)
@@ -1526,12 +1553,17 @@ def analytics(request):
 
         # --- Stats ---
         total_profit = sum(
-            (p.get("total_selling_price", 0) - p.get("total_buyed_price", 0))
+            ((p.get("price_per_item", 0) - p.get("total_buyed_price", 0)) * (p.get("sets_size", 0) * p.get("sets_sold", 0)))
             for s in sales for p in s.get("products", [])
         )
+
         total_customers = len(set(s.get("customer_phone") for s in sales if s.get("customer_phone")))
         total_transactions = len(sales)
-        total_products = sum(len(s.get("products", [])) for s in sales)
+        total_products = sum(
+            sum(p.get("sets_sold", 0) for p in s.get("products", []))
+            for s in sales
+        )
+
 
         # --- Revenue Chart ---
         hourly = {}
@@ -1539,7 +1571,7 @@ def analytics(request):
             dt = s["_sold_timezone"]
             hour_label = dt.strftime("%d-%m %H:00")
             hourly.setdefault(hour_label, 0)
-            hourly[hour_label] += float(s.get("discounted_amount") or 0)
+            hourly[hour_label] += float(s.get("total_amount") or 0)
 
         revenue_chart = [
             {"name": hour, "revenue": revenue}
@@ -1549,14 +1581,17 @@ def analytics(request):
         # --- Top Products ---
         product_counter = Counter()
         product_info = {}
+
         for s in sales:
-            pid = str(s.get("product_id"))
-            product_counter[pid] += 1
-            if pid not in product_info:
-                product_info[pid] = {
-                    "name": s.get("product_name", ""),
-                    "image": s.get("product_result_images", [""])[0]
-                }
+            for p in s.get("products", []):
+                pid = str(p.get("product_id"))
+                product_counter[pid] += p.get("sets_sold", 0)
+                
+                if pid not in product_info:
+                    product_info[pid] = {
+                        "name": p.get("product_name", ""),
+                        "image": p.get("product_result_images", [""])[0]
+                    }
 
         top_products = []
         for pid, count in product_counter.most_common(5):
@@ -1566,6 +1601,7 @@ def analytics(request):
                 "image": info["image"],
                 "sales": count
             })
+
 
         # --- Top Transactions ---
         top_sales = sorted(sales, key=lambda x: x.get("total_amount", 0), reverse=True)[:5]
@@ -1725,15 +1761,26 @@ def dashboard(request):
             {
                 "$group": {
                     "_id": "$products.product_id",
-                    "total_quantity": {"$sum": "$products.quantity"},
-                    "average_price": {"$avg": "$products.price_per_item"},
-                    "product_name": {"$first": "$products.product_name"},
-                    "image": {"$first": {"$arrayElemAt": ["$products.product_result_images", 0]}}
+                    "total_sets_sold": { "$sum": "$products.sets_sold" },
+                    "total_items_sold": {
+                        "$sum": {
+                            "$multiply": ["$products.sets_sold", "$products.sets_size"]
+                        }
+                    },
+                    "average_price": { "$avg": "$products.total_selling_price" },
+                    "product_name": { "$first": "$products.product_name" },
+                    "image": {
+                        "$first": {
+                            "$arrayElemAt": ["$products.product_result_images", 0]
+                        }
+                    }
                 }
             },
-            { "$sort": SON([("total_quantity", -1)]) },
+            { "$sort": SON([("total_sets_sold", -1)]) },
             { "$limit": 5 }
         ]
+
+
 
         top_selling = list(DB.products_sold.aggregate(pipeline))
 

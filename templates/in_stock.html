@@ -56,7 +56,9 @@
                     <th>Product Name</th>
                     <th>Product ID</th>
                     <th>Color</th>
-                    <th>Quantity</th>
+                    <th>Sets Available</th>
+                    <th>Product Bought Price</th>
+                    <th>Product Selling Price</th>
                     <th>Status</th>
                 </tr>
                 </thead>
@@ -72,19 +74,21 @@
                     <td>{{ product.product_name }}</td>
                     <td>{{ product.qrcode_ids.0 }}</td>
                     <td>{{ product.variants.0.color }}</td>
-                    <td>{{ product.product_quantity }}</td>
+                    <td>{{ product.sets_available }}</td>
+                    <td>{{ product.product_bought_price }}</td>
+                    <td>{{ product.product_selling_price }}</td>
                     <td class="
-                    {% if product.product_quantity < 2 %}
+                    {% if product.sets_available < 5 %}
                         status-red
-                    {% elif product.product_quantity < 5 %}
+                    {% elif product.sets_available < 10 %}
                         status-orange
                     {% else %}
                         status-green
                     {% endif %}
                     ">
-                    {% if product.product_quantity < 2 %}
+                    {% if product.sets_available < 5 %}
                         🔴 Critical
-                    {% elif product.product_quantity < 5 %}
+                    {% elif product.sets_available < 10 %}
                         🟠 Low
                     {% else %}
                         🟢 Good

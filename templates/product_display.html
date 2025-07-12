@@ -72,6 +72,12 @@
             color: #b8860b;
             font-weight: 600;
         }
+
+        .tag.red {
+            background-color: #ffefc2;
+            color: #d35400;
+            font-weight: 600;
+        }
         
         .tag.bestseller {
             background-color: #ffefc2;
@@ -101,17 +107,18 @@
 
             <!-- Top Labels -->
             <div class="labels">
-                <span class="tag">{{ product.product_name }}</span>
-                <span class="tag">{{ product.product_category }}</span>
-                <span class="tag large">{{ product.product_subCategory }}</span>
-                
-                {% if product.product_quantity > 0 %}
+                {% if piece === "available" %}
+                    <span class="tag">{{ product.product_name }}</span>
+                    <span class="tag">{{ product.product_category }}</span>
+                    <span class="tag large">{{ product.product_subCategory }}</span>
+                    
                     <span class="tag yellow">Piece Available</span>
                 {% else %}
-                    <span class="tag yellow">No Piece Available</span>
+                    <span class="tag">{{ product.product_name }}</span>
+                    <span class="tag red">Piece Sold</span>
                 {% endif %}
 
-                {% if product.sold_count > 200 %}
+                {% if product.sold_count > 40 %}
                     <span class="tag bestseller">🔥 Best Seller</span>
                 {% endif %}
             </div>

@@ -224,7 +224,7 @@
                       <tr>
                         <th scope="col">Preview</th>
                         <th scope="col">Product</th>
-                        <th scope="col">Sold</th>
+                        <th scope="col">Sets Sold</th>
                         <th scope="col">Price</th>
                       </tr>
                     </thead>
@@ -239,7 +239,7 @@
                         <td>
                           <a href="#" class="text-primary fw-bold">{{ product.product_name }}</a>
                         </td>
-                        <td class="fw-bold">{{ product.total_quantity }}</td>
+                        <td class="fw-bold">{{ product.total_sets_sold }}</td>
                         <td>₹{{ product.average_price|floatformat:0 }}</td>
                       </tr>
                       {% endfor %}
@@ -643,7 +643,7 @@
                         <th scope="col">Preview</th>
                         <th scope="col">Product</th>
                         <th scope="col">Price</th>
-                        <th scope="col">Sold</th>
+                        <th scope="col">Items per Set</th>
                         <th scope="col">Revenue</th>
                       </tr>
                     </thead>
