@@ -10,7 +10,7 @@ import bcrypt
 import jwt
 
 from django.utils import timezone
-from django.utils.timezone import localtime, make_aware
+from django.utils.timezone import localtime, make_aware, now
 from datetime import timedelta, datetime, timezone as dt_timezone
 
 from django.views.decorators.csrf import csrf_exempt
@@ -46,7 +46,6 @@ import logging
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 my_var_2 = os.getenv('Open_API_Key', 'Default Value')
 client = OpenAI(api_key=my_var_2)
@@ -1025,6 +1024,7 @@ def add_products(request):
                 "product_selling_price": parsed_data1['product_selling_price'],
                 "variants": variants,
                 "created_on": localtime(timezone.now())
+
             }
             # DB.products.create_index({"qrcode_ids": 1})
 
@@ -1302,7 +1302,7 @@ def sales(request):
                             total_selling_price = selling_price_per_item * quantity
 
                             product_entry = {
-                                "qrcode_id": qr_id,
+                                "qrcode_ids": qr_id,
                                 "product_id": product_id,
                                 "product_name": product.get("product_name", "N/A"),
                                 "sets_sold": 1,
@@ -1554,7 +1554,7 @@ def analytics(request):
 
         # --- Stats ---
         total_profit = sum(
-            ((p.get("price_per_item", 0) - p.get("total_buyed_price", 0)) * (p.get("sets_size", 0) * p.get("sets_sold", 0)))
+            ((p.get("price_per_item", 0) - p.get("item_buyed_price", 0)) * (p.get("sets_size", 0) * p.get("sets_sold", 0)))
             for s in sales for p in s.get("products", [])
         )
 

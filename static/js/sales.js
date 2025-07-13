@@ -319,7 +319,7 @@ function displayAllRowsFromDataStore() {
 
                 deleteIcon.addEventListener("click", () => {
                     delete scannedProductData[qrId];
-                    qrcodeidsarray.filter(id => id !== qrId);
+                    qrcodeidsarray = qrcodeidsarray.filter(id => id !== qrId);
                     displayAllRowsFromDataStore();
                 });
 
