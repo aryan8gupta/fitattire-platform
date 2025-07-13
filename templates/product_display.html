@@ -101,13 +101,13 @@
                 <div style="text-align: right;">
                     {% comment %} <a href="{% url 'edit_product' product_id %}" class="btn btn-warning"> {% endcomment %}
                     ✏️ Edit Product
-                    </a>
+                    {% comment %} </a> {% endcomment %}
                 </div>
             {% endif %}
 
             <!-- Top Labels -->
             <div class="labels">
-                {% if piece === "available" %}
+                {% if piece == "available" %}
                     <span class="tag">{{ product.product_name }}</span>
                     <span class="tag">{{ product.product_category }}</span>
                     <span class="tag large">{{ product.product_subCategory }}</span>
