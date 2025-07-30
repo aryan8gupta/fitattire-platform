@@ -1491,6 +1491,10 @@ def in_stock_products(request):
 
     user_email = data.get('email')
     user_record = DB.users.find_one({"email": user_email})
+
+    users_shop_name = user_record['shop_name']
+    shop_name = users_shop_name.lower().replace(" ", "-")
+
     users_id = str(user_record['_id'])
 
     # # 🔐 Prepare AES key using user's password and salt
@@ -1521,6 +1525,8 @@ def in_stock_products(request):
         'dashboard': dashboard,
         'user_type': user_type,
         'first_name': user_name,
+        'shop_name': shop_name,
+        'users_id': users_id,
         "products": products
     })
 
