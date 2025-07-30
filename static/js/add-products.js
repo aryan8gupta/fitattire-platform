@@ -1081,22 +1081,22 @@ resultImageInput.addEventListener('change', function () {
   submitBtn2.addEventListener("click", handleSubmitBtn);
 
   // Utility to get key from sessionStorage
-  async function getEncryptionKey() {
-    const base64Key = sessionStorage.getItem("encryptionKey");
-    if (!base64Key) {
-      console.error("Encryption key not found in sessionStorage.");
-      throw new Error("Encryption key not found. User might not be logged in or session expired.");
-    }
+  // async function getEncryptionKey() {
+  //   const base64Key = sessionStorage.getItem("encryptionKey");
+  //   if (!base64Key) {
+  //     console.error("Encryption key not found in sessionStorage.");
+  //     throw new Error("Encryption key not found. User might not be logged in or session expired.");
+  //   }
 
-    const rawKey = Uint8Array.from(atob(base64Key), c => c.charCodeAt(0));
-    return await crypto.subtle.importKey(
-      "raw",
-      rawKey,
-      "AES-GCM",
-      false,
-      ["encrypt", "decrypt"]
-    );
-  }
+  //   const rawKey = Uint8Array.from(atob(base64Key), c => c.charCodeAt(0));
+  //   return await crypto.subtle.importKey(
+  //     "raw",
+  //     rawKey,
+  //     "AES-GCM",
+  //     false,
+  //     ["encrypt", "decrypt"]
+  //   );
+  // }
 
   // Encrypt a single string field using AES-GCM
   // async function encryptField(text, key) {
@@ -1123,67 +1123,65 @@ resultImageInput.addEventListener('change', function () {
 
 
   // Encrypt a single string field using AES-GCM
-  async function encryptField(text, key) {
-    if (text === null || text === undefined || text === '') {
-        if (text === '') return await _performEncryption('', key);
-        return text;
-    }
-    return await _performEncryption(text, key);
-  }
+  // async function encryptField(text, key) {
+  //   if (text === null || text === undefined || text === '') {
+  //       if (text === '') return await _performEncryption('', key);
+  //       return text;
+  //   }
+  //   return await _performEncryption(text, key);
+  // }
 
-  // Helper to encapsulate actual encryption logic
-  async function _performEncryption(text, key) {
-    const encoder = new TextEncoder();
-    const iv = crypto.getRandomValues(new Uint8Array(12)); // 96-bit IV for GCM
+  // // Helper to encapsulate actual encryption logic
+  // async function _performEncryption(text, key) {
+  //   const encoder = new TextEncoder();
+  //   const iv = crypto.getRandomValues(new Uint8Array(12)); // 96-bit IV for GCM
 
-    const encryptedBuffer = await crypto.subtle.encrypt(
-      {
-        name: "AES-GCM",
-        iv: iv
-      },
-      key,
-      encoder.encode(text)
-    );
+  //   const encryptedBuffer = await crypto.subtle.encrypt(
+  //     {
+  //       name: "AES-GCM",
+  //       iv: iv
+  //     },
+  //     key,
+  //     encoder.encode(text)
+  //   );
 
-    // Combine IV and encrypted text
-    const combined = new Uint8Array(iv.length + encryptedBuffer.byteLength);
-    combined.set(iv);
-    combined.set(new Uint8Array(encryptedBuffer), iv.length);
+  //   // Combine IV and encrypted text
+  //   const combined = new Uint8Array(iv.length + encryptedBuffer.byteLength);
+  //   combined.set(iv);
+  //   combined.set(new Uint8Array(encryptedBuffer), iv.length);
 
-    // Convert to base64 string for safe transmission/storage
-    return btoa(String.fromCharCode(...combined));
-  }
-
-
-  // Decrypt a single Base64-encoded field using AES-GCM (useful for display later)
-  async function decryptField(base64Ciphertext, key) {
-      if (base64Ciphertext === null || base64Ciphertext === undefined || base64Ciphertext === '') {
-          return base64Ciphertext; // If nothing was encrypted, return as is
-      }
-      try {
-          const decoder = new TextDecoder();
-          const combined = Uint8Array.from(atob(base64Ciphertext), c => c.charCodeAt(0));
-          const iv = combined.slice(0, 12);
-          const ciphertext = combined.slice(12);
-
-          const decryptedBuffer = await crypto.subtle.decrypt(
-              {
-                  name: "AES-GCM",
-                  iv: iv
-              },
-              key,
-              ciphertext
-          );
-
-          return decoder.decode(decryptedBuffer);
-      } catch (e) {
-          console.error("Decryption failed:", e);
-          // Handle decryption failure (e.g., corrupted data, wrong key)
-          return null; // Or throw error, depending on desired behavior
-      }
-  }
+  //   // Convert to base64 string for safe transmission/storage
+  //   return btoa(String.fromCharCode(...combined));
+  // }
 
 
+  // // Decrypt a single Base64-encoded field using AES-GCM (useful for display later)
+  // async function decryptField(base64Ciphertext, key) {
+  //     if (base64Ciphertext === null || base64Ciphertext === undefined || base64Ciphertext === '') {
+  //         return base64Ciphertext; // If nothing was encrypted, return as is
+  //     }
+  //     try {
+  //         const decoder = new TextDecoder();
+  //         const combined = Uint8Array.from(atob(base64Ciphertext), c => c.charCodeAt(0));
+  //         const iv = combined.slice(0, 12);
+  //         const ciphertext = combined.slice(12);
+
+  //         const decryptedBuffer = await crypto.subtle.decrypt(
+  //             {
+  //                 name: "AES-GCM",
+  //                 iv: iv
+  //             },
+  //             key,
+  //             ciphertext
+  //         );
+
+  //         return decoder.decode(decryptedBuffer);
+  //     } catch (e) {
+  //         console.error("Decryption failed:", e);
+  //         // Handle decryption failure (e.g., corrupted data, wrong key)
+  //         return null; // Or throw error, depending on desired behavior
+  //     }
+  // }
 
 
   async function handleSubmitBtn() {
@@ -1225,7 +1223,7 @@ resultImageInput.addEventListener('change', function () {
       // console.log("key:-", key)
   
       // // 🔐 Encrypt product fields
-      const encryptedProduct = { ...productData };
+      // const encryptedProduct = { ...productData };
   
       // encryptedProduct.product_name = await encryptField(productData.product_name, key);
       // encryptedProduct.product_fabric = await encryptField(productData.product_fabric, key);
@@ -1244,7 +1242,7 @@ resultImageInput.addEventListener('change', function () {
 
   
       const formData = new FormData();
-      formData.append('document', JSON.stringify(encryptedProduct));
+      formData.append('document', JSON.stringify(productData));
       formData.append('selectedmiddlebuttons', JSON.stringify(documentData));
       formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
   
@@ -1276,7 +1274,6 @@ resultImageInput.addEventListener('change', function () {
         }
       }
   
-      // ✅ Submit encrypted data
       const response = await fetch('/add-products/', {
         method: 'POST',
         body: formData
