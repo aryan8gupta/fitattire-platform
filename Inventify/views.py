@@ -2422,7 +2422,7 @@ def download_videos_zip(request):
 
 def product_list(request, shop_name, user_id):
     try:
-        user = DB.users.find_one({"_id": ObjectId(user_id)})
+        user = DB.users.find_one({"_id": user_id})
         if not user:
             return render(request, "404.html", {"message": "User not found"})
 
@@ -2448,7 +2448,6 @@ def product_list(request, shop_name, user_id):
                     "image": first_image,
                     "barcode": p.get("qrcode_ids", [""])[0].rstrip("/"),
                 })
-        print(products)
 
         return render(request, "product_list.html", {
             "products": products,
