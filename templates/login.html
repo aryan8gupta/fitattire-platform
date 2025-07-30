@@ -188,10 +188,65 @@
         }
       }
     </style>
-  
+
     <section class="login-section">
-  
+      
       <!-- Login box container -->
+      <div class="login-form-container">
+        <div class="login-box">
+          <div class="login-logo">
+            <img src="{% static 'img/logo.png' %}" alt="Logo" />
+            <span class="h1 mb-0" style="font-size: 32px;">FitAttire</span>
+          </div>
+
+          {% if messages %}
+            {% for mes in messages %}
+              <div class="alert-danger text-danger" id="msg" role="alert"></div>
+              <script>
+                const mytimes = setTimeout(function(){
+                  document.getElementById("msg").innerHTML = '{{mes}}'
+                });
+              </script>
+            {% endfor %}
+          {% endif %}
+
+          <h3 class="login-title">Log in</h3>
+
+          <!-- Mobile welcome text -->
+          <div class="welcome-text d-md-none">
+            Welcome to FitAttire. Please enter your credentials to continue.
+          </div>
+
+          <form method="POST" action="">
+            {% csrf_token %}
+
+            <div data-mdb-input-init class="form-outline mb-4">
+              <input type="email" id="form2Example18" name="email" class="form-control form-control-lg" required/>
+              <label class="form-label" for="form2Example18">Email address</label>
+            </div>
+          
+            <div data-mdb-input-init class="form-outline mb-4">
+              <input type="password" id="form2Example28" name="password" class="form-control form-control-lg" required/>
+              <label class="form-label" for="form2Example28">Password</label>
+            </div>
+
+            <div class="pt-2 mb-4">
+              <button class="btn btn-primary btn-lg" type="submit">Login</button>
+            </div>
+
+            <p class="small text-center">
+              <a href="#!">Forgot password?</a>
+            </p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    
+  
+    <!-- <section class="login-section">
+  
+      // Login box container
       <div class="login-form-container">
         <div class="login-box">
           <div class="login-logo">
@@ -212,7 +267,7 @@
   
           <h3 class="login-title">Log in</h3>
   
-          <!-- Mobile welcome text -->
+          // Mobile welcome text 
           <div class="welcome-text d-md-none">
             Welcome to FitAttire. Please enter your credentials to continue.
           </div>
@@ -238,54 +293,13 @@
               <a href="#!">Forgot password?</a>
             </p>
           </form>
-          {% comment %} <script>
-            async function handleLoginSubmit(event) {
-              event.preventDefault();
-          
-              const form = event.target;
-              const email = form.email.value;
-              const password = form.password.value;
-          
-              // Derive AES key using PBKDF2
-              const salt = email;
-              const keyMaterial = await crypto.subtle.importKey(
-                "raw",
-                new TextEncoder().encode(password),
-                { name: "PBKDF2" },
-                false,
-                ["deriveKey"]
-              );
-          
-              const aesKey = await crypto.subtle.deriveKey(
-                {
-                  name: "PBKDF2",
-                  salt: new TextEncoder().encode(salt),
-                  iterations: 100000,
-                  hash: "SHA-256",
-                },
-                keyMaterial,
-                { name: "AES-GCM", length: 256 },
-                true,
-                ["encrypt", "decrypt"]
-              );
-          
-              // Export and save to sessionStorage
-              const rawKey = await crypto.subtle.exportKey("raw", aesKey);
-              const keyBase64 = btoa(String.fromCharCode(...new Uint8Array(rawKey)));
-              sessionStorage.setItem("encryptionKey", keyBase64);
-              sessionStorage.setItem("encryptionSalt", salt);
-          
-              // Submit the form after storing key
-              form.submit();
-            }
-          </script> {% endcomment %}
 
           <script>
             // Configuration for PBKDF2 (can be adjusted for higher security based on performance testing)
             // Modern recommendation is 300,000+ iterations for PBKDF2-SHA256
-            const PBKDF2_ITERATIONS = 300000;
-            const PBKDF2_HASH_ALGORITHM = "SHA-256";
-            const AES_KEY_LENGTH_BITS = 256; // For AES-256
+            // const PBKDF2_ITERATIONS = 300000;
+            // const PBKDF2_HASH_ALGORITHM = "SHA-256";
+            // const AES_KEY_LENGTH_BITS = 256; // For AES-256
   
             /**
              * Derives an AES-GCM key from a password and a salt using PBKDF2.
@@ -293,34 +307,34 @@
              * @param {string} saltHex - The cryptographically random salt (hex string) from the server.
              * @returns {Promise<CryptoKey>} The derived AES-GCM key.
              */
-            async function deriveAesKeyFromPassword(password, saltHex) {
-                const passwordBytes = new TextEncoder().encode(password);
-                // Convert hex string salt (from backend) to Uint8Array bytes
-                const saltBytes = Uint8Array.from(saltHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+            // async function deriveAesKeyFromPassword(password, saltHex) {
+            //     const passwordBytes = new TextEncoder().encode(password);
+            //     // Convert hex string salt (from backend) to Uint8Array bytes
+            //     const saltBytes = Uint8Array.from(saltHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
   
-                const keyMaterial = await crypto.subtle.importKey(
-                    "raw",
-                    passwordBytes,
-                    { name: "PBKDF2" },
-                    false, // This key material itself doesn't need to be extractable
-                    ["deriveKey"]
-                );
+            //     const keyMaterial = await crypto.subtle.importKey(
+            //         "raw",
+            //         passwordBytes,
+            //         { name: "PBKDF2" },
+            //         false, // This key material itself doesn't need to be extractable
+            //         ["deriveKey"]
+            //     );
   
-                const aesKey = await crypto.subtle.deriveKey(
-                    {
-                        name: "PBKDF2",
-                        salt: saltBytes,
-                        iterations: PBKDF2_ITERATIONS,
-                        hash: PBKDF2_HASH_ALGORITHM,
-                    },
-                    keyMaterial,
-                    { name: "AES-GCM", length: AES_KEY_LENGTH_BITS },
-                    true, // Set extractable to false for the derived key after initial export
-                             // It's exported once to sessionStorage, then typically re-imported as non-extractable.
-                    ["encrypt", "decrypt"]
-                );
-                return aesKey;
-            }
+            //     const aesKey = await crypto.subtle.deriveKey(
+            //         {
+            //             name: "PBKDF2",
+            //             salt: saltBytes,
+            //             iterations: PBKDF2_ITERATIONS,
+            //             hash: PBKDF2_HASH_ALGORITHM,
+            //         },
+            //         keyMaterial,
+            //         { name: "AES-GCM", length: AES_KEY_LENGTH_BITS },
+            //         true, // Set extractable to false for the derived key after initial export
+            //                  // It's exported once to sessionStorage, then typically re-imported as non-extractable.
+            //         ["encrypt", "decrypt"]
+            //     );
+            //     return aesKey;
+            // }
   
             async function handleLoginSubmit(event) {
                 event.preventDefault(); // Prevent default form submission initially
@@ -329,55 +343,55 @@
                 const email = form.email.value;
                 const password = form.password.value; // Plaintext password from form
   
-                // --- 1. Fetch the user's unique PBKDF2 salt from the server ---
-                let userEncryptionSaltHex;
-                try {
-                    // This is an AJAX call to your Django backend to get the salt.
-                    // The backend must have an endpoint like `/get_user_encryption_salt/?email=user@example.com`
-                    // that returns JSON with {"encryption_salt": "..."}
-                    const saltResponse = await fetch(`/get_user_encryption_salt/?email=${encodeURIComponent(email)}`);
-                    if (!saltResponse.ok) {
-                        // Handle HTTP errors (e.g., 404 if user not found, 500 server error)
-                        const errorText = await saltResponse.text(); // Or .json() if your backend sends JSON errors
-                        throw new Error(`Failed to retrieve user encryption salt: ${saltResponse.status} - ${errorText}`);
-                    }
-                    const saltData = await saltResponse.json();
-                    userEncryptionSaltHex = saltData.encryption_salt;
-                    if (!userEncryptionSaltHex) {
-                      throw new Error('Encryption salt not provided by server response.');
-                    }
-                } catch (error) {
-                    console.error("Error getting encryption salt:", error);
-                    alert("Login failed: Could not retrieve necessary encryption data. Please try again.");
-                    return; // Stop execution if salt cannot be fetched
-                }
+                // // --- 1. Fetch the user's unique PBKDF2 salt from the server ---
+                // let userEncryptionSaltHex;
+                // try {
+                //     // This is an AJAX call to your Django backend to get the salt.
+                //     // The backend must have an endpoint like `/get_user_encryption_salt/?email=user@example.com`
+                //     // that returns JSON with {"encryption_salt": "..."}
+                //     const saltResponse = await fetch(`/get_user_encryption_salt/?email=${encodeURIComponent(email)}`);
+                //     if (!saltResponse.ok) {
+                //         // Handle HTTP errors (e.g., 404 if user not found, 500 server error)
+                //         const errorText = await saltResponse.text(); // Or .json() if your backend sends JSON errors
+                //         throw new Error(`Failed to retrieve user encryption salt: ${saltResponse.status} - ${errorText}`);
+                //     }
+                //     const saltData = await saltResponse.json();
+                //     userEncryptionSaltHex = saltData.encryption_salt;
+                //     if (!userEncryptionSaltHex) {
+                //       throw new Error('Encryption salt not provided by server response.');
+                //     }
+                // } catch (error) {
+                //     console.error("Error getting encryption salt:", error);
+                //     alert("Login failed: Could not retrieve necessary encryption data. Please try again.");
+                //     return; // Stop execution if salt cannot be fetched
+                // }
   
-                // --- 2. Derive the AES key using the plaintext password and the retrieved random salt ---
-                let aesKey;
-                try {
-                    aesKey = await deriveAesKeyFromPassword(password, userEncryptionSaltHex);
-                } catch (error) {
-                    console.error("Error deriving AES key:", error);
-                    alert("Login failed: Error during key derivation. Please try again.");
-                    return; // Stop execution if key derivation fails
-                }
+                // // --- 2. Derive the AES key using the plaintext password and the retrieved random salt ---
+                // let aesKey;
+                // try {
+                //     aesKey = await deriveAesKeyFromPassword(password, userEncryptionSaltHex);
+                // } catch (error) {
+                //     console.error("Error deriving AES key:", error);
+                //     alert("Login failed: Error during key derivation. Please try again.");
+                //     return; // Stop execution if key derivation fails
+                // }
   
-                // --- 3. Export the derived AES key and store it in sessionStorage ---
-                // This key is ephemeral for the session and stays on the client.
-                // This is a critical step for allowing decryption on other pages within the same session.
-                try {
-                    // Export the raw key bytes
-                    const rawKey = await crypto.subtle.exportKey("raw", aesKey);
-                    // Convert raw bytes to Base64 string for sessionStorage
-                    const keyBase64 = btoa(String.fromCharCode(...new Uint8Array(rawKey)));
-                    sessionStorage.setItem("encryptionKey", keyBase64);
-                    // Storing the salt in sessionStorage is optional but harmless; the server is the source of truth for it.
-                    sessionStorage.setItem("userEncryptionSalt", userEncryptionSaltHex);
-                } catch (error) {
-                    console.error("Error storing key in sessionStorage:", error);
-                    alert("Login failed: Could not securely store encryption key in browser. Please try again.");
-                    return; // Stop execution if sessionStorage fails
-                }
+                // // --- 3. Export the derived AES key and store it in sessionStorage ---
+                // // This key is ephemeral for the session and stays on the client.
+                // // This is a critical step for allowing decryption on other pages within the same session.
+                // try {
+                //     // Export the raw key bytes
+                //     const rawKey = await crypto.subtle.exportKey("raw", aesKey);
+                //     // Convert raw bytes to Base64 string for sessionStorage
+                //     const keyBase64 = btoa(String.fromCharCode(...new Uint8Array(rawKey)));
+                //     sessionStorage.setItem("encryptionKey", keyBase64);
+                //     // Storing the salt in sessionStorage is optional but harmless; the server is the source of truth for it.
+                //     sessionStorage.setItem("userEncryptionSalt", userEncryptionSaltHex);
+                // } catch (error) {
+                //     console.error("Error storing key in sessionStorage:", error);
+                //     alert("Login failed: Could not securely store encryption key in browser. Please try again.");
+                //     return; // Stop execution if sessionStorage fails
+                // }
   
                 // --- 4. Submit the form to authenticate the user normally (bcrypt check on backend) ---
                 // We use fetch API here for better control over the authentication response.
@@ -407,23 +421,23 @@
                             // Handle login failure based on backend's JSON response
                             alert(responseData.message || "Login failed. Please check your credentials.");
                             // Clear the key if login failed, to prevent using it with an unauthenticated session
-                            sessionStorage.removeItem("encryptionKey");
-                            sessionStorage.removeItem("userEncryptionSalt");
+                            // sessionStorage.removeItem("encryptionKey");
+                            // sessionStorage.removeItem("userEncryptionSalt");
                         }
                     } else {
                         // Handle HTTP error status (e.g., 401 Unauthorized, 403 Forbidden)
                         const errorData = await response.text(); // Or response.json() if your backend sends JSON errors
                         console.error("Login failed (HTTP error):", response.status, errorData);
                         alert("Login failed. Please check your credentials.");
-                        sessionStorage.removeItem("encryptionKey");
-                        sessionStorage.removeItem("userEncryptionSalt");
+                        // sessionStorage.removeItem("encryptionKey");
+                        // sessionStorage.removeItem("userEncryptionSalt");
                     }
                 } catch (error) {
                     // Handle network errors or issues during form submission
                     console.error("Network or submission error during login:", error);
                     alert("An error occurred during login. Please try again.");
-                    sessionStorage.removeItem("encryptionKey");
-                    sessionStorage.removeItem("userEncryptionSalt");
+                    // sessionStorage.removeItem("encryptionKey");
+                    // sessionStorage.removeItem("userEncryptionSalt");
                 }
             }
           </script>
@@ -431,7 +445,7 @@
           
         </div>
       </div>
-    </section>
+    </section> -->
 
 </body>
 
