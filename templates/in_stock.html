@@ -110,7 +110,7 @@
                         data-product-id="{{ product.id }}">
                         <td>{{ forloop.counter }}</td>
                         <td>
-                        <img class="thumb" src="{{ product.variants.0.result_image|default:'#' }}" alt="Image">
+                            <img class="thumb" src="{{ product.variants.0.result_image|default:'#' }}" alt="Image">
                         </td>
                         <td>{{ product.product_name }}</td>
                         {% comment %} <td>{{ product.qrcode_ids.0 }}</td>                         {% endcomment %}

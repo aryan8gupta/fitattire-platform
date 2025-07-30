@@ -1532,32 +1532,6 @@ def in_stock_products(request):
 
 
 
-
-# def in_stock_products(request):
-#     valid = False
-#     data = {}
-#     if request.COOKIES.get('t'):
-#         valid, data = verify_token(request.COOKIES['t'])
-#     dashboard = None
-#     if valid:
-#         dashboard = 'dashboard'
-	
-#     user_type = data.get('user_type')
-#     user_name = data.get('first_name')
-
-#     user_email = data.get('email')
-#     user_record = DB.users.find_one({"email": user_email})
-#     users_id = str(user_record['_id'])
-
-#     products = list(DB.products.find({"user_id": users_id}).sort("sets_available", 1))
-
-#     for p in products:
-#         p["_id"] = str(p["_id"])
-    
-#     return render(request, 'in_stock.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, "products": products})
-
-
-
 def products_sold_view(request):
     valid = False
     data = {}
@@ -2426,28 +2400,28 @@ def product_list(request, shop_name, user_id):
         if not user:
             return render(request, "404.html", {"message": "User not found"})
 
-        products_cursor = DB.products.find({"user_id": user_id})
+        products = list(DB.products.find({"user_id": user_id}))
 
-        products = []
+        # products = []
 
-        for p in products_cursor:
-            variants = p.get("variants", [])
-            if variants:
-                first_variant = variants[0]
-                first_image = first_variant.get("result_image") or first_variant.get("garment_image", "")
+        # for p in products_cursor:
+        #     variants = p.get("variants", [])
+        #     if variants:
+        #         first_variant = variants[0]
+        #         first_image = first_variant.get("result_image") or first_variant.get("garment_image", "")
 
-                products.append({
-                    "product_name": p.get("product_name", ""),
-                    "gender": p.get("product_gender", ""),
-                    "age_group": p.get("age_group", "Adults"),
-                    "category": p.get("product_category", ""),
-                    "subcategory": p.get("product_subCategory", ""),
-                    "final_category": p.get("product_finalCategory", ""),
-                    "selling_price": p.get("product_selling_price", ""),
-                    "color": first_variant.get("color", ""),
-                    "image": first_image,
-                    "barcode": p.get("qrcode_ids", [""])[0].rstrip("/"),
-                })
+        #         products.append({
+        #             "product_name": p.get("product_name", ""),
+        #             "gender": p.get("product_gender", ""),
+        #             "age_group": p.get("age_group", "Adults"),
+        #             "category": p.get("product_category", ""),
+        #             "subcategory": p.get("product_subCategory", ""),
+        #             "final_category": p.get("product_finalCategory", ""),
+        #             "selling_price": p.get("product_selling_price", ""),
+        #             "color": first_variant.get("color", ""),
+        #             "image": first_image,
+        #             "barcode": p.get("qrcode_ids", [""])[0].rstrip("/"),
+        #         })
 
         return render(request, "product_list.html", {
             "products": products,

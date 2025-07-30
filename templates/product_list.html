@@ -257,7 +257,6 @@
     <div class="category-section">
         <h3 class="category-header">Choose Product Category:</h3>
         <div class="category-buttons" id="gender-buttons"></div>
-        <div class="category-buttons" id="age-buttons"></div>
         <div class="category-buttons" id="category-buttons"></div>
         <div class="category-buttons" id="subcategory-buttons"></div>
         <div class="category-buttons" id="final-category-buttons"></div>
@@ -266,22 +265,19 @@
     <div class="product-grid" id="product-grid">
         {% for p in products %}
         <div class="product-card"
-            data-gender="{{ p.gender }}"
-            data-age="{{ p.age_group }}"
-            data-category="{{ p.category }}"
-            data-subcategory="{{ p.subcategory }}"
-            data-finalcategory="{{ p.final_category }}"
-            onclick="window.location.href='/product-display/{{ p.barcode }}'">
+            data-gender="{{ p.product_gender }}"
+            data-category="{{ p.product_category }}"
+            data-subcategory="{{ p.product_subCategory }}"
+            data-finalcategory="{{ p.product_finalCategory }}"
+            onclick="window.location.href='/product-display/{{ p.qrcode_ids.0 }}'">
 
-            {% comment %} <img src="{{ p.image }}" alt="{{ p.product_name }}" onerror="this.src='/static/default-image.png'"> {% endcomment %}
             <div class="product-image-container">
-                <img src="{{ p.image }}" alt="{{ p.product_name }}" onerror="this.src='/static/default-image.png'">
+                <img src="{{ p.variants.0.result_image|default:'#' }}" alt="{{ p.product_name }}" onerror="this.src='/static/default-image.png'">
             </div>
-            {% comment %} <div class="card-spacer-top"></div>  {% endcomment %}
             <div class="product-info">
                 <strong>{{ p.product_name }}</strong><br>
-                <p>₹{{ p.selling_price }}</p><br>
-                <p>Color: {{ p.color }}</p>
+                <p>₹{{ p.product_selling_price }}</p><br>
+                <p>Color: {{ p.variants.0.color }}</p>
             </div>
             <div class="card-spacer-top"></div> 
             <button class="view-button">View Product</button>
@@ -295,14 +291,12 @@
         const products = Array.from(document.querySelectorAll('.product-card'));
         
         const genderButtonsDiv = document.getElementById('gender-buttons');
-        const ageButtonsDiv = document.getElementById('age-buttons');
         const categoryButtonsDiv = document.getElementById('category-buttons');
         const subcategoryButtonsDiv = document.getElementById('subcategory-buttons');
         const finalCategoryButtonsDiv = document.getElementById('final-category-buttons');
         const productGrid = document.getElementById('product-grid'); // Ensure this is defined
         
         let selectedGender = null;
-        let selectedAge = null;
         let selectedCategory = null;
         let selectedSubcategory = null;
         let selectedFinalCategory = null;
@@ -311,7 +305,6 @@
             element: card,
             // Convert all data attributes to lowercase for consistent comparison
             gender: card.dataset.gender ? card.dataset.gender.toLowerCase() : '',
-            age: card.dataset.age ? card.dataset.age.toLowerCase() : '',
             category: card.dataset.category ? card.dataset.category.toLowerCase() : '',
             subcategory: card.dataset.subcategory ? card.dataset.subcategory.toLowerCase() : '',
             finalcategory: card.dataset.finalcategory ? card.dataset.finalcategory.toLowerCase() : ''
@@ -351,9 +344,6 @@
               
             if (selectedGender) {
                 filtered = filtered.filter(p => p.gender === selectedGender);
-            }
-            if (selectedAge) {
-                filtered = filtered.filter(p => p.age === selectedAge);
             }
             if (selectedCategory) {
                 filtered = filtered.filter(p => p.category === selectedCategory);
@@ -398,7 +388,6 @@
             }
         
             // Clear all lower-level selections whenever gender changes
-            selectedAge = null;
             selectedCategory = null;
             selectedSubcategory = null;
             selectedFinalCategory = null;
@@ -410,62 +399,18 @@
             if (selectedGender) {
                 // Filter products for the next level's buttons based on current selection
                 const filteredForNextLevel = allProducts.filter(p => p.gender === selectedGender);
-                showButtons(filteredForNextLevel, 'age', ageButtonsDiv, handleAge, selectedAge);
+                showButtons(filteredForNextLevel, 'category', categoryButtonsDiv, handleCategory, selectedCategory);
             } else {
-                ageButtonsDiv.innerHTML = '';
-                ageButtonsDiv.style.display = 'none';
+                categoryButtonsDiv.innerHTML = '';
+                categoryButtonsDiv.style.display = 'none';
             }
-            
-            // Always clear and hide lower-level category buttons
-            categoryButtonsDiv.innerHTML = '';
-            categoryButtonsDiv.style.display = 'none';
+
             subcategoryButtonsDiv.innerHTML = '';
             subcategoryButtonsDiv.style.display = 'none';
             finalCategoryButtonsDiv.innerHTML = '';
             finalCategoryButtonsDiv.style.display = 'none';
         
             // Finally, filter and display products based on the new selections
-            filterAndDisplayProducts();
-        }
-        
-        function handleAge(val) {
-            if (selectedAge === val) {
-                selectedAge = null;
-            } else {
-                selectedAge = val;
-            }
-        
-            selectedCategory = null;
-            selectedSubcategory = null;
-            selectedFinalCategory = null;
-        
-            // Re-render Age buttons based on current Gender selection, with active Age
-            showButtons(
-                allProducts.filter(p => p.gender === selectedGender),
-                'age',
-                ageButtonsDiv,
-                handleAge,
-                selectedAge
-            );
-        
-            if (selectedAge) {
-                const filteredForNextLevel = allProducts.filter(p => p.gender === selectedGender && p.age === selectedAge);
-                showButtons(
-                    filteredForNextLevel,
-                    'category',
-                    categoryButtonsDiv,
-                    handleCategory,
-                    selectedCategory
-                );
-            } else {
-                categoryButtonsDiv.innerHTML = '';
-                categoryButtonsDiv.style.display = 'none';
-            }
-            subcategoryButtonsDiv.innerHTML = '';
-            subcategoryButtonsDiv.style.display = 'none';
-            finalCategoryButtonsDiv.innerHTML = '';
-            finalCategoryButtonsDiv.style.display = 'none';
-        
             filterAndDisplayProducts();
         }
         
@@ -479,7 +424,7 @@
             selectedFinalCategory = null;
         
             showButtons(
-                allProducts.filter(p => p.gender === selectedGender && p.age === selectedAge),
+                allProducts.filter(p => p.gender === selectedGender),
                 'category',
                 categoryButtonsDiv,
                 handleCategory,
@@ -489,7 +434,6 @@
             if (selectedCategory) {
                 const filteredForNextLevel = allProducts.filter(p =>
                     p.gender === selectedGender &&
-                    p.age === selectedAge &&
                     p.category === selectedCategory
                 );
                 showButtons(
@@ -520,7 +464,6 @@
             showButtons(
                 allProducts.filter(p =>
                     p.gender === selectedGender &&
-                    p.age === selectedAge &&
                     p.category === selectedCategory
                 ),
                 'subcategory',
@@ -532,7 +475,6 @@
             if (selectedSubcategory) {
                 const filteredForNextLevel = allProducts.filter(p =>
                     p.gender === selectedGender &&
-                    p.age === selectedAge &&
                     p.category === selectedCategory &&
                     p.subcategory === selectedSubcategory
                 );
@@ -561,7 +503,6 @@
             showButtons(
                 allProducts.filter(p =>
                     p.gender === selectedGender &&
-                    p.age === selectedAge &&
                     p.category === selectedCategory &&
                     p.subcategory === selectedSubcategory
                 ),
@@ -585,7 +526,6 @@
             showButtons(allProducts, 'gender', genderButtonsDiv, handleGender, selectedGender);
         
             // 3. Ensure other category button containers are hidden initially.
-            ageButtonsDiv.style.display = 'none';
             categoryButtonsDiv.style.display = 'none';
             subcategoryButtonsDiv.style.display = 'none';
             finalCategoryButtonsDiv.style.display = 'none';
@@ -594,337 +534,6 @@
         // Call the initialization function when the script runs
         initializeProductPage();
     </script>
-
-    {% comment %} <script>
-        const products = Array.from(document.querySelectorAll('.product-card'));
-    
-        const genderButtonsDiv = document.getElementById('gender-buttons');
-        const ageButtonsDiv = document.getElementById('age-buttons');
-        const categoryButtonsDiv = document.getElementById('category-buttons');
-        const subcategoryButtonsDiv = document.getElementById('subcategory-buttons');
-        const finalCategoryButtonsDiv = document.getElementById('final-category-buttons');
-    
-        let selectedGender = null;
-        let selectedAge = null;
-        let selectedCategory = null;
-        let selectedSubcategory = null;
-        let selectedFinalCategory = null;
-    
-        const allProducts = products.map(card => ({
-            element: card,
-            gender: card.dataset.gender,
-            age: card.dataset.age,
-            category: card.dataset.category,
-            subcategory: card.dataset.subcategory,
-            finalcategory: card.dataset.finalcategory
-        }));
-    
-        function createButton(text, onClick, isActive = false) {
-        const btn = document.createElement('button');
-        btn.textContent = text;
-        btn.onclick = onClick;
-        if (isActive) {
-            btn.classList.add('active');
-        }
-        return btn;
-        }
-    
-        function showButtons(data, key, targetDiv, handler, currentSelectedValue) {
-            targetDiv.innerHTML = ''; // Clear existing buttons
-    
-            const uniqueValues = [...new Set(data.map(p => p[key]))].filter(Boolean); // Filter out empty strings/nulls
-            uniqueValues.forEach(val => {
-                // Display value with first letter capitalized for buttons, but compare lowercase internally
-                const displayVal = val.charAt(0).toUpperCase() + val.slice(1);
-                const isActive = (val === currentSelectedValue);
-                targetDiv.appendChild(createButton(displayVal, () => handler(val), isActive));
-            });
-            targetDiv.style.display = 'flex'; // Ensure the button container is visible
-        }
-    
-    
-        function filterAndDisplayProducts() {
-                        
-            let filtered = allProducts;
-          
-            if (selectedGender) {
-              filtered = filtered.filter(p => p.gender === selectedGender);
-            }
-            if (selectedAge) {
-              filtered = filtered.filter(p => p.age === selectedAge);
-            }
-            if (selectedCategory) {
-              filtered = filtered.filter(p => p.category === selectedCategory);
-            }
-            if (selectedSubcategory) {
-              filtered = filtered.filter(p => p.subcategory === selectedSubcategory);
-            }
-            if (selectedFinalCategory) {
-              filtered = filtered.filter(p => p.finalcategory === selectedFinalCategory);
-            }
-          
-            products.forEach(p => p.style.display = 'none');
-            filtered.forEach(p => p.element.style.display = 'block');
-    
-            let noProductsMessage = document.getElementById('no-products-message');
-            if (filtered.length === 0) {
-                if (!noProductsMessage) {
-                    noProductsMessage = document.createElement('p');
-                    noProductsMessage.id = 'no-products-message';
-                    noProductsMessage.textContent = 'No products found matching your selection.';
-                    productGrid.parentNode.insertBefore(noProductsMessage, productGrid.nextSibling);
-                }
-                productGrid.style.display = 'none';
-                noProductsMessage.style.display = 'block';
-            } else {
-                if (noProductsMessage) {
-                    noProductsMessage.style.display = 'none';
-                }
-                productGrid.style.display = 'flex';
-            }    
-        }
-    
-        function handleGender(val) {
-            selectedGender = val;
-            selectedAge = null;
-            selectedCategory = null;
-            selectedSubcategory = null;
-            selectedFinalCategory = null;
-
-            // ALWAYS re-render the current level's buttons to update their active state
-            showButtons(allProducts, 'gender', genderButtonsDiv, handleGender, selectedGender);
-
-            // Conditional rendering for next levels based on selection
-            if (selectedGender) {
-                showButtons(
-                    allProducts.filter(p => p.gender === selectedGender),
-                    'age',
-                    ageButtonsDiv,
-                    handleAge,
-                    selectedAge // This will be null, showing 'All Age' as active if no age selected yet
-                );
-            } else {
-                ageButtonsDiv.innerHTML = '';
-                ageButtonsDiv.style.display = 'none';
-            }
-            categoryButtonsDiv.innerHTML = '';
-            categoryButtonsDiv.style.display = 'none';
-            subcategoryButtonsDiv.innerHTML = '';
-            subcategoryButtonsDiv.style.display = 'none';
-            finalCategoryButtonsDiv.innerHTML = '';
-            finalCategoryButtonsDiv.style.display = 'none';
-
-            filterAndDisplayProducts();
-
-        
-            /* showButtons(
-                allProducts.filter(p => p.gender === val),
-                'age',
-                ageButtonsDiv,
-                handleAge
-            );
-        
-            categoryButtonsDiv.innerHTML = '';
-            subcategoryButtonsDiv.innerHTML = '';
-            finalCategoryButtonsDiv.innerHTML = '';
-            filterAndDisplayProducts(); */
-
-            if (products.length > 0) {
-                const grid = document.getElementById('product-grid');
-                grid.classList.add('show-grid');
-            } 
-        }
-
-        function handleAge(val) {
-            selectedAge = val;
-            selectedCategory = null;
-            selectedSubcategory = null;
-            selectedFinalCategory = null;
-    
-            // Re-render Age buttons based on current Gender selection, with active Age
-            showButtons(
-                allProducts.filter(p => p.gender === selectedGender),
-                'age',
-                ageButtonsDiv,
-                handleAge,
-                selectedAge
-            );
-    
-            if (selectedAge) {
-                showButtons(
-                    allProducts.filter(p => p.gender === selectedGender && p.age === selectedAge),
-                    'category',
-                    categoryButtonsDiv,
-                    handleCategory,
-                    selectedCategory
-                );
-            } else {
-                categoryButtonsDiv.innerHTML = '';
-                categoryButtonsDiv.style.display = 'none';
-            }
-            subcategoryButtonsDiv.innerHTML = '';
-            subcategoryButtonsDiv.style.display = 'none';
-            finalCategoryButtonsDiv.innerHTML = '';
-            finalCategoryButtonsDiv.style.display = 'none';
-    
-            filterAndDisplayProducts();
-        }
-    
-        function handleCategory(val) {
-            selectedCategory = val;
-            selectedSubcategory = null;
-            selectedFinalCategory = null;
-    
-            // Re-render Category buttons
-            showButtons(
-                allProducts.filter(p => p.gender === selectedGender && p.age === selectedAge),
-                'category',
-                categoryButtonsDiv,
-                handleCategory,
-                selectedCategory
-            );
-    
-            if (selectedCategory) {
-                showButtons(
-                    allProducts.filter(p =>
-                        p.gender === selectedGender &&
-                        p.age === selectedAge &&
-                        p.category === selectedCategory
-                    ),
-                    'subcategory',
-                    subcategoryButtonsDiv,
-                    handleSubcategory,
-                    selectedSubcategory
-                );
-            } else {
-                subcategoryButtonsDiv.innerHTML = '';
-                subcategoryButtonsDiv.style.display = 'none';
-            }
-            finalCategoryButtonsDiv.innerHTML = '';
-            finalCategoryButtonsDiv.style.display = 'none';
-    
-            filterAndDisplayProducts();
-        }
-    
-        function handleSubcategory(val) {
-            selectedSubcategory = val;
-            selectedFinalCategory = null;
-    
-            // Re-render Subcategory buttons
-            showButtons(
-                allProducts.filter(p =>
-                    p.gender === selectedGender &&
-                    p.age === selectedAge &&
-                    p.category === selectedCategory
-                ),
-                'subcategory',
-                subcategoryButtonsDiv,
-                handleSubcategory,
-                selectedSubcategory
-            );
-    
-            if (selectedSubcategory) {
-                showButtons(
-                    allProducts.filter(p =>
-                        p.gender === selectedGender &&
-                        p.age === selectedAge &&
-                        p.category === selectedCategory &&
-                        p.subcategory === selectedSubcategory
-                    ),
-                    'finalcategory',
-                    finalCategoryButtonsDiv,
-                    handleFinalCategory,
-                    selectedFinalCategory
-                );
-            } else {
-                finalCategoryButtonsDiv.innerHTML = '';
-                finalCategoryButtonsDiv.style.display = 'none';
-            }
-    
-            filterAndDisplayProducts();
-        }
-    
-        function handleFinalCategory(val) {
-            selectedFinalCategory = val;
-    
-            // Re-render Final Category buttons
-            showButtons(
-                allProducts.filter(p =>
-                    p.gender === selectedGender &&
-                    p.age === selectedAge &&
-                    p.category === selectedCategory &&
-                    p.subcategory === selectedSubcategory
-                ),
-                'finalcategory',
-                finalCategoryButtonsDiv,
-                handleFinalCategory,
-                selectedFinalCategory
-            );
-    
-            filterAndDisplayProducts();
-        }
-    
-        // Initial Load: Call handleGender with null to show all products initially and gender buttons
-        // handleGender(null);
-    
-        /* function handleAge(val) {
-        selectedAge = val;
-        selectedCategory = null;
-        selectedSubcategory = null;
-        selectedFinalCategory = null;
-    
-        showButtons(
-            allProducts.filter(p => p.gender === selectedGender && p.age === val),
-            'category',
-            categoryButtonsDiv,
-            handleCategory
-        );
-    
-        subcategoryButtonsDiv.innerHTML = '';
-        finalCategoryButtonsDiv.innerHTML = '';
-        filterAndDisplayProducts();
-        }
-    
-        function handleCategory(val) {
-        selectedCategory = val;
-        selectedSubcategory = null;
-        selectedFinalCategory = null;
-    
-        const filtered = allProducts.filter(p =>
-            p.gender === selectedGender &&
-            p.age === selectedAge &&
-            p.category === val
-        );
-    
-        showButtons(filtered, 'subcategory', subcategoryButtonsDiv, handleSubcategory);
-        finalCategoryButtonsDiv.innerHTML = '';
-        filterAndDisplayProducts();
-        }
-    
-        function handleSubcategory(val) {
-        selectedSubcategory = val;
-        selectedFinalCategory = null;
-    
-        const filtered = allProducts.filter(p =>
-            p.gender === selectedGender &&
-            p.age === selectedAge &&
-            p.category === selectedCategory &&
-            p.subcategory === val
-        );
-    
-        showButtons(filtered, 'finalcategory', finalCategoryButtonsDiv, handleFinalCategory);
-        filterAndDisplayProducts();
-        }
-    
-        function handleFinalCategory(val) {
-        selectedFinalCategory = val;
-        filterAndDisplayProducts();
-        } */
-    
-        // Initial Load
-        showButtons(allProducts, 'gender', genderButtonsDiv, handleGender); 
-
-    </script>     {% endcomment %}
 
 </body>
 </html>
