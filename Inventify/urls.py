@@ -9,7 +9,13 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('health/', views.health_check),
 
+    path('get_user_encryption_salt/', views.get_user_encryption_salt, name='get_user_encryption_salt'),
+
     path('', views.index),
+
+    path('product-list/<str:shop_name>/<str:user_id>/', views.product_list),
+
+
     path('products-2/', views.products_2),
     path('product-display/<str:qr_id>/', views.product_display),
     path('invoice/<str:invoice_id>/', views.invoice),
@@ -60,7 +66,9 @@ urlpatterns = [
     path('admin-only-user_signup-5famtsp89f1/', views.users_signup),
     # ----------------------------------->
     
+    path('delete-product/<str:product_id>/', views.delete_product),
     path('delete/', views.delete),
+
     path('detail/', views.detail),
     path('update/', views.update),
     path('app-settings/', views.app_settings),

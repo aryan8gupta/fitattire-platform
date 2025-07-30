@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title> Product List</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: white;
+      }
+  
+      .navbar {
+        position: sticky;
+        top: 0;
+        background-color: #ffffff;
+        padding: 2px 0;
+        text-align: center;
+        z-index: 1000;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+  
+      .main-content {
+        margin-top: 10px; /* Adjust based on your navbar height */
+        padding: 10px;
+      }
+  
+      .category-header {
+        text-align: left;
+        font-size: 20px;
+        font-weight: 600;
+        padding: 5px 30px;
+        color: #444;
+      }
+  
+      .category-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 10px;
+        padding: 3px 30px;
+      }
+  
+      .category-buttons button {
+        padding: 8px 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f0f0f0;
+        cursor: pointer;
+      }
+  
+      /* Add this for active button state (from previous suggestions) */
+      .category-buttons button.active {
+        background-color: #800080;
+        color: white;
+        border-color: #800080;
+      }
+  
+      .product-grid {
+        display: none; /* Managed by JS */
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+        padding: 10px; /* Add some padding around the grid */
+        margin-top: 40px;
+      }
+
+      .product-grid.show-grid {
+        display: flex;
+      } 
+  
+      .product-card {
+        width: 22%; /* Remains a percentage of grid width */
+        /* REMOVE fixed 'height: 70vh;' from here. Let content dictate height. */
+        min-height: 350px; /* Optional: Set a minimum height to prevent very short cards */
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        /* REMOVE 'overflow: hidden;'. We want content to be visible. */
+        text-align: center;
+        cursor: pointer;
+        background-color: #fff;
+        display: flex;
+        flex-direction: column; /* Stack items vertically */
+        transition: transform 0.2s ease-in-out;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Add a subtle shadow */
+        position: relative; /* Needed for absolute positioning of button if we go that route, though flex is better */
+        padding-bottom: 50px; /* Make space for the absolutely positioned button if needed, or for button's padding */
+        /* This padding is important if button is absolutely positioned */
+      }
+  
+      .product-card:hover {
+        transform: scale(1.02);
+      }
+  
+      .product-image-container {
+          width: 100%;
+          padding-top: 100%; /* Creates a 1:1 aspect ratio square container for the image */
+          position: relative;
+          overflow: hidden; /* Hide any overflow if image is not 'object-fit: contain' */
+          border-bottom: 1px solid #eee; /* Optional: separator for image */
+      }
+  
+      .product-card img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* Ensures image fits within its container without cropping */
+        padding: 5px; /* Add some internal padding to the image */
+        box-sizing: border-box; /* Include padding in the image's total width/height */
+      }
+  
+      .product-info {
+        padding: 10px;
+        font-size: 16px;
+        flex-grow: 1; /* This makes product info take all available vertical space */
+        display: flex; /* Make it a flex container itself */
+        flex-direction: column; /* Stack its content (name, price, color) */
+        justify-content: center; /* Vertically center info if it has extra space */
+        align-items: center; /* Horizontally center info */
+        padding-bottom: 5px; /* Small padding before button area */
+        text-align: center;
+      }
+  
+      .product-info strong {
+          display: block; /* Ensures product name is on its own line */
+          margin-bottom: 5px;
+      }
+      .product-info br {
+          display: none; /* Remove default line breaks if using flex column for info */
+      }
+  
+  
+      .view-button {
+        background-color: black;
+        color: white;
+        border: none;
+        padding: 10px;
+        font-size: 16px;
+        width: 100%;
+        cursor: pointer;
+        position: absolute; /* Position button relative to product-card */
+        bottom: 0; /* Stick to the very bottom */
+        left: 0;
+        box-sizing: border-box; /* Include padding in width calculation */
+      }
+  
+      /* ... (your existing CSS before media queries) ... */
+
+
+    /* General mobile/tablet adjustments (up to 768px) */
+    @media screen and (max-width: 768px) {
+        .product-card {
+          width: 60%; /* For 2 columns on tablets/larger mobiles */
+          min-height: 300px;
+          margin-bottom: 20px;
+          /* Adjusted font sizes for product info */
+          font-size: 15px; /* Slightly smaller base font */
+        }
+        .product-grid {
+            gap: 5px;
+        }
+        .product-info {
+            padding: 8px; /* Slightly less padding on info for smaller screens */
+            font-size: 14px; /* Default for product info on smaller screens */
+        }
+        .product-info strong {
+            font-size: 16px; /* Keep product name slightly larger */
+        }
+        .view-button {
+            padding: 8px; /* Slightly smaller button padding */
+            font-size: 14px; /* Smaller button font */
+        }
+        .product-card {
+            padding-bottom: 45px; /* Adjust if button padding changes */
+        }
+    }
+  
+    /* SPECIFIC CHANGES FOR SMALLER MOBILE SCREENS (<= 480px) */
+    @media screen and (max-width: 480px) {
+        .product-card {
+          width: calc(50% - 10px); /* Keep 2 columns per row */
+          min-height: 280px; /* Adjust min-height if needed */
+          /* You might need to make the min-height a bit smaller or
+             remove it entirely if images are very tall, to allow the card to stretch.
+             Let's aim to let content define height more here. */
+          min-height: unset; /* Remove min-height here to allow more flexibility */
+          height: auto; /* Ensure height adjusts to content */
+          padding-bottom: 40px; /* Adjust padding for the button if button padding changes */
+        }
+  
+        .product-grid {
+            gap: 15px; /* Gap between cards */
+        }
+  
+        /* Smaller Font for Product Info */
+        .product-info {
+            font-size: 13px; /* Smaller font for price/color */
+            padding: 2px; /* Reduce padding even more for tight space */
+            padding-top: 10px; /* Keep a bit more space above text if needed */
+            padding-bottom: 0; /* Remove padding before the button for zero space */
+        }
+        .product-info strong {
+            font-size: 14px; /* Smaller font for product name */
+        }
+        .product-info p {
+            margin-top: 2px;
+        }
+  
+        /* Increase Image Height */
+        .product-image-container {
+            /* We used padding-top: 100% for 1:1 aspect ratio.
+               To increase height, we can make it taller, e.g., 120% or 130%
+               relative to its width. This makes the image container rectangular. */
+            padding-top: 150%; /* Example: Makes image container taller than it is wide */
+            /* If you want image to take up MORE vertical space within the card,
+               and potentially make the card taller as a result. */
+        }
+  
+        /* Remove space between product-info and view-product button */
+        /* This is handled by a combination of factors: */
+        .product-info {
+            /* Existing: flex-grow: 1; is on product-info, which means it will take
+               all available space between the image container and the absolutely
+               positioned button. */
+            padding-bottom: 0; /* Ensures no internal padding at the bottom of product-info */
+        }
+  
+        .product-card {
+            /* The padding-bottom here is the space *for the button*.
+               It defines how much the product-info can grow before hitting the button.
+               Adjust this to just fit the button snugly.
+               Button height is approx. padding (10px*2) + font-size (16px) = 36px
+               Let's make it slightly more for safety, e.g., 40px or 45px. */
+            padding-bottom: 40px; /* Make just enough space for the button */
+        }
+  
+        .view-button {
+            /* Ensure button itself has minimal internal padding if you want it very compact */
+            padding: 8px; /* Keep consistent with 768px, or make smaller if needed */
+            font-size: 13px; /* Match smaller info font */
+        }
+    }
+  </style>
+ 
+</head>
+<body>
+
+    <div class="navbar">
+    <h2 class="business-name">{{ business_name }}</h2>
+    </div>
+
+    <div class="main-content">
+
+    <div class="category-section">
+        <h3 class="category-header">Choose Product Category:</h3>
+        <div class="category-buttons" id="gender-buttons"></div>
+        <div class="category-buttons" id="age-buttons"></div>
+        <div class="category-buttons" id="category-buttons"></div>
+        <div class="category-buttons" id="subcategory-buttons"></div>
+        <div class="category-buttons" id="final-category-buttons"></div>
+    </div>
+
+    <div class="product-grid" id="product-grid">
+        {% for p in products %}
+        <div class="product-card"
+            data-gender="{{ p.gender }}"
+            data-age="{{ p.age_group }}"
+            data-category="{{ p.category }}"
+            data-subcategory="{{ p.subcategory }}"
+            data-finalcategory="{{ p.final_category }}"
+            onclick="window.location.href='/product-display/{{ p.barcode }}'">
+
+            {% comment %} <img src="{{ p.image }}" alt="{{ p.product_name }}" onerror="this.src='/static/default-image.png'"> {% endcomment %}
+            <div class="product-image-container">
+                <img src="{{ p.image }}" alt="{{ p.product_name }}" onerror="this.src='/static/default-image.png'">
+            </div>
+            {% comment %} <div class="card-spacer-top"></div>  {% endcomment %}
+            <div class="product-info">
+                <strong>{{ p.product_name }}</strong><br>
+                <p>₹{{ p.selling_price }}</p><br>
+                <p>Color: {{ p.color }}</p>
+            </div>
+            <div class="card-spacer-top"></div> 
+            <button class="view-button">View Product</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    </div>
+
+    <script>
+        const products = Array.from(document.querySelectorAll('.product-card'));
+        
+        const genderButtonsDiv = document.getElementById('gender-buttons');
+        const ageButtonsDiv = document.getElementById('age-buttons');
+        const categoryButtonsDiv = document.getElementById('category-buttons');
+        const subcategoryButtonsDiv = document.getElementById('subcategory-buttons');
+        const finalCategoryButtonsDiv = document.getElementById('final-category-buttons');
+        const productGrid = document.getElementById('product-grid'); // Ensure this is defined
+        
+        let selectedGender = null;
+        let selectedAge = null;
+        let selectedCategory = null;
+        let selectedSubcategory = null;
+        let selectedFinalCategory = null;
+        
+        const allProducts = products.map(card => ({
+            element: card,
+            // Convert all data attributes to lowercase for consistent comparison
+            gender: card.dataset.gender ? card.dataset.gender.toLowerCase() : '',
+            age: card.dataset.age ? card.dataset.age.toLowerCase() : '',
+            category: card.dataset.category ? card.dataset.category.toLowerCase() : '',
+            subcategory: card.dataset.subcategory ? card.dataset.subcategory.toLowerCase() : '',
+            finalcategory: card.dataset.finalcategory ? card.dataset.finalcategory.toLowerCase() : ''
+        }));
+        
+        function createButton(text, onClick, isActive = false) {
+            const btn = document.createElement('button');
+            btn.textContent = text;
+            btn.onclick = onClick;
+            if (isActive) {
+                btn.classList.add('active');
+            }
+            return btn;
+        }
+        
+        function showButtons(data, key, targetDiv, handler, currentSelectedValue) {
+            targetDiv.innerHTML = ''; // Clear existing buttons
+        
+            const uniqueValues = [...new Set(data.map(p => p[key]))].filter(Boolean); // Filter out empty strings/nulls
+            uniqueValues.forEach(val => {
+                // Display value with first letter capitalized for buttons, but compare lowercase internally
+                const displayVal = val.charAt(0).toUpperCase() + val.slice(1);
+                const isActive = (val === currentSelectedValue);
+                targetDiv.appendChild(createButton(displayVal, () => handler(val), isActive));
+            });
+            
+            // Only display the div if there are buttons to show
+            if (uniqueValues.length > 0) {
+                targetDiv.style.display = 'flex';
+            } else {
+                targetDiv.style.display = 'none'; // Hide if no buttons for this category
+            }
+        }
+        
+        function filterAndDisplayProducts() {
+            let filtered = allProducts;
+              
+            if (selectedGender) {
+                filtered = filtered.filter(p => p.gender === selectedGender);
+            }
+            if (selectedAge) {
+                filtered = filtered.filter(p => p.age === selectedAge);
+            }
+            if (selectedCategory) {
+                filtered = filtered.filter(p => p.category === selectedCategory);
+            }
+            if (selectedSubcategory) {
+                filtered = filtered.filter(p => p.subcategory === selectedSubcategory);
+            }
+            if (selectedFinalCategory) {
+                filtered = filtered.filter(p => p.finalcategory === selectedFinalCategory);
+            }
+              
+            products.forEach(p => p.style.display = 'none'); // Hide all cards first
+            filtered.forEach(p => p.element.style.display = 'block'); // Show only filtered ones
+        
+            let noProductsMessage = document.getElementById('no-products-message');
+            if (filtered.length === 0) {
+                if (!noProductsMessage) {
+                    noProductsMessage = document.createElement('p');
+                    noProductsMessage.id = 'no-products-message';
+                    noProductsMessage.textContent = 'No products found matching your selection.';
+                    // Ensure productGrid is available to insert message
+                    if (productGrid) {
+                        productGrid.parentNode.insertBefore(noProductsMessage, productGrid.nextSibling);
+                    }
+                }
+                if (productGrid) productGrid.style.display = 'none'; // Hide grid
+                noProductsMessage.style.display = 'block'; // Show message
+            } else {
+                if (noProductsMessage) {
+                    noProductsMessage.style.display = 'none'; // Hide message
+                }
+                if (productGrid) productGrid.style.display = 'flex'; // Show grid
+            }    
+        }
+        
+        function handleGender(val) {
+            // Toggle functionality: if the same button is clicked again, clear the filter
+            if (selectedGender === val) {
+                selectedGender = null;
+            } else {
+                selectedGender = val;
+            }
+        
+            // Clear all lower-level selections whenever gender changes
+            selectedAge = null;
+            selectedCategory = null;
+            selectedSubcategory = null;
+            selectedFinalCategory = null;
+        
+            // Re-render the gender buttons to update active state
+            showButtons(allProducts, 'gender', genderButtonsDiv, handleGender, selectedGender);
+        
+            // Conditionally render/hide age buttons based on whether a gender is selected
+            if (selectedGender) {
+                // Filter products for the next level's buttons based on current selection
+                const filteredForNextLevel = allProducts.filter(p => p.gender === selectedGender);
+                showButtons(filteredForNextLevel, 'age', ageButtonsDiv, handleAge, selectedAge);
+            } else {
+                ageButtonsDiv.innerHTML = '';
+                ageButtonsDiv.style.display = 'none';
+            }
+            
+            // Always clear and hide lower-level category buttons
+            categoryButtonsDiv.innerHTML = '';
+            categoryButtonsDiv.style.display = 'none';
+            subcategoryButtonsDiv.innerHTML = '';
+            subcategoryButtonsDiv.style.display = 'none';
+            finalCategoryButtonsDiv.innerHTML = '';
+            finalCategoryButtonsDiv.style.display = 'none';
+        
+            // Finally, filter and display products based on the new selections
+            filterAndDisplayProducts();
+        }
+        
+        function handleAge(val) {
+            if (selectedAge === val) {
+                selectedAge = null;
+            } else {
+                selectedAge = val;
+            }
+        
+            selectedCategory = null;
+            selectedSubcategory = null;
+            selectedFinalCategory = null;
+        
+            // Re-render Age buttons based on current Gender selection, with active Age
+            showButtons(
+                allProducts.filter(p => p.gender === selectedGender),
+                'age',
+                ageButtonsDiv,
+                handleAge,
+                selectedAge
+            );
+        
+            if (selectedAge) {
+                const filteredForNextLevel = allProducts.filter(p => p.gender === selectedGender && p.age === selectedAge);
+                showButtons(
+                    filteredForNextLevel,
+                    'category',
+                    categoryButtonsDiv,
+                    handleCategory,
+                    selectedCategory
+                );
+            } else {
+                categoryButtonsDiv.innerHTML = '';
+                categoryButtonsDiv.style.display = 'none';
+            }
+            subcategoryButtonsDiv.innerHTML = '';
+            subcategoryButtonsDiv.style.display = 'none';
+            finalCategoryButtonsDiv.innerHTML = '';
+            finalCategoryButtonsDiv.style.display = 'none';
+        
+            filterAndDisplayProducts();
+        }
+        
+        function handleCategory(val) {
+            if (selectedCategory === val) {
+                selectedCategory = null;
+            } else {
+                selectedCategory = val;
+            }
+            selectedSubcategory = null;
+            selectedFinalCategory = null;
+        
+            showButtons(
+                allProducts.filter(p => p.gender === selectedGender && p.age === selectedAge),
+                'category',
+                categoryButtonsDiv,
+                handleCategory,
+                selectedCategory
+            );
+        
+            if (selectedCategory) {
+                const filteredForNextLevel = allProducts.filter(p =>
+                    p.gender === selectedGender &&
+                    p.age === selectedAge &&
+                    p.category === selectedCategory
+                );
+                showButtons(
+                    filteredForNextLevel,
+                    'subcategory',
+                    subcategoryButtonsDiv,
+                    handleSubcategory,
+                    selectedSubcategory
+                );
+            } else {
+                subcategoryButtonsDiv.innerHTML = '';
+                subcategoryButtonsDiv.style.display = 'none';
+            }
+            finalCategoryButtonsDiv.innerHTML = '';
+            finalCategoryButtonsDiv.style.display = 'none';
+        
+            filterAndDisplayProducts();
+        }
+        
+        function handleSubcategory(val) {
+            if (selectedSubcategory === val) {
+                selectedSubcategory = null;
+            } else {
+                selectedSubcategory = val;
+            }
+            selectedFinalCategory = null;
+        
+            showButtons(
+                allProducts.filter(p =>
+                    p.gender === selectedGender &&
+                    p.age === selectedAge &&
+                    p.category === selectedCategory
+                ),
+                'subcategory',
+                subcategoryButtonsDiv,
+                handleSubcategory,
+                selectedSubcategory
+            );
+        
+            if (selectedSubcategory) {
+                const filteredForNextLevel = allProducts.filter(p =>
+                    p.gender === selectedGender &&
+                    p.age === selectedAge &&
+                    p.category === selectedCategory &&
+                    p.subcategory === selectedSubcategory
+                );
+                showButtons(
+                    filteredForNextLevel,
+                    'finalcategory',
+                    finalCategoryButtonsDiv,
+                    handleFinalCategory,
+                    selectedFinalCategory
+                );
+            } else {
+                finalCategoryButtonsDiv.innerHTML = '';
+                finalCategoryButtonsDiv.style.display = 'none';
+            }
+        
+            filterAndDisplayProducts();
+        }
+        
+        function handleFinalCategory(val) {
+            if (selectedFinalCategory === val) {
+                selectedFinalCategory = null;
+            } else {
+                selectedFinalCategory = val;
+            }
+        
+            showButtons(
+                allProducts.filter(p =>
+                    p.gender === selectedGender &&
+                    p.age === selectedAge &&
+                    p.category === selectedCategory &&
+                    p.subcategory === selectedSubcategory
+                ),
+                'finalcategory',
+                finalCategoryButtonsDiv,
+                handleFinalCategory,
+                selectedFinalCategory
+            );
+        
+            filterAndDisplayProducts();
+        }
+        
+        // --- Initial Load Logic ---
+        // This function will set up the page when it first loads.
+        function initializeProductPage() {
+            // 1. Display all products initially (since no filters are selected yet)
+            filterAndDisplayProducts(); 
+        
+            // 2. Show the initial set of gender buttons.
+            //    'selectedGender' is null, so none will be 'active' initially.
+            showButtons(allProducts, 'gender', genderButtonsDiv, handleGender, selectedGender);
+        
+            // 3. Ensure other category button containers are hidden initially.
+            ageButtonsDiv.style.display = 'none';
+            categoryButtonsDiv.style.display = 'none';
+            subcategoryButtonsDiv.style.display = 'none';
+            finalCategoryButtonsDiv.style.display = 'none';
+        }
+        
+        // Call the initialization function when the script runs
+        initializeProductPage();
+    </script>
+
+    {% comment %} <script>
+        const products = Array.from(document.querySelectorAll('.product-card'));
+    
+        const genderButtonsDiv = document.getElementById('gender-buttons');
+        const ageButtonsDiv = document.getElementById('age-buttons');
+        const categoryButtonsDiv = document.getElementById('category-buttons');
+        const subcategoryButtonsDiv = document.getElementById('subcategory-buttons');
+        const finalCategoryButtonsDiv = document.getElementById('final-category-buttons');
+    
+        let selectedGender = null;
+        let selectedAge = null;
+        let selectedCategory = null;
+        let selectedSubcategory = null;
+        let selectedFinalCategory = null;
+    
+        const allProducts = products.map(card => ({
+            element: card,
+            gender: card.dataset.gender,
+            age: card.dataset.age,
+            category: card.dataset.category,
+            subcategory: card.dataset.subcategory,
+            finalcategory: card.dataset.finalcategory
+        }));
+    
+        function createButton(text, onClick, isActive = false) {
+        const btn = document.createElement('button');
+        btn.textContent = text;
+        btn.onclick = onClick;
+        if (isActive) {
+            btn.classList.add('active');
+        }
+        return btn;
+        }
+    
+        function showButtons(data, key, targetDiv, handler, currentSelectedValue) {
+            targetDiv.innerHTML = ''; // Clear existing buttons
+    
+            const uniqueValues = [...new Set(data.map(p => p[key]))].filter(Boolean); // Filter out empty strings/nulls
+            uniqueValues.forEach(val => {
+                // Display value with first letter capitalized for buttons, but compare lowercase internally
+                const displayVal = val.charAt(0).toUpperCase() + val.slice(1);
+                const isActive = (val === currentSelectedValue);
+                targetDiv.appendChild(createButton(displayVal, () => handler(val), isActive));
+            });
+            targetDiv.style.display = 'flex'; // Ensure the button container is visible
+        }
+    
+    
+        function filterAndDisplayProducts() {
+                        
+            let filtered = allProducts;
+          
+            if (selectedGender) {
+              filtered = filtered.filter(p => p.gender === selectedGender);
+            }
+            if (selectedAge) {
+              filtered = filtered.filter(p => p.age === selectedAge);
+            }
+            if (selectedCategory) {
+              filtered = filtered.filter(p => p.category === selectedCategory);
+            }
+            if (selectedSubcategory) {
+              filtered = filtered.filter(p => p.subcategory === selectedSubcategory);
+            }
+            if (selectedFinalCategory) {
+              filtered = filtered.filter(p => p.finalcategory === selectedFinalCategory);
+            }
+          
+            products.forEach(p => p.style.display = 'none');
+            filtered.forEach(p => p.element.style.display = 'block');
+    
+            let noProductsMessage = document.getElementById('no-products-message');
+            if (filtered.length === 0) {
+                if (!noProductsMessage) {
+                    noProductsMessage = document.createElement('p');
+                    noProductsMessage.id = 'no-products-message';
+                    noProductsMessage.textContent = 'No products found matching your selection.';
+                    productGrid.parentNode.insertBefore(noProductsMessage, productGrid.nextSibling);
+                }
+                productGrid.style.display = 'none';
+                noProductsMessage.style.display = 'block';
+            } else {
+                if (noProductsMessage) {
+                    noProductsMessage.style.display = 'none';
+                }
+                productGrid.style.display = 'flex';
+            }    
+        }
+    
+        function handleGender(val) {
+            selectedGender = val;
+            selectedAge = null;
+            selectedCategory = null;
+            selectedSubcategory = null;
+            selectedFinalCategory = null;
+
+            // ALWAYS re-render the current level's buttons to update their active state
+            showButtons(allProducts, 'gender', genderButtonsDiv, handleGender, selectedGender);
+
+            // Conditional rendering for next levels based on selection
+            if (selectedGender) {
+                showButtons(
+                    allProducts.filter(p => p.gender === selectedGender),
+                    'age',
+                    ageButtonsDiv,
+                    handleAge,
+                    selectedAge // This will be null, showing 'All Age' as active if no age selected yet
+                );
+            } else {
+                ageButtonsDiv.innerHTML = '';
+                ageButtonsDiv.style.display = 'none';
+            }
+            categoryButtonsDiv.innerHTML = '';
+            categoryButtonsDiv.style.display = 'none';
+            subcategoryButtonsDiv.innerHTML = '';
+            subcategoryButtonsDiv.style.display = 'none';
+            finalCategoryButtonsDiv.innerHTML = '';
+            finalCategoryButtonsDiv.style.display = 'none';
+
+            filterAndDisplayProducts();
+
+        
+            /* showButtons(
+                allProducts.filter(p => p.gender === val),
+                'age',
+                ageButtonsDiv,
+                handleAge
+            );
+        
+            categoryButtonsDiv.innerHTML = '';
+            subcategoryButtonsDiv.innerHTML = '';
+            finalCategoryButtonsDiv.innerHTML = '';
+            filterAndDisplayProducts(); */
+
+            if (products.length > 0) {
+                const grid = document.getElementById('product-grid');
+                grid.classList.add('show-grid');
+            } 
+        }
+
+        function handleAge(val) {
+            selectedAge = val;
+            selectedCategory = null;
+            selectedSubcategory = null;
+            selectedFinalCategory = null;
+    
+            // Re-render Age buttons based on current Gender selection, with active Age
+            showButtons(
+                allProducts.filter(p => p.gender === selectedGender),
+                'age',
+                ageButtonsDiv,
+                handleAge,
+                selectedAge
+            );
+    
+            if (selectedAge) {
+                showButtons(
+                    allProducts.filter(p => p.gender === selectedGender && p.age === selectedAge),
+                    'category',
+                    categoryButtonsDiv,
+                    handleCategory,
+                    selectedCategory
+                );
+            } else {
+                categoryButtonsDiv.innerHTML = '';
+                categoryButtonsDiv.style.display = 'none';
+            }
+            subcategoryButtonsDiv.innerHTML = '';
+            subcategoryButtonsDiv.style.display = 'none';
+            finalCategoryButtonsDiv.innerHTML = '';
+            finalCategoryButtonsDiv.style.display = 'none';
+    
+            filterAndDisplayProducts();
+        }
+    
+        function handleCategory(val) {
+            selectedCategory = val;
+            selectedSubcategory = null;
+            selectedFinalCategory = null;
+    
+            // Re-render Category buttons
+            showButtons(
+                allProducts.filter(p => p.gender === selectedGender && p.age === selectedAge),
+                'category',
+                categoryButtonsDiv,
+                handleCategory,
+                selectedCategory
+            );
+    
+            if (selectedCategory) {
+                showButtons(
+                    allProducts.filter(p =>
+                        p.gender === selectedGender &&
+                        p.age === selectedAge &&
+                        p.category === selectedCategory
+                    ),
+                    'subcategory',
+                    subcategoryButtonsDiv,
+                    handleSubcategory,
+                    selectedSubcategory
+                );
+            } else {
+                subcategoryButtonsDiv.innerHTML = '';
+                subcategoryButtonsDiv.style.display = 'none';
+            }
+            finalCategoryButtonsDiv.innerHTML = '';
+            finalCategoryButtonsDiv.style.display = 'none';
+    
+            filterAndDisplayProducts();
+        }
+    
+        function handleSubcategory(val) {
+            selectedSubcategory = val;
+            selectedFinalCategory = null;
+    
+            // Re-render Subcategory buttons
+            showButtons(
+                allProducts.filter(p =>
+                    p.gender === selectedGender &&
+                    p.age === selectedAge &&
+                    p.category === selectedCategory
+                ),
+                'subcategory',
+                subcategoryButtonsDiv,
+                handleSubcategory,
+                selectedSubcategory
+            );
+    
+            if (selectedSubcategory) {
+                showButtons(
+                    allProducts.filter(p =>
+                        p.gender === selectedGender &&
+                        p.age === selectedAge &&
+                        p.category === selectedCategory &&
+                        p.subcategory === selectedSubcategory
+                    ),
+                    'finalcategory',
+                    finalCategoryButtonsDiv,
+                    handleFinalCategory,
+                    selectedFinalCategory
+                );
+            } else {
+                finalCategoryButtonsDiv.innerHTML = '';
+                finalCategoryButtonsDiv.style.display = 'none';
+            }
+    
+            filterAndDisplayProducts();
+        }
+    
+        function handleFinalCategory(val) {
+            selectedFinalCategory = val;
+    
+            // Re-render Final Category buttons
+            showButtons(
+                allProducts.filter(p =>
+                    p.gender === selectedGender &&
+                    p.age === selectedAge &&
+                    p.category === selectedCategory &&
+                    p.subcategory === selectedSubcategory
+                ),
+                'finalcategory',
+                finalCategoryButtonsDiv,
+                handleFinalCategory,
+                selectedFinalCategory
+            );
+    
+            filterAndDisplayProducts();
+        }
+    
+        // Initial Load: Call handleGender with null to show all products initially and gender buttons
+        // handleGender(null);
+    
+        /* function handleAge(val) {
+        selectedAge = val;
+        selectedCategory = null;
+        selectedSubcategory = null;
+        selectedFinalCategory = null;
+    
+        showButtons(
+            allProducts.filter(p => p.gender === selectedGender && p.age === val),
+            'category',
+            categoryButtonsDiv,
+            handleCategory
+        );
+    
+        subcategoryButtonsDiv.innerHTML = '';
+        finalCategoryButtonsDiv.innerHTML = '';
+        filterAndDisplayProducts();
+        }
+    
+        function handleCategory(val) {
+        selectedCategory = val;
+        selectedSubcategory = null;
+        selectedFinalCategory = null;
+    
+        const filtered = allProducts.filter(p =>
+            p.gender === selectedGender &&
+            p.age === selectedAge &&
+            p.category === val
+        );
+    
+        showButtons(filtered, 'subcategory', subcategoryButtonsDiv, handleSubcategory);
+        finalCategoryButtonsDiv.innerHTML = '';
+        filterAndDisplayProducts();
+        }
+    
+        function handleSubcategory(val) {
+        selectedSubcategory = val;
+        selectedFinalCategory = null;
+    
+        const filtered = allProducts.filter(p =>
+            p.gender === selectedGender &&
+            p.age === selectedAge &&
+            p.category === selectedCategory &&
+            p.subcategory === val
+        );
+    
+        showButtons(filtered, 'finalcategory', finalCategoryButtonsDiv, handleFinalCategory);
+        filterAndDisplayProducts();
+        }
+    
+        function handleFinalCategory(val) {
+        selectedFinalCategory = val;
+        filterAndDisplayProducts();
+        } */
+    
+        // Initial Load
+        showButtons(allProducts, 'gender', genderButtonsDiv, handleGender); 
+
+    </script>     {% endcomment %}
+
+</body>
+</html>

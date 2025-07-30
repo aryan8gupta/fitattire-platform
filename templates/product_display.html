@@ -91,10 +91,6 @@
 
     <!-- prduct details -->
     <main id="main" class="main">
-        <!-- Shop Title -->
-        <header style="text-align: center; padding: 20px 0;">
-            <h1 style="font-size: 2.5rem; font-weight: bold; color: #333;">FitAttire</h1>
-        </header>
 
         <section class="product-details">
             {% if show_edit %}
@@ -108,9 +104,9 @@
             <!-- Top Labels -->
             <div class="labels">
                 {% if piece == "available" %}
-                    <span class="tag">{{ product.product_name }}</span>
-                    <span class="tag">{{ product.product_category }}</span>
-                    <span class="tag large">{{ product.product_subCategory }}</span>
+                <span class="tag">{{ product.product_category }}</span>
+                <span class="tag">{{ product.product_subCategory }}</span>
+                <span class="tag large">{{ product.product_name }}</span>
                     
                     <span class="tag yellow">Piece Available</span>
                 {% else %}

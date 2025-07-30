@@ -4,10 +4,15 @@ from moviepy.editor import ImageClip, CompositeVideoClip, ColorClip
 import numpy as np
 from io import BytesIO
 import random
-from Inventify.utils.blob_utils import upload_image_to_azure  # your custom utility
+from Inventify.utils.blob_utils import upload_image_to_azure, download_and_decrypt_image_from_azure  # your custom utility
 
 import os
 from Inventify.base import BASE_DIR
+
+import re
+import uuid
+import base64 # Import for encoding/decoding mock data
+
 
 font_path = os.path.join(BASE_DIR, 'static/assets/fonts/DejaVuSans-Bold.ttf')
 
@@ -111,14 +116,115 @@ def create_text_image(
     return img
 
 
-
-def load_image_from_path_or_url(path_or_url):
-    if path_or_url.startswith("http://") or path_or_url.startswith("https://"):
-        response = requests.get(path_or_url)
-        response.raise_for_status()
-        return Image.open(BytesIO(response.content))
+# --- KMS Placeholder Functions (MUST be replaced with your real KMS logic) ---
+def encrypt_with_kms(data_to_encrypt):
+    if isinstance(data_to_encrypt, str):
+        data_bytes = data_to_encrypt.encode('utf-8')
+    elif isinstance(data_to_encrypt, bytes):
+        data_bytes = data_to_encrypt
     else:
-        return Image.open(path_or_url)
+        data_bytes = str(data_to_encrypt).encode('utf-8') # For non-string/bytes, convert to string then bytes
+    return b"KMS_ENC_BYTES_" + data_bytes.hex().encode('utf-8') # Mock encryption for bytes
+
+def decrypt_with_kms(encrypted_data_bytes):
+    if not isinstance(encrypted_data_bytes, bytes) or not encrypted_data_bytes.startswith(b"KMS_ENC_BYTES_"):
+        return encrypted_data_bytes # Not encrypted by this mock function
+
+    return bytes.fromhex(encrypted_data_bytes.replace(b"KMS_ENC_BYTES_", b'').decode('utf-8'))
+
+
+
+def upload_image_to_azure(file_input, blob_name_prefix=None):
+    print(f"[SIMULATED AZURE UPLOAD] Encrypting image locally for mock URL generation: {blob_name_prefix}")
+    image_data_bytes = None
+
+    if isinstance(file_input, str):  # Local file path
+        with open(file_input, "rb") as f:
+            image_data_bytes = f.read()
+    elif isinstance(file_input, BytesIO): # BytesIO object
+        file_input.seek(0)
+        image_data_bytes = file_input.read()
+    else:
+        raise ValueError("Unsupported file_input type for simulated upload.")
+
+    encrypted_data = encrypt_with_kms(image_data_bytes)
+    # Create a mock Azure-like URL containing the base64-encoded encrypted data
+    # In a real scenario, this would be a URL pointing to the actual blob in Azure.
+    mock_azure_url = f"https://mockstorage.blob.core.windows.net/mockcontainer/{blob_name_prefix}_{uuid.uuid4().hex}.png?encrypted_data={base64.urlsafe_b64encode(encrypted_data).decode('utf-8')}"
+    return mock_azure_url
+
+def download_and_decrypt_image_from_azure(encrypted_blob_url):
+    print(f"[SIMULATED AZURE DOWNLOAD] Attempting to 'download' and decrypt from mock URL: {encrypted_blob_url}")
+    
+    # Extract the mock encrypted data from our special URL format
+    match = re.search(r'\?encrypted_data=([^&]+)', encrypted_blob_url)
+    if not match:
+        raise ValueError(f"Mock encrypted URL format invalid: {encrypted_blob_url}")
+    
+    encoded_encrypted_data = match.group(1)
+    encrypted_data = base64.urlsafe_b64decode(encoded_encrypted_data.encode('utf-8'))
+    
+    plaintext_data = decrypt_with_kms(encrypted_data)
+    print(f"[SIMULATED AZURE DOWNLOAD] Decryption successful (length: {len(plaintext_data)})")
+    return BytesIO(plaintext_data)
+
+
+
+def load_image_from_path_or_url(image_source):
+    """
+    Loads an image from a local file path or an Azure Blob URL.
+    Assumes internal Azure URLs from your system need decryption,
+    and specific external public URLs do not.
+    Returns a PIL Image object.
+    """
+    # Define known public URLs that do not require decryption.
+    # Add any other static, publicly accessible image URLs here.
+    public_urls = [
+        'https://fitattirestorage.blob.core.windows.net/fitattire-assets/background4.jpg',
+        # Add other specific public asset URLs if your system uses them
+    ]
+
+    if os.path.exists(image_source):
+        # This path is primarily for local development/testing with actual local files,
+        # or if you ever pass local paths in production.
+        print(f"Loading image from local path: {image_source}")
+        try:
+            return Image.open(image_source).convert("RGBA")
+        except Exception as e:
+            print(f"Error opening local image {image_source}: {e}")
+            raise
+    elif image_source in public_urls:
+        # For known public URLs (like static background images), fetch directly via requests.
+        print(f"Loading image from public URL: {image_source}")
+        try:
+            response = requests.get(image_source)
+            response.raise_for_status() # Raise an exception for HTTP errors (4xx or 5xx)
+            return Image.open(BytesIO(response.content)).convert("RGBA")
+        except Exception as e:
+            print(f"Error fetching public image from {image_source}: {e}")
+            raise
+    elif image_source.startswith("http://") or image_source.startswith("https://"):
+        # For any other URL, assume it's an internal Azure Blob URL that needs decryption.
+        print(f"Loading image from internal Azure URL (will attempt decryption): {image_source}")
+        try:
+            # This calls your real blob_utils function that handles Azure download + KMS decryption
+            image_bytes_io = download_and_decrypt_image_from_azure(image_source)
+            return Image.open(image_bytes_io).convert("RGBA")
+        except Exception as e:
+            print(f"ERROR: Failed to download or decrypt image from Azure URL {image_source}: {e}")
+            raise
+    else:
+        raise ValueError(f"Invalid image source: {image_source}. Must be a local path, a known public URL, or an Azure encrypted blob URL.")
+
+
+
+# def load_image_from_path_or_url(path_or_url):
+#     if path_or_url.startswith("http://") or path_or_url.startswith("https://"):
+#         response = requests.get(path_or_url)
+#         response.raise_for_status()
+#         return Image.open(BytesIO(response.content))
+#     else:
+#         return Image.open(path_or_url)
     
 
 def crop_and_zoom_upper(image_path, zoom_factor=2):
@@ -293,7 +399,8 @@ def create_dynamic_photo_with_auto_closeup_1(
     img.save(img_bytes, format='PNG')
     img_bytes.seek(0)
 
-    # Upload using existing blobs.py utility
+
+    # # Upload using existing blobs.py utility
     azure_url = upload_image_to_azure(img_bytes, blob_name=output_path)
 
     return azure_url  # <-- return the blob URL
@@ -672,8 +779,97 @@ def create_offer_photo_with_right_image_2(
     img_bytes = BytesIO()
     bg.save(img_bytes, format='PNG')
     img_bytes.seek(0)
+
     azure_url = upload_image_to_azure(img_bytes, blob_name=output_path)
     return azure_url
+
+
+
+# if __name__ == "__main__":
+#     print("--- Starting purely local simulation test ---")
+#     print("\nIMPORTANT: This test does NOT interact with Azure. It simulates encryption/decryption locally.")
+
+#     # Ensure local image directories and dummy images exist
+#     if not os.path.exists("images"):
+#         os.makedirs("images")
+#     if not os.path.exists("local_output"):
+#         os.makedirs("local_output")
+    
+#     try:
+#         Image.new("RGB", (600, 800), (100, 150, 200)).save("images/product4.jpg")
+#         print("Created dummy images/product4.jpg")
+#     except Exception as e:
+#         print(f"Could not create dummy product4.jpg: {e}. Please ensure PIL is installed and functional.")
+
+#     try:
+#         Image.new("RGBA", (200, 100), (0, 0, 0, 255)).save("images/logo1.png") # Black logo
+#         print("Created dummy images/logo1.png")
+#     except Exception as e:
+#         print(f"Could not create dummy logo1.png: {e}. Please ensure PIL is installed and functional.")
+    
+
+#     font_dir = os.path.join(mock_settings.BASE_DIR, 'static/assets/fonts')
+#     if not os.path.exists(font_dir):
+#         os.makedirs(font_dir)
+#     font_test_path = os.path.join(font_dir, 'DejaVuSans-Bold.ttf')
+#     if not os.path.exists(font_test_path):
+#         # You should replace this with a real .ttf font for proper rendering!
+#         # For a basic test, even an empty file might work, but text won't draw.
+#         with open(font_test_path, "wb") as f:
+#             f.write(b'dummy font data') # Minimal dummy content to make ImageFont happy
+#         print(f"WARNING: Dummy font file created at {font_test_path}. Replace with actual .ttf for proper rendering.")
+
+
+
+#     # --- Step 1: Manually 'upload' local images to get 'mock encrypted URLs' ---
+#     # We use upload_image_to_azure to simulate creating the encrypted URL,
+#     # but it doesn't actually hit Azure.
+#     print("\n--- Simulating 'uploading' local images to get mock encrypted URLs ---")
+    
+#     # Read local image data into BytesIO to pass to simulated upload
+#     with open("images/product4.png", "rb") as f:
+#         product_image_data_io = BytesIO(f.read())
+#     with open("images/fitattireLogo.png", "rb") as f:
+#         logo_image_data_io = BytesIO(f.read())
+
+#     mock_encrypted_product_url = upload_image_to_azure(product_image_data_io, blob_name_prefix="product_sim")
+#     print(f"Mock encrypted product image URL: {mock_encrypted_product_url}")
+
+#     mock_encrypted_logo_url = upload_image_to_azure(logo_image_data_io, blob_name_prefix="logo_sim")
+#     print(f"Mock encrypted logo image URL: {mock_encrypted_logo_url}")
+
+#     # --- Step 2: Use the *mock encrypted URLs* to generate a new image locally ---
+#     # The image generation function will now call load_image_from_path_or_url,
+#     # which will then call our simulated download_and_decrypt_image_from_azure.
+#     print("\n--- Generating offer photo using mock encrypted URLs (saved locally) ---")
+#     final_generated_offer_path = create_offer_photo_with_right_image_2(
+#         big_image_path=mock_encrypted_product_url, # Pass the mock encrypted URL
+#         logo_path=mock_encrypted_logo_url,        # Pass the mock encrypted URL
+#         output_path="generated_offer_test",       # Local filename for output
+#         product_id="FiA75913",
+#         product_name="Simulated Product",
+#         product_quantity=1,
+#         product_selling_price_total_amount="1234"
+#     )
+#     print(f"Final generated offer photo saved to: {final_generated_offer_path}")
+
+#     print("\n--- Generating dynamic photo using mock encrypted URLs (saved locally) ---")
+#     final_generated_dynamic_path = create_dynamic_photo_with_auto_closeup_1(
+#         big_image_path=mock_encrypted_product_url,
+#         logo_path=mock_encrypted_logo_url,
+#         texts=[
+#             "Price: ₹1234",
+#             "Sizes: S, M, L",
+#             "Fabric: Cotton",
+#             "Color: Blue"
+#         ],
+#         output_path="generated_dynamic_test",
+#     )
+#     print(f"Final generated dynamic photo saved to: {final_generated_dynamic_path}")
+
+#     print("\n--- Local simulation test finished ---")
+#     print("Check the 'local_output' folder for the generated image files.")
+
 
 
 

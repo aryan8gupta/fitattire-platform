@@ -31,6 +31,9 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
+AZURE_KEY_VAULT_URL = os.environ.get('AZURE_KEY_VAULT_URL', 'https://inventify-kms-vault-8447.vault.azure.net/') # MAKE SURE THIS MATCHES YOUR KEY VAULT'S URL EXACTLY
+AZURE_KEY_VAULT_KEY_NAME = os.environ.get('AZURE_KEY_VAULT_KEY_NAME', 'image-encryption-key') # MAKE SURE THIS MATCHES THE KEY NAME YOU JUST CREATED
+
 Blob_Key = os.getenv('Blob_Account_Key', 'Default Value-1')
 
 AZURE_STORAGE_ACCOUNT_NAME = "fitattirestorage"
