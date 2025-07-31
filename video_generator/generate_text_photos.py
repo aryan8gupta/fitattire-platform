@@ -134,7 +134,7 @@ def decrypt_with_kms(encrypted_data_bytes):
 
 
 
-def upload_image_to_azure(file_input, blob_name_prefix=None):
+def upload_image_to_azure_4(file_input, blob_name_prefix=None):
     print(f"[SIMULATED AZURE UPLOAD] Encrypting image locally for mock URL generation: {blob_name_prefix}")
     image_data_bytes = None
 
@@ -170,61 +170,62 @@ def download_and_decrypt_image_from_azure(encrypted_blob_url):
 
 
 
-def load_image_from_path_or_url(image_source):
-    """
-    Loads an image from a local file path or an Azure Blob URL.
-    Assumes internal Azure URLs from your system need decryption,
-    and specific external public URLs do not.
-    Returns a PIL Image object.
-    """
-    # Define known public URLs that do not require decryption.
-    # Add any other static, publicly accessible image URLs here.
-    public_urls = [
-        'https://fitattirestorage.blob.core.windows.net/fitattire-assets/background4.jpg',
-        # Add other specific public asset URLs if your system uses them
-    ]
+# def load_image_from_path_or_url(image_source):
+#     """
+#     Loads an image from a local file path or an Azure Blob URL.
+#     Assumes internal Azure URLs from your system need decryption,
+#     and specific external public URLs do not.
+#     Returns a PIL Image object.
+#     """
+#     # Define known public URLs that do not require decryption.
+#     # Add any other static, publicly accessible image URLs here.
+#     public_urls = [
+#         'https://fitattirestorage.blob.core.windows.net/fitattire-assets/background4.jpg',
+#         # Add other specific public asset URLs if your system uses them
+#     ]
 
-    if os.path.exists(image_source):
-        # This path is primarily for local development/testing with actual local files,
-        # or if you ever pass local paths in production.
-        print(f"Loading image from local path: {image_source}")
-        try:
-            return Image.open(image_source).convert("RGBA")
-        except Exception as e:
-            print(f"Error opening local image {image_source}: {e}")
-            raise
-    elif image_source in public_urls:
-        # For known public URLs (like static background images), fetch directly via requests.
-        print(f"Loading image from public URL: {image_source}")
-        try:
-            response = requests.get(image_source)
-            response.raise_for_status() # Raise an exception for HTTP errors (4xx or 5xx)
-            return Image.open(BytesIO(response.content)).convert("RGBA")
-        except Exception as e:
-            print(f"Error fetching public image from {image_source}: {e}")
-            raise
-    elif image_source.startswith("http://") or image_source.startswith("https://"):
-        # For any other URL, assume it's an internal Azure Blob URL that needs decryption.
-        print(f"Loading image from internal Azure URL (will attempt decryption): {image_source}")
-        try:
-            # This calls your real blob_utils function that handles Azure download + KMS decryption
-            image_bytes_io = download_and_decrypt_image_from_azure(image_source)
-            return Image.open(image_bytes_io).convert("RGBA")
-        except Exception as e:
-            print(f"ERROR: Failed to download or decrypt image from Azure URL {image_source}: {e}")
-            raise
-    else:
-        raise ValueError(f"Invalid image source: {image_source}. Must be a local path, a known public URL, or an Azure encrypted blob URL.")
-
-
-
-# def load_image_from_path_or_url(path_or_url):
-#     if path_or_url.startswith("http://") or path_or_url.startswith("https://"):
-#         response = requests.get(path_or_url)
-#         response.raise_for_status()
-#         return Image.open(BytesIO(response.content))
+#     if os.path.exists(image_source):
+#         # This path is primarily for local development/testing with actual local files,
+#         # or if you ever pass local paths in production.
+#         print(f"Loading image from local path: {image_source}")
+#         try:
+#             return Image.open(image_source).convert("RGBA")
+#         except Exception as e:
+#             print(f"Error opening local image {image_source}: {e}")
+#             raise
+#     elif image_source in public_urls:
+#         # For known public URLs (like static background images), fetch directly via requests.
+#         print(f"Loading image from public URL: {image_source}")
+#         try:
+#             response = requests.get(image_source)
+#             response.raise_for_status() # Raise an exception for HTTP errors (4xx or 5xx)
+#             return Image.open(BytesIO(response.content)).convert("RGBA")
+#         except Exception as e:
+#             print(f"Error fetching public image from {image_source}: {e}")
+#             raise
+#     elif image_source.startswith("http://") or image_source.startswith("https://"):
+#         # For any other URL, assume it's an internal Azure Blob URL that needs decryption.
+#         print(f"Loading image from internal Azure URL (will attempt decryption): {image_source}")
+#         try:
+#             # This calls your real blob_utils function that handles Azure download + KMS decryption
+#             # image_bytes_io = download_and_decrypt_image_from_azure(image_source)
+#             image_bytes_io = image_source
+#             return Image.open(image_bytes_io).convert("RGBA")
+#         except Exception as e:
+#             print(f"ERROR: Failed to download or decrypt image from Azure URL {image_source}: {e}")
+#             raise
 #     else:
-#         return Image.open(path_or_url)
+#         raise ValueError(f"Invalid image source: {image_source}. Must be a local path, a known public URL, or an Azure encrypted blob URL.")
+
+
+
+def load_image_from_path_or_url(path_or_url):
+    if path_or_url.startswith("http://") or path_or_url.startswith("https://"):
+        response = requests.get(path_or_url)
+        response.raise_for_status()
+        return Image.open(BytesIO(response.content))
+    else:
+        return Image.open(path_or_url)
     
 
 def crop_and_zoom_upper(image_path, zoom_factor=2):

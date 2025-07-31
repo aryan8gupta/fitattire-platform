@@ -1157,6 +1157,7 @@ def add_products(request):
             json_data1 = request.POST.get('document')
             json_data2 = request.POST.get('selectedmiddlebuttons')
             logger.debug("1. Received POST data.") # Using logger instead of print
+            print("1")
 
             if not json_data1:
                 logger.error("❌ 'document' is missing in POST") # Using logger instead of print
@@ -1164,6 +1165,8 @@ def add_products(request):
 
             parsed_data1 = json.loads(json_data1)
             parsed_data2 = json.loads(json_data2)
+
+            print("2")
 
             # Prepare to save uploaded garment images
             saved_garment_urls = []
@@ -1195,6 +1198,8 @@ def add_products(request):
                 else:
                     break  # Stop when no more result_x keys found
                 index += 1
+
+            print("3")
 
             generated_urls=[]
             generated_images = []
