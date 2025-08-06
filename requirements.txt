@@ -46,5 +46,5 @@ azure-keyvault-keys==4.11.0
 msal==1.32.3 
 msal-extensions==1.3.1
 
-git+https://github.com/picsart-ai/picsart-creative-apis-py-sdk.git
+picsart-sdk==1.0.1
 httpx==0.27.2
