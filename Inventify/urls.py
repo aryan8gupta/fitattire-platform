@@ -36,6 +36,7 @@ urlpatterns = [
 
     path('add-products/', views.add_products),
     path('upload', views.upload_image),
+    path('upscale/', views.upscale_image),
     path('in-stock/', views.in_stock_products),
     path('products-sold/', views.products_sold_view),
 

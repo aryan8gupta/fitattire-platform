@@ -630,7 +630,7 @@ def create_product_name_clip(product_name, bg_color, text_color="white"):
 
 
 
-def generate_reel_video(video_groups, output_path, users_shop_address, users_shop_name, product_info):
+def generate_reel_video(video_groups, output_path, users_shop_address, users_shop_name):
     total_images = sum(len(group["image_urls"]) for group in video_groups)
     print("Total images:", total_images)
 
@@ -721,8 +721,8 @@ def generate_reel_video(video_groups, output_path, users_shop_address, users_sho
                 temp_path = f"temp_images/image_{random.randint(1000,9999)}.jpg"
                 bg.save(temp_path)
 
-                img_clip = ImageClip(temp_path, duration=5)
-                zoomed = img_clip.fx(vfx.resize, lambda t: 1 + 0.05 * t).fadein(1).fadeout(1)
+                img_clip = ImageClip(temp_path, duration=3)
+                zoomed = img_clip.fx(vfx.resize, lambda t: 1 + 0.05 * t).fadein(0.5).fadeout(0.5)
                 clips.append(zoomed)
 
             except Exception as e:
@@ -743,6 +743,7 @@ def generate_reel_video(video_groups, output_path, users_shop_address, users_sho
     audio_paths = [
         "https://fitattirestorage.blob.core.windows.net/fitattire-assets/output/videos/Wahran(PagalWorldl).mp3",
         "https://fitattirestorage.blob.core.windows.net/fitattire-assets/output/videos/breathe-chill-lofi-beats-362644.mp3",
+        "https://fitattirestorage.blob.core.windows.net/fitattire-assets/output/audios/background_audio-1.mp3",
         "https://fitattirestorage.blob.core.windows.net/fitattire-assets/output/videos/coffee-bar-chill-lofi-beats-362645.mp3"
     ]
 
@@ -761,7 +762,7 @@ def generate_reel_video(video_groups, output_path, users_shop_address, users_sho
             temp_audio_path = audio_path
 
         # Attach the audio (match duration from 46s onwards)
-        audio = AudioFileClip(temp_audio_path).subclip(46, 46 + final_video.duration)
+        audio = AudioFileClip(temp_audio_path).subclip(52, 52 + final_video.duration)
         final_video = final_video.set_audio(audio)
         print("[INFO] Audio attached:", final_video.audio)
     except Exception as e:

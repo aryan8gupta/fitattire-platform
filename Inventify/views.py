@@ -25,8 +25,13 @@ from video_generator.instagram_post_test import post_to_instagram, post_azure_vi
 from video_generator.generate_video import start_video_generation, start_video_generation_2
 from video_generator.send_whatsapp import send_invoice_whatsapp_message
 
-from Inventify.utils.encryption import derive_aes_key, decrypt_field_if_needed
+# from Inventify.utils.encryption import derive_aes_key, decrypt_field_if_needed
 # from Inventify.utils.kms_utils import encrypt_with_kms, decrypt_with_kms
+
+import picsart_sdk
+from picsart_sdk import PicsartAPI
+from picsart_sdk.clients import UpscaleClient
+from picsart_sdk.api_responses import ApiResponse
 
 from PIL import Image, ImageOps
 from io import BytesIO
@@ -42,7 +47,7 @@ import time
 import random
 import string
 from django.http import JsonResponse
-from Inventify.utils.blob_utils import upload_image_to_azure, download_and_decrypt_image_from_azure
+from Inventify.utils.blob_utils import upload_image_to_azure, upload_audio_to_azure, download_and_decrypt_image_from_azure
 
 from openai import OpenAI
 import secrets
@@ -63,8 +68,6 @@ import tempfile
 #     from Inventify.utils.kms_utils import encrypt_with_kms, decrypt_with_kms
 #     logger.info("--- Using REAL KMS utilities for production/staging ---")
 
-
-
 my_var_2 = os.getenv('Open_API_Key', 'Default Value')
 client = OpenAI(api_key=my_var_2)
 
@@ -72,6 +75,14 @@ my_var_1 = os.getenv('New_Pincel_API_Key', 'Default Value')
 
 PINCEL_API_URL = "https://pincel.app/api/clothes-swap"
 PINCEL_API_KEY = my_var_1
+
+
+PICSART_API_KEY = "eyJraWQiOiI5NzIxYmUzNi1iMjcwLTQ5ZDUtOTc1Ni05ZDU5N2M4NmIwNTEiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhdXRoLXNlcnZpY2UtYjU2NGRmNmUtZDA3OC00NjEzLTk1MWEtZmE0ZjZjM2JkNDA4IiwiYXVkIjoiNDkxNzQzNTgxMDAxMTAxIiwibmJmIjoxNzU0MDQ3NjIwLCJzY29wZSI6WyJiMmItYXBpLmdlbl9haSIsImIyYi1hcGkuaW1hZ2VfYXBpIl0sImlzcyI6Imh0dHBzOi8vYXBpLnBpY3NhcnQuY29tL3Rva2VuLXNlcnZpY2UiLCJvd25lcklkIjoiNDkxNzQzNTgxMDAxMTAxIiwiaWF0IjoxNzU0MDQ3NjE5LCJqdGkiOiIwNjQ5NGM5ZC0xZmU3LTQ1YjMtYmJiZS1iMmEwZjM2MzgyM2QifQ.JBrobUONLeYkOntj8V_g8_RVKcJUYoJWhTDc1wJO4QEiEHqC1N3fTgBDwJsohjtm2Yxh-OdgFv8YHBc5Lysr4_-kru1v_ZwNOx4sbs_0b5Y4MGqcB9M4cgySLoBoosJ00e7i7Dsc7cQcCKOx_qUMDhtK8Jlg6XHAhz4jJPLfFq6dlcJTv7lP3fN3MI3iiw8RB29gy8K2CKkiweMXavG-i5PhU23fz1MQ-X_1AF_HgEUItUmQEa9UWVedsiclP6oHGsNEAXrriqcz2m3adYeJBroVnAkzRCG1QdUyzxDlvMxPaDKNLKbIpDBwodCsEWoycMKlSXmvvEH6J44ksTN1oQ"
+try:
+    client1: UpscaleClient = picsart_sdk.client(PicsartAPI.UPSCALE, api_key=PICSART_API_KEY)
+except Exception as e:
+    raise Exception(f"Error initializing Picsart client: {e}")
+
 
 # QR-Code Generating / Template----------------------------------------------------------->
 import qrcode
@@ -477,10 +488,13 @@ def upload_image(request):
 
     if request.method == 'POST':
         clothes_category = request.POST.get("category")
-        model_image = request.POST.get('model_image_url')
-        garment_image = request.FILES.get('garment_image')
+        
+        model_image_file = request.FILES.get('model_image_file')  # newly uploaded file
+        model_image_url = request.POST.get('model_image_url')     # existing image URL
 
-        if not model_image or not garment_image:
+        garment_image = request.FILES.get('garment_image')
+        
+        if not (model_image_file or model_image_url) or not garment_image:
             return JsonResponse({"error": "Both images are required."})
 
         
@@ -580,8 +594,22 @@ def upload_image(request):
         resized_garment_path = os.path.join(MEDIA_ROOT, 'resized_garment_image.jpg')
         resize_image(compressed_path, resized_garment_path)
 
+        # resized_model_path = os.path.join(MEDIA_ROOT, 'resized_model_image.jpg')
+        # resize_image(model_image, resized_model_path)
+        
         resized_model_path = os.path.join(MEDIA_ROOT, 'resized_model_image.jpg')
-        resize_image(model_image, resized_model_path)
+
+        if model_image_file:
+            # Save the uploaded file temporarily to a path
+            temp_model_path = os.path.join(MEDIA_ROOT, 'uploaded_model.jpg')
+            with open(temp_model_path, 'wb+') as destination:
+                for chunk in model_image_file.chunks():
+                    destination.write(chunk)
+            resize_image(temp_model_path, resized_model_path)
+            os.remove(temp_model_path)  # optional: cleanup temp file
+        else:
+            resize_image(model_image_url, resized_model_path)
+
         # Resize Image End -------------------------------------------------------->
 
         # model_image_base64 = encode_image(model_image)
@@ -662,7 +690,7 @@ def upload_image(request):
                         print("10")
                         print(filename)
                         # Save the Upscaled image
-                        upscale_image(data2.get('output'), upscaled_path)
+                        # upscale_image(data2.get('output'), upscaled_path)
 
                         # First Saving the Result
                         output_path = os.path.join(MEDIA_ROOT, 'api_result.jpg')
@@ -670,7 +698,7 @@ def upload_image(request):
 
                         try:
                             # Upload to Azure
-                            upscaled_azure_url = upload_image_to_azure(upscaled_path, blob_name="result")
+                            upscaled_azure_url = upload_image_to_azure(output_path, blob_name="result")
                             print(upscaled_azure_url)
                             data2['upscaled_path'] = upscaled_azure_url
                         finally:
@@ -708,7 +736,72 @@ def upload_image(request):
 
     return JsonResponse({"error": "Invalid request"})
 
+        
 
+@csrf_exempt
+def upscale_image(request):
+    if request.method == "POST":
+        image_url = request.POST.get("image_url")
+        if not image_url:
+            return JsonResponse({"error": "No image URL provided"}, status=400)
+
+        try:
+            # Step 1: Download image from URL
+            image_response = requests.get(image_url)
+            if image_response.status_code != 200:
+                return JsonResponse({"error": "Failed to download the image."}, status=400)
+
+            # Step 2: Save image temporarily
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_image:
+                temp_image.write(image_response.content)
+                temp_image_path = temp_image.name
+
+            # Step 3: Call Picsart Upscale API
+            response: ApiResponse = client1.upscale(
+                image_path=temp_image_path,
+                upscale_factor=2  # Can be changed to 4, 6, or 8
+            )
+
+            # Delete temp image (input)
+            os.remove(temp_image_path)
+
+            # Step 4: Handle response
+            if response.status == "success":
+                upscaled_url = response.data.url
+
+                # Optionally download and serve it locally
+                upscaled_response = requests.get(upscaled_url)
+                if upscaled_response.status_code != 200:
+                    return JsonResponse({"error": "Failed to download upscaled image."}, status=500)
+
+                # 5. Save upscaled image temporarily
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as upscaled_file:
+                    upscaled_file.write(upscaled_response.content)
+                    upscaled_file_path = upscaled_file.name
+                
+                # 6. Upload to Azure Blob Storage
+                azure_url = upload_image_to_azure(upscaled_file_path, blob_name="result")
+
+                # Delete temp image (output)
+                os.remove(upscaled_file_path)
+
+                # 7. Return Azure Blob URL
+                return JsonResponse({"upscaled_url": azure_url})
+
+            elif response.status == "error":
+                return JsonResponse({
+                    "error": response.error.message,
+                    "detail": response.error.detail
+                }, status=500)
+
+            else:
+                return JsonResponse({"error": "Unexpected response from Picsart API."}, status=500)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+        
 
 
 # @csrf_exempt
@@ -1354,7 +1447,7 @@ def add_products(request):
                 "gender": gender,
                 "product_selling_price": parsed_data1['product_selling_price'],
                 "product_name": product_name,
-                "image_urls": generated_urls
+                "image_urls": saved_result_urls
             }
 
             video_groups.append(product_entry)
@@ -1371,12 +1464,12 @@ def add_products(request):
 
             DB.videos_download.insert_one(video_dict)
 
-            video_records = list(DB.videos_downloaded.find(
-                {"user_id": users_id, "video_generated": False}
-            ))
-
             video_groups = []
             product_info = []
+
+            video_records = list(DB.videos_download.find(
+                {"user_id": users_id, "video_generated": False}
+            ))
 
             for record in video_records:
                 groups = record.get("video_groups", [])
@@ -1387,14 +1480,14 @@ def add_products(request):
 
             total_images = sum(len(group["image_urls"]) for group in video_groups)
 
-            if total_images >= 8:
+            if total_images >= 4:
                 video_output_path = f"output/generated_reel_{uuid.uuid4().hex}.mp4"
                 logger.debug("Initiating video generation for enough images.")
 
                 # SAFETY: Start thread and don't store the thread object
                 def background_task():
                     try:
-                        video_url = start_video_generation_2(video_groups, video_output_path, users_shop_address, users_shop_name, product_info)
+                        video_url = start_video_generation_2(video_groups, video_output_path, users_shop_address, users_shop_name)
                         
                         response2 = client.chat.completions.create(
                             model="gpt-3.5-turbo",
@@ -2398,6 +2491,8 @@ def product_list(request, shop_name, user_id):
         if not user:
             return render(request, "404.html", {"message": "User not found"})
 
+        shop_name1 = user.get('shop_name', '')
+
         products = list(DB.products.find({"user_id": user_id}))
 
         # products = []
@@ -2423,7 +2518,7 @@ def product_list(request, shop_name, user_id):
 
         return render(request, "product_list.html", {
             "products": products,
-            "business_name": shop_name
+            "business_name": shop_name1
         })
     
     except Exception as e:

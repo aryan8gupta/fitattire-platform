@@ -289,6 +289,71 @@ def upload_video_to_azure(file_input):
     return f"{settings.AZURE_BLOB_URL}/{blob_name}"
 
 
+def upload_audio_to_azure(file_input):
+    # Initialize blob service
+    account_url = f"https://{settings.AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net"
+    blob_service_client = BlobServiceClient(account_url=account_url, credential=settings.AZURE_STORAGE_ACCOUNT_KEY)
+    container_client = blob_service_client.get_container_client(settings.AZURE_CONTAINER_NAME)
+
+    def get_next_azure_audio_filename(container_client, prefix, extension, subfolder):
+        folder = f"output/{subfolder}"
+        blobs_list = container_client.list_blobs(name_starts_with=folder + "/")
+
+        pattern = re.compile(rf"{re.escape(prefix)}-(\d+)\.{re.escape(extension)}")
+        numbers = []
+
+        for blob in blobs_list:
+            blob_name = os.path.basename(blob.name)
+            match = pattern.match(blob_name)
+            if match:
+                numbers.append(int(match.group(1)))
+
+        next_number = max(numbers) + 1 if numbers else 1
+        return f"{subfolder}/{prefix}-{next_number}.{extension}"
+
+    # Determine filename, extension, and content type
+    if isinstance(file_input, str):  # File path
+        file_path = file_input
+        file_name = os.path.basename(file_path)
+        extension = file_name.split(".")[-1].lower()
+        content_type, _ = mimetypes.guess_type(file_path)
+    else:  # File-like object
+        try:
+            file_name = file_input.name
+        except AttributeError:
+            file_name = "default_audio.mp3"
+        extension = file_name.split(".")[-1].lower()
+        content_type, _ = mimetypes.guess_type(file_name)
+
+    content_type = content_type or "audio/mpeg"  # default fallback
+
+    # Generate final blob name
+    prefix = "background_audio"
+    subfolder = "audios"
+    filename = get_next_azure_audio_filename(container_client, prefix, extension, subfolder)
+    blob_name = f"output/{filename}"
+
+    # Upload to Azure
+    blob_client = container_client.get_blob_client(blob_name)
+
+    if isinstance(file_input, str):
+        with open(file_input, "rb") as audio_data:
+            blob_client.upload_blob(
+                audio_data,
+                overwrite=True,
+                content_settings=ContentSettings(content_type=content_type)
+            )
+    else:
+        blob_client.upload_blob(
+            file_input,
+            overwrite=True,
+            content_settings=ContentSettings(content_type=content_type)
+        )
+
+    # Return full Azure URL
+    return f"{settings.AZURE_BLOB_URL}/{blob_name}"
+
+
 def extract_blob_path_from_url(url):
     """
     Converts full URL to just the blob path.

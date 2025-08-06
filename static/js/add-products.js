@@ -59,12 +59,13 @@ const data = {
     "Tops": ["Crop Tops", "Blouse Tops", "Off-Shoulder Tops", "Wrap Tops", "Peplum Tops", "Halter Tops", "Tube Tops"],
     "Kurtis": ["Anarkali Kurtis", "Straight Kurtis", "A-line Kurtis", "Flared Kurtis", "Kaftan Kurtis", "Shirt Kurtis"],
     "Suits": ["Salwar Suits", "Anarkali Suits", "Straight Suits", "A-line Suits", "Churidar Suits", "Sharara Suits", "Palazzo Suits"],
-    "Dresses": ["Maxi Dresses", "Bodycon Dresses", "A-Line Dresses", "Wrap Dresses", "Skater Dresses", "Slip Dresses"],
+    "Dresses": ["Indo Western", "Maxi Dresses", "Bodycon Dresses", "A-Line Dresses", "Wrap Dresses", "Skater Dresses", "Slip Dresses"],
     "Sarees": ["Silk Sarees", "Cotton Sarees", "Designer Sarees", "Partywear Sarees", "Chiffon Sarees", "Georgette Sarees"],
     "Lehenga": ["Bridal Lehenga", "Designer Lehenga", "Simple Lehenga", "Sharara Lehenga"],
     "Gowns": ["Wedding Gowns", "Evening Gowns", "Party Gowns", "Anarkali Gowns"],
     "Coord Sets": ["Top & Skirt Set", "Top & Pant Set", "Crop Top & Palazzo", "Shirt & Short Set", "Kurta & Pant Coord Set"],
-    "Jeans": ["Skinny Jeans", "Boyfriend Jeans", "High-waist Jeans", "Straight Fit Jeans", "Flared Jeans", "Mom Jeans"],
+    "Jeans": ["Skinny Jeans", "Bell Bottom", "High Rise Jeans", "Straight Leg Jeans", "Wide Jeans", "Mom Jeans"],
+    "Leggings": ["Ankle Length Leggings", "Basic Stretch Leggings", "Leather Look Leggings"],
     "Skirts": ["Mini Skirts", "Pencil Skirts", "A-line Skirts", "Wrap Skirts", "Pleated Skirts"],
     "Jackets": {
       "Half Jackets": ["Sleeveless Jackets", "Cropped Jackets", "Denim Vests"],
@@ -78,6 +79,7 @@ const data = {
       "Pullover Hoodies": ["Plain Pullover Hoodie", "Printed Pullover Hoodie"]
     },
     "Rain Wear": ["Rain Suits", "Rain Coats", "Ponchos"],
+    "Inner Wear": ["Boy Shorts", "Bra Panties"],
   }
 };
 
@@ -196,6 +198,10 @@ document.querySelectorAll('.category-section').forEach(section => {
       const item = createCategoryItem(category);
       item.addEventListener('click', () => {
         selectedCategory = category;
+
+        subCategoryGrid.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+
         showFinalCategories(gender, category);
       });
       subCategoryGrid.appendChild(item);
@@ -213,6 +219,10 @@ document.querySelectorAll('.category-section').forEach(section => {
         const item = createCategoryItem(subCat);
         item.addEventListener('click', () => {
           selectedSubCategory = subCat;
+
+          finalCategoryGrid.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+
           if (currentMode === "model") {
             // showImages(gender, subCat);
             showImages(gender, category, '', subCat);
@@ -231,6 +241,10 @@ document.querySelectorAll('.category-section').forEach(section => {
         const item = createCategoryItem(subCat);
         item.addEventListener('click', () => {
           selectedSubCategory = subCat;
+
+          finalCategoryGrid.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+
           showFinalSubCategories(gender, category, subCat);
         });
         finalCategoryGrid.appendChild(item);
@@ -247,6 +261,10 @@ document.querySelectorAll('.category-section').forEach(section => {
       const item = createCategoryItem(final);
       item.addEventListener('click', () => {
         selectedFinalCategory = final;
+
+        finalSubCategoryGrid.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+
         if (currentMode === "model") {
           // showImages(gender, final);
           showImages(gender, category, subCat, final);
@@ -277,7 +295,11 @@ document.querySelectorAll('.category-section').forEach(section => {
     if (!imageList) {
       return;
     }
-      
+
+    const uploadLabel = document.querySelector('label[for="model-image-upload"]');
+    if (uploadLabel) {
+        uploadLabel.style.display = 'inline-block';
+    } 
 
     imageList.forEach(src => {
       const img = document.createElement('img');
@@ -311,6 +333,17 @@ document.querySelectorAll('.category-section').forEach(section => {
   resetCategorySections.push(() => showSubCategories("None"));
 });
 
+document.getElementById('model-image-upload').addEventListener('change', function () {
+    const file = this.files[0];
+    const detailBox = document.getElementById("result-image-box");
+    if (file) {
+        const previewImage = document.getElementById('preview-image2');
+        previewImage.src = URL.createObjectURL(file);
+        detailBox.style.display = "block";
+        document.getElementById('preview-container2').style.display = 'block';
+    }
+});
+
 
 let productGarmentImages = []; 
 let productResultImages = []; 
@@ -331,7 +364,9 @@ const clothes_swap_category = document.getElementById("swap_category")?.value ||
 
 
 async function uploadImages() {
-  const modelImage = selectedImagePath;
+  const uploadedModelFile = document.getElementById("model-image-upload").files[0];
+  const modelImage = uploadedModelFile || selectedImagePath;
+  
   const uploadFile = document.getElementById("product-image-upload").files[0];
   // const cameraFile = document.getElementById("product-image-camera").files[0];
   // const garmentImage = uploadFile || cameraFile;
@@ -356,7 +391,12 @@ async function uploadImages() {
   const formData = new FormData();
   formData.append("category", clothes_swap_category);
   formData.append("garment_image", garmentImage);
-  formData.append("model_image_url", modelImage);
+
+  if (uploadedModelFile) {
+    formData.append("model_image_file", uploadedModelFile);  // send as file
+  } else {
+    formData.append("model_image_url", selectedImagePath);   // send as URL
+  }
 
   try {
     const response = await fetch('/upload', {
@@ -371,6 +411,7 @@ async function uploadImages() {
       const imageElement = document.getElementById('resultImage');
       imageElement.src = result.upscaled_path;
       imageElement.style.display = 'block';
+      document.getElementById("upscaleButton").style.display = "inline-block";
 
       fetch('/api/decrease-credits/', {
         method: 'POST',
@@ -414,6 +455,47 @@ resultImageInput.addEventListener('change', function () {
     reader.readAsDataURL(file);
   }
 });
+
+
+async function upscaleImage() {
+  const imageUrl = document.getElementById('resultImageURL').value;
+
+  if (!imageUrl) {
+    alert("No result image to upscale.");
+    return;
+  }
+
+  const upscaleSpinner = document.getElementById("upscaleSpinner");
+  upscaleSpinner.style.display = "block";
+
+  const formData = new FormData();
+  formData.append("image_url", imageUrl); // backend must accept 'image_url'
+
+  try {
+    const response = await fetch("/upscale/", {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+    upscaleSpinner.style.display = "none";
+
+    if (result && result.upscaled_url) {
+      const previewImage = document.getElementById('preview-image3');
+      previewImage.src = result.upscaled_url;
+      document.getElementById('preview-container3').style.display = 'block';
+
+      alert("Image successfully upscaled!");
+    } else {
+      alert(result.error || "Upscaling failed.");
+    }
+  } catch (error) {
+    console.error("Upscale error:", error);
+    upscaleSpinner.style.display = "none";
+    alert("Error occurred during upscaling.");
+  }
+}
+
 
 
 /*--------------------------------------------------------------
@@ -791,6 +873,10 @@ resultImageInput.addEventListener('change', function () {
     document.getElementById('resultImage').style.display = "none";
     document.getElementById('product-color').value = "";
     document.querySelector('.selected-value-color').textContent = "Select Color";
+    document.getElementById('preview-container2').style.display = 'none';
+    document.getElementById('preview-container3').style.display = 'none';
+    document.getElementById('preview-image2').src = "";
+    document.getElementById('preview-image3').src = "";
 
     // Reset file inputs
     document.getElementById('manual-color-input').value = "";
@@ -1241,6 +1327,11 @@ resultImageInput.addEventListener('change', function () {
       // console.log("Selling price encrypted:", encryptedProduct.product_selling_price);
 
   
+      if (productData.qrcode_ids.length === 0) {
+        const randomId = Math.floor(10000 + Math.random() * 90000).toString();
+        productData.qrcode_ids.push(randomId);
+      }
+
       const formData = new FormData();
       formData.append('document', JSON.stringify(productData));
       formData.append('selectedmiddlebuttons', JSON.stringify(documentData));
@@ -1322,6 +1413,7 @@ resultImageInput.addEventListener('change', function () {
             document.querySelector('.selected-value-color').textContent = 'Select Color';
             document.getElementById('manual-color-input').value = '';
             document.getElementById('product-color').value = '';
+            document.querySelector('label[for="model-image-upload"]').style.display = 'none';
           } else {
             document.querySelector('.selected-value-color').textContent = 'Select Color';
             document.getElementById('manual-color-input-2').value = '';

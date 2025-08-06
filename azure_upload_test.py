@@ -41,25 +41,24 @@ def upload_image_to_azure(file_input, blob_name):
 
 import os
 
-local_path = os.path.join(BASE_DIR, "static/img/models/men/shirts/full-sleeve-shirts/casual-shirts/casual-shirts-1.png")
+local_path = os.path.join(BASE_DIR, "static/img/models/women/indo-western/indo-western-1.png")
 
 # Confirm it exists now
 print("Resolved Path:", local_path)
 print("Exists:", os.path.exists(local_path))
 
 
-azure_url1 = upload_image_to_azure(
-    "static/img/models/men/shirts/full-sleeve-shirts/casual-shirts/casual-shirts-1.png",
-    "men:shirts:full-sleeve-shirts:casual-shirts:casual-shirts-1.png"
-)
+# azure_url1 = upload_image_to_azure(
+#     "static/img/models/women/jeans/bell-bottom/bell-bottom-2.png",
+#     "women:jeans:bell-bottom:bell-bottom-2.png"
+# )
+
+
 azure_url3 = upload_image_to_azure(
-    "static/img/models/men/shirts/full-sleeve-shirts/casual-shirts/casual-shirts-2.png",
-    "men:shirts:full-sleeve-shirts:casual-shirts:casual-shirts-2.png"
-)
-azure_url4 = upload_image_to_azure(
-    "static/img/models/men/shirts/full-sleeve-shirts/formal-shirts/formal-shirts-1.png",
-    "men:shirts:full-sleeve-shirts:formal-shirts:formal-shirts-1.png"
+    "static/img/models/women/jeans/straight-leg-jeans/straight-leg-jeans-1.png",
+    "women:jeans:straight-leg-jeans:straight-leg-jeans-1.png"
 )
 
-print("Uploaded to:", azure_url4)
+
+print("Uploaded to:", azure_url3)
 
