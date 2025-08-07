@@ -94,7 +94,6 @@ logger = logging.getLogger(__name__)
 # For Local
 # import pymongo
 # CONNECTION = pymongo.MongoClient('mongodb://localhost:27017')
-# # DB = CONNECTION.Inventory_Management
 # DB = CONNECTION.fitattire
 
 
