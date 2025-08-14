@@ -20,6 +20,13 @@ urlpatterns = [
     path('product-display/<str:qr_id>/', views.product_display),
     path('invoice/<str:invoice_id>/', views.invoice),
 
+    path(
+    'download-product-image/',
+    views.download_product_image,
+    name='download_product_image'  # ✅ name added
+    ),
+
+
     path('download-images/', views.download_images_zip, name='download_images'),
     path('download-videos/', views.download_videos_zip, name='download_videos'),
     path('api/decrease-credits/', views.decrease_credits, name='decrease_credits'),
@@ -35,6 +42,7 @@ urlpatterns = [
     path('employee-signup/', views.employee_signup),
 
     path('add-products/', views.add_products),
+    path('add-products-2/', views.add_products_2),
     path('upload', views.upload_image),
     path('upscale/', views.upscale_image),
     path('in-stock/', views.in_stock_products),
@@ -64,6 +72,8 @@ urlpatterns = [
     path('shops/', views.shops),
     path('shops-add/', views.shops_add),
     path('users-details/', views.users_details),
+    path('users-products/', views.users_products),
+    path('shop-products-details/<str:shop_id>/', views.shop_products_details),
     path('admin-only-user_signup-5famtsp89f1/', views.users_signup),
     # ----------------------------------->
     

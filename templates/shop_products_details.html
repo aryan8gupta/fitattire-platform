@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Shop Product Details</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+        img {
+            max-width: 150px;
+            height: auto;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .images-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .download-btn {
+            display: inline-block;
+            padding: 5px 10px;
+            font-size: 12px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .download-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Shop Product Details</h1>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Product ID</th>
+                <th>Fabric</th>
+                <th>Sizes</th>
+                <th>Selling Price</th>
+                <th>Dupatta Side</th>
+                <th>Dummy Image</th>
+                <th>Dummy Closeup Image</th>
+                <th>All Colors Image</th>
+                <th>Multiple Colors Images</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in shop_product_details %}
+            <tr>
+                <td>{{ product.product_name }}</td>
+                <td>{{ product.product_id }}</td>
+                <td>{{ product.fabric }}</td>
+                <td>{{ product.sizes }}</td>
+                <td>{{ product.selling_price }}</td>
+                <td>{{ product.dupatta_side }}</td>
+                <td>
+                    {% if product.dummy_image %}
+                        <img src="{{ product.dummy_image }}" alt="Dummy Image">
+                        <a href="{% url 'download_product_image' %}?url={{ product.dummy_image|urlencode }}" class="download-btn">Download</a>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if product.dummy_closeup_image %}
+                        <img src="{{ product.dummy_closeup_image }}" alt="Dummy Closeup Image">
+                        <a href="{% url 'download_product_image' %}?url={{ product.dummy_closeup_image|urlencode }}" class="download-btn">Download</a>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if product.all_colors_image %}
+                        <img src="{{ product.all_colors_image }}" alt="All Colors Image">
+                        <a href="{% url 'download_product_image' %}?url={{ product.all_colors_image|urlencode }}" class="download-btn">Download</a>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if product.multiple_colors_images %}
+                        <div class="images-container">
+                        {% for img_url in product.multiple_colors_images %}
+                            <div>
+                                <img src="{{ img_url }}" alt="Multiple Colors Image">
+                                <a href="{% url 'download_product_image' %}?url={{ img_url|urlencode }}" class="download-btn">Download</a>
+                            </div>
+                        {% endfor %}
+                        </div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    <

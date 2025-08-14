@@ -24,6 +24,7 @@ from video_generator.generate_text_photos import create_dynamic_photo_with_auto_
 from video_generator.instagram_post_test import post_to_instagram, post_azure_video_to_instagram, post_carousel_to_instagram
 from video_generator.generate_video import start_video_generation, start_video_generation_2
 from video_generator.send_whatsapp import send_invoice_whatsapp_message
+from video_generator.collage_image import create_collage
 
 # from Inventify.utils.encryption import derive_aes_key, decrypt_field_if_needed
 # from Inventify.utils.kms_utils import encrypt_with_kms, decrypt_with_kms
@@ -53,7 +54,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-import tempfile
+# import tempfile
 # if DEBUG:
 #     # In local development (DEBUG=True), use the mock KMS functions
 #     from Inventify.utils.kms_mock_utils import encrypt_with_kms, decrypt_with_kms
@@ -1533,6 +1534,115 @@ def add_products(request):
     return render(request, 'add_products.html',  {'dashboard': dashboard, 'user_type': user_type, 'first_name': user_name, 'credits': credits})
 
 
+
+
+@csrf_exempt
+def add_products_2(request):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
+
+    user_type = data.get('user_type')
+    user_email = data.get('email')
+    user_name = data.get('first_name')
+    user_doc = DB.users.find_one({"email": user_email})
+    users_shop_logo = user_doc.get('shop_logo', '')
+    user_id = str(user_doc["_id"])
+
+    if request.method == 'POST':
+        try:
+            # Get basic fields
+            product_name = request.POST.get("product_name")
+            product_id = request.POST.get("product_id")
+            fabric = request.POST.get("fabric")
+            sizes = request.POST.get("sizes")
+            selling_price = request.POST.get("selling_price")
+            dupatta_side = request.POST.get("dupatta_side")  # from hidden input
+
+            # Handle images
+            saved_main_image_url = None
+            saved_second_image_url = None
+            saved_all_colors_single_url = None
+
+            main_image_file = request.FILES.get('main_image')
+            if main_image_file:
+                saved_main_image_url = upload_image_to_azure(main_image_file, blob_name="garment")
+
+            second_image_file = request.FILES.get('second_image')
+            if second_image_file:
+                saved_second_image_url = upload_image_to_azure(second_image_file, blob_name="garment")
+
+            all_colors_single_file = request.FILES.get('all_colors_single')
+            if all_colors_single_file:
+                saved_all_colors_single_url = upload_image_to_azure(all_colors_single_file, blob_name="garment")
+
+            # Multiple color images (keep in memory for processing, do NOT upload yet)
+            # color_images_files = request.FILES.getlist('color_images[]')
+            # color_images_list = []
+            # for f in color_images_files:
+            #     img = Image.open(f).convert("RGBA")
+            #     color_images_list.append(img)
+
+            # collage_url = create_collage(color_images_list, "images/collage-1.jpg", users_shop_logo)
+
+            color_images_files = request.FILES.getlist('color_images[]')
+            color_images_urls = []
+
+            for f in color_images_files:
+                # Open image in memory
+                img = Image.open(f).convert("RGBA")
+                
+                # Save to in-memory buffer
+                img_bytes = BytesIO()
+                img.save(img_bytes, format='PNG')  # or 'JPEG' if preferred
+                img_bytes.seek(0)
+                
+                # Upload to Azure
+                azure_url = upload_image_to_azure(img_bytes, blob_name="tempfiles")  # you can customize blob_name
+                color_images_urls.append(azure_url)
+
+
+            print(saved_main_image_url)
+
+            product_dict = {
+                "product_name": product_name,
+                "product_id": product_id,
+                "fabric": fabric,
+                "sizes": sizes,
+                "selling_price": selling_price,
+                "dupatta_side": dupatta_side,
+                "dummy_image": saved_main_image_url,
+                "dummy_closeup_image": saved_second_image_url,
+                "all_colors_image": saved_all_colors_single_url,
+                "multiple_colors_images": color_images_urls,
+                # "collage_image": collage_url,
+                "user_id": user_id
+            }
+
+            DB.products_2.insert_one(product_dict)
+
+            logger.info("✅ Product inserted successfully into DB.")
+
+            return JsonResponse({'uploaded_urls': "uploaded"})
+
+        except Exception as e:
+            logger.critical(f"❌ Unhandled Exception in add_products view: {e}", exc_info=True)
+            return JsonResponse({'error': 'Something went wrong', 'details': str(e)}, status=500)
+
+    else:
+        return render(request, "add_products_2.html", {
+            "dashboard": dashboard,
+            "user_type": user_type,
+            "first_name": user_name
+        })
+
+
+
+
 def in_stock_products(request):
     valid = False
     data = {}
@@ -2345,6 +2455,20 @@ def dashboard(request):
     
 
 
+def download_product_image(request):
+    url = request.GET.get('url')
+    if not url:
+        return HttpResponse("No URL provided", status=400)
+
+    r = requests.get(url, stream=True)
+    filename = url.split("/")[-1]
+    
+    response = HttpResponse(r.content, content_type=r.headers['Content-Type'])
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+
 def download_images_zip(request):
     valid = False
     data = {}
@@ -2831,6 +2955,46 @@ def users_details(request):
     return render(request, 'users_details.html', { 'dashboard': 
 													   dashboard, 'user_type': user_type, 'first_name': user_name, 'shop_owners_details': shop_owners_details})
 
+
+def users_products(request):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
+	
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+
+    shop_owners_details = list(DB.users.find({'user_type': 'Shop Owners'}))
+    for shop in shop_owners_details:
+        shop['id'] = str(shop['_id'])  # rename
+        del shop['_id']  # optional: remove the original
+
+    
+    return render(request, 'users_products.html', { 'dashboard': 
+													   dashboard, 'user_type': user_type, 'first_name': user_name, 'shop_owners_details': shop_owners_details})
+
+
+def shop_products_details(request, shop_id):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
+	
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+    shop = list(DB.products_2.find({'user_id': shop_id}))
+
+    return render(request, 'shop_products_details.html', { 'dashboard': 
+													   dashboard, 'user_type': user_type, 'first_name': user_name, 'shop_product_details': shop})
+
+    
 
 @csrf_exempt
 def users_signup(request):
