@@ -941,6 +941,13 @@ if (submitBtn) {
     if (btnText) btnText.textContent = "Submitting";
     if (btnSpinner) btnSpinner.style.display = "inline-block";
 
+    const credits = document.getElementById("credits-used").innerText;
+
+    if (credits == "0"){
+      alert("No Credits Left");
+      return;
+    }
+
     // ---- Validation: each embroidery image MUST have a part selected
     if (embroideryData.length > 0) {
       const missing = embroideryData.filter(it => !it.part || it.part.trim() === "");
@@ -992,6 +999,19 @@ if (submitBtn) {
           if (allColorsPrev) allColorsPrev.src = placeholder;
           if (imageContainer) imageContainer.innerHTML = "";
           if (embroideryContainer) embroideryContainer.innerHTML = "";
+
+          fetch('/api/decrease-credits/', {
+            method: 'POST',
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              document.getElementById("credits-used").innerText = data.new_credits;
+            } else {
+              alert("Error: " + data.message);
+            }
+          })
+          .catch(err => console.error("Failed to decrease credits:", err));
 
           // Reset inputs
           if (mainImageInput) mainImageInput.value = "";

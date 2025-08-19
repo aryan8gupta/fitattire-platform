@@ -3147,7 +3147,7 @@ def users_signup(request):
                 users_shop_name = request.POST.get("ShopName")
                 users_shop_address = request.POST.get("ShopAddress")
                 users_shop_logo = request.FILES.get('LogoImage')
-                users_garments_type = request.POST.get("GarmentsType")
+                users_garments_type = request.POST.get("shop_type")
                 users_phone_number = request.POST.get("PhoneNumber")
                 instagram_link = request.POST.get("instagram_url")
                 # users_status_value = request.POST.get("StatusValue")

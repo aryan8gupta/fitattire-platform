@@ -25,7 +25,7 @@
         <h1>Register Your <span>Shop</span></h1>
         <p class="form-subtitle">Complete the form below to create your shop account</p>
 
-        <form class="registration-form" action="" method="POST">
+        <form class="registration-form" action="" method="POST" enctype="multipart/form-data">
           {% csrf_token %} 
 
           {% if messages %}
