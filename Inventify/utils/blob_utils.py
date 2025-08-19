@@ -99,70 +99,6 @@ def upload_image_to_azure(file_input, blob_name=None):
     # Determine the final blob name in Azure
     filename = None
 
-    # if blob_name == "result":
-    #     generated_filename = get_next_azure_filename(container_client, 'result_image', 'jpg', 'upscaled')
-    # elif blob_name == "garment":
-    #     generated_filename = get_next_azure_filename(container_client, 'garment_image', 'jpg', 'garment')
-    # elif blob_name == "generated":
-    #     generated_filename = get_next_azure_filename(container_client, 'generated_text_image', 'jpg', 'generated')
-    # elif blob_name == "shop_logo":
-    #     generated_filename = get_next_azure_filename(container_client, 'shop_logo', 'jpg', 'shop_logo')
-    # elif blob_name == "tempfiles":
-    #     generated_filename = get_next_azure_filename(container_client, 'tempfiles', 'jpg', 'tempfiles')
-
-    # # Fallback if no specific prefix matched, or if blob_name_prefix is None
-    # final_blob_name = f"output/{generated_filename}" if generated_filename else \
-    #                   f"output/{uuid.uuid4()}_{file_input.name if hasattr(file_input, 'name') else 'unknown_file.jpg'}"
-
-    # image_data_bytes = None
-    # original_content_type = None
-
-    # # Read the image data into bytes
-    # if isinstance(file_input, str):  # File path
-    #     file_path = file_input
-    #     original_content_type, _ = mimetypes.guess_type(file_path)
-    #     original_content_type = original_content_type or "application/octet-stream"
-    #     with open(file_path, "rb") as file_data:
-    #         image_data_bytes = file_data.read()
-    # elif hasattr(file_input, 'read') and callable(file_input.read):  # File-like object (Django UploadedFile, BytesIO)
-    #     # Ensure the file_input's cursor is at the beginning if it was read previously
-    #     file_input.seek(0)
-    #     image_data_bytes = file_input.read()
-    #     try: # Try to get content type (e.g., from Django's UploadedFile)
-    #         original_content_type = file_input.content_type
-    #     except AttributeError: # Fallback for generic file-like objects
-    #         file_name = file_input.name if hasattr(file_input, 'name') else "generated_image.png"
-    #         original_content_type, _ = mimetypes.guess_type(file_name)
-    #         original_content_type = original_content_type or "application/octet-stream"
-    # else:
-    #     logger.error(f"Unsupported file_input type for upload_image_to_azure: {type(file_input)}")
-    #     raise ValueError("Unsupported file_input type provided to upload_image_to_azure")
-
-    # if not image_data_bytes:
-    #     raise ValueError("No image data extracted for upload.")
-
-    # # --- KMS ENCRYPTION OF THE IMAGE DATA ITSELF ---
-    # encrypted_image_data = encrypt_with_kms(image_data_bytes)
-    # logger.debug(f"Image data encrypted for blob: {final_blob_name}")
-
-    # # Upload the ENCRYPTED data to Azure
-    # blob_client = container_client.get_blob_client(final_blob_name)
-    # blob_client.upload_blob(
-    #     encrypted_image_data, # Upload the encrypted bytes
-    #     overwrite=True,
-    #     content_settings=ContentSettings(
-    #         # For encrypted blobs, the content type should typically be generic binary
-    #         content_type="application/octet-stream",
-    #         content_disposition="inline" # Still inline if you want it to be viewable (after decryption)
-    #     )
-    # )
-    # logger.info(f"Encrypted image uploaded to Azure: {final_blob_name}")
-
-    # # Return full blob URL of the ENCRYPTED blob
-    # return f"{settings.AZURE_BLOB_URL}/{final_blob_name}"
-
-
-
     if (blob_name == "result"):
         filename = get_next_azure_filename(container_client, 'result_image', 'jpg', 'upscaled')
     elif (blob_name == "garment"):
@@ -380,3 +316,11 @@ def delete_blob_from_azure(blob_path):
         print(f"🗑️ Deleted blob: {blob_path}")
     except Exception as e:
         print(f"❌ Failed to delete blob: {blob_path} | Error: {e}")
+
+
+# blob_path = f"output/upscaled/result_image-108.jpg"
+# delete_file = delete_blob_from_azure(blob_path)
+
+# for i in range(4, 108):
+#     blob_path = f"output/upscaled/result_image-{i}.jpg"
+#     delete_file = delete_blob_from_azure(blob_path)

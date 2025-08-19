@@ -238,30 +238,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   
     // Form submission
-    if (shopRegistrationForm) {
-      shopRegistrationForm.addEventListener("submit", (e) => {
-        e.preventDefault()
+    // if (shopRegistrationForm) {
+    //   shopRegistrationForm.addEventListener("submit", (e) => {
+    //     e.preventDefault()
   
-        // Check if both phone and email are verified
-        const isPhoneVerified = verifyPhoneBtn.textContent === "Verified"
-        const isEmailVerified = sendEmailOtpBtn.textContent === "Verified"
+    //     // // Check if both phone and email are verified
+    //     // const isPhoneVerified = verifyPhoneBtn.textContent === "Verified"
+    //     // const isEmailVerified = sendEmailOtpBtn.textContent === "Verified"
   
-        if (!isPhoneVerified || !isEmailVerified) {
-          alert("Please verify both phone number and email before submitting")
-          return
-        }
+    //     // if (!isPhoneVerified || !isEmailVerified) {
+    //     //   alert("Please verify both phone number and email before submitting")
+    //     //   return
+    //     // }
   
-        // Check if password validation passes
-        if (!validatePassword()) {
-          alert("Please ensure your password meets all requirements")
-          return
-        }
+    //     // Check if password validation passes
+    //     if (!validatePassword()) {
+    //       alert("Please ensure your password meets all requirements")
+    //       return
+    //     }
   
-        // Mock API call to submit form
-        alert("Shop account created successfully!")
-        window.location.href = "employee-management.html"
-      })
-    }
+    //     // Mock API call to submit form
+    //     alert("Shop account created successfully!")
+    //     window.location.href = "employee-management.html"
+    //   })
+    // }
   
     // Helper functions
     function startOtpTimer(timerElement, timerInterval) {

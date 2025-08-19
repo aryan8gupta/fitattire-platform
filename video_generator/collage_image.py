@@ -26,7 +26,7 @@ def load_image(path_or_url):
         return placeholder
 
 
-def create_collage(image_urls, output_path, watermark_logo_path):
+def create_collage(image_urls, watermark_logo_path):
     canvas_width, canvas_height = 1080, 1080
     # background_color = (210, 180, 140, 255)
     background_color = (174, 189, 189)

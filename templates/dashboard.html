@@ -343,6 +343,352 @@
     </section>
 
   </main><!-- End #main -->
+
+
+
+  
+  {% elif user_type == 'Shop_Owners_2' %}
+  <style>
+    .custom-download-btn {
+      padding: 4px 12px;
+      font-size: 13px;
+      border-radius: 6px;
+      transition: background-color 0.2s, color 0.2s;
+    }
+  
+    .btn-primary.custom-download-btn:hover {
+      background-color: #004a9f;
+    }
+  
+    .btn-success.custom-download-btn:hover {
+      background-color: #137347;
+    }
+  </style>
+  
+
+  <main id="main" class="main">
+
+    <div class="pagetitle">
+      <h1>Shop Owners Dashboard</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+          <li class="breadcrumb-item active">Dashboard</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section dashboard">
+      <div class="row">
+        <!-- Left side columns -->
+        <div class="col-lg-8">
+          <div class="row">
+    
+            <!-- Download Images Card -->
+            <div class="col-xxl-4 col-md-6 mb-4">
+              <div class="card info-card shadow-sm border-0 p-2" style="min-height: 170px;">
+    
+                <div class="card-body">
+                  <h5 class="card-title mb-3 fs-6">Download Images <span class="text-muted small">| Pending</span></h5>
+    
+                  <div class="text-center">
+                    <h5 class="fw-bold text-muted mb-1">{{ image_count }} Images</h5>
+                  </div>
+
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="card-icon rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                      <i class="bi bi-image fs-5"></i>
+                    </div>
+                    <a href="#" class="btn btn-primary btn-sm custom-download-btn" onclick="downloadFileAndReload(event, '{% url 'download_images' %}', 'images_download.zip')">
+                      <i class="bi bi-cloud-arrow-down me-1"></i> Download
+                    </a>
+                  </div>
+                </div>
+    
+              </div>
+            </div>
+            <!-- End Download Images Card -->
+    
+            <!-- Download Videos Card -->
+            <div class="col-xxl-4 col-md-6 mb-4">
+              <div class="card info-card shadow-sm border-0 p-2" style="min-height: 170px;">
+    
+                <div class="card-body">
+                  <h5 class="card-title mb-3 fs-6">Download Videos <span class="text-muted small">| Pending</span></h5>
+                  
+                  <div class="text-center">
+                    <h5 class="fw-bold text-muted mb-1">{{ video_count }} videos</h5>
+                  </div>
+
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="card-icon rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                      <i class="bi bi-camera-reels fs-5"></i>
+                    </div>
+                    <a href="#" class="btn btn-success btn-sm custom-download-btn" onclick="downloadFileAndReload(event, '{% url 'download_videos' %}', 'videos_download.zip')">
+                      <i class="bi bi-cloud-arrow-down me-1"></i> Download
+                    </a>
+                  </div>
+                </div>
+    
+              </div>
+            </div>
+            <!-- End Download Videos Card -->
+
+            <!-- Customers Card -->
+            <div class="col-xxl-4 col-md-6 mb-4">
+
+              <div class="card info-card customers-card overflow-auto">
+
+                {% comment %} <div class="filter">
+                  <button style="border: 0px solid black; background-color: white; " id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="bi bi-three-dots"></i></button>
+                  <ul>
+
+                    <div class="dropdown-menu">
+                      <li class="dropdown-header text-start"><h6>Filter</h6></li>
+                      <li><a class="dropdown-item" id="#" >Today</a></li>
+                      <li><a class="dropdown-item" href="#">This Month</a></li>
+                      <li><a class="dropdown-item" href="#">This Year</a></li>
+                    </div>
+
+                  </ul>
+                </div> {% endcomment %}
+
+                <div class="card-body">
+                  <h5 class="card-title">Total Revenue <span>| This Year</span></h5>
+
+                  <div class="d-flex align-items-center">
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 40px;">
+                      <i class="bi bi-people" style="font-size: 25px;"></i>
+                    </div>
+                    <div class="ps-3">
+                      <p style="font-size: 30px; font: bold; margin-bottom: 0px;">₹ {{ total_revenue|floatformat:0 }}</p>
+                      {% comment %} <span class="text-danger small fw-bold">12%</span> <span class="text-muted small pt-2 ps-1">decrease vs Last year</span> {% endcomment %}
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+            </div><!-- End Customers Card -->
+
+            <!-- Reports -->
+            {% comment %} <div class="col-12">
+              <div class="card overflow-auto">
+
+                <div class="filter">
+                  <button style="border: 0px solid black; background-color: white; " id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="bi bi-three-dots"></i></button>
+                  <ul>
+
+                    <div class="dropdown-menu">
+                      <li class="dropdown-header text-start"><h6>Filter</h6></li>
+                      <li><a class="dropdown-item" id="#" >Today</a></li>
+                      <li><a class="dropdown-item" href="#">This Month</a></li>
+                      <li><a class="dropdown-item" href="#">This Year</a></li>
+                    </div>
+
+                  </ul>
+                </div>
+
+                <div class="card-body">
+                  <h5 class="card-title">Reports <span>/Today</span></h5>
+
+                  <!-- Line Chart -->
+                  <div id="reportsChart"></div>
+
+                  <script>
+                    document.addEventListener("DOMContentLoaded", () => {
+                      new ApexCharts(document.querySelector("#reportsChart"), {
+                        series: [{
+                          name: 'Sales',
+                          data: [31, 40, 28, 51, 42, 82, 56],
+                        }, {
+                          name: 'Revenue',
+                          data: [11, 32, 45, 32, 34, 52, 41]
+                        }, {
+                          name: 'Customers',
+                          data: [15, 11, 32, 18, 9, 24, 11]
+                        }],
+                        chart: {
+                          height: 350,
+                          type: 'area',
+                          toolbar: {
+                            show: false
+                          },
+                        },
+                        markers: {
+                          size: 4
+                        },
+                        colors: ['#4154f1', '#2eca6a', '#ff771d'],
+                        fill: {
+                          type: "gradient",
+                          gradient: {
+                            shadeIntensity: 1,
+                            opacityFrom: 0.3,
+                            opacityTo: 0.4,
+                            stops: [0, 90, 100]
+                          }
+                        },
+                        dataLabels: {
+                          enabled: false
+                        },
+                        stroke: {
+                          curve: 'smooth',
+                          width: 2
+                        },
+                        xaxis: {
+                          type: 'datetime',
+                          categories: ["2018-09-19T00:00:00.000Z", "2018-09-19T01:30:00.000Z", "2018-09-19T02:30:00.000Z", "2018-09-19T03:30:00.000Z", "2018-09-19T04:30:00.000Z", "2018-09-19T05:30:00.000Z", "2018-09-19T06:30:00.000Z"]
+                        },
+                        tooltip: {
+                          x: {
+                            format: 'dd/MM/yy HH:mm'
+                          },
+                        }
+                      }).render();
+                    });
+                  </script>
+                  <!-- End Line Chart -->
+
+                </div>
+
+              </div>
+            </div><!-- End Reports --> {% endcomment %}
+
+
+            <!-- Top Selling -->
+            <div class="col-12">
+              <div class="card top-selling overflow-auto">
+                <div class="card-body pb-0">
+                  <h5 class="card-title">Top Selling <span>| {{ time_range }}</span></h5>
+
+                  <table class="table table-borderless">
+                    <thead>
+                      <tr>
+                        <th scope="col">Preview</th>
+                        <th scope="col">Product</th>
+                        <th scope="col">Sets Sold</th>
+                        <th scope="col">Price</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for product in top_selling_products %}
+                      <tr>
+                        <th scope="row">
+                          <a href="#">
+                            <img src="{{ product.image }}" style="height: 10vh; width: 4vw; object-fit: contain;" alt="">
+                          </a>
+                        </th>
+                        <td>
+                          <a href="#" class="text-primary fw-bold">{{ product.product_name }}</a>
+                        </td>
+                        <td class="fw-bold">{{ product.total_sets_sold }}</td>
+                        <td>₹{{ product.average_price|floatformat:0 }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+
+                </div>
+              </div>
+            </div>
+            <!-- End Top Selling -->
+
+          </div>
+        </div><!-- End Left side columns -->
+
+        <!-- Right side columns -->
+        <div class="col-lg-4">
+
+          <!-- Scan QrCode Card -->
+          <div class="card overflow-auto">
+            <!-- <div class="card info-card customers-card overflow-auto"> -->
+              {% if messages %}
+                {% for mes in messages %}
+                  <div class="alert alert-danger text-danger" role="alert">
+                    {{ mes }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+              <div class="qr-card">
+                <h2>Scan QR Code</h2>
+                <button id="scan-btn" class="btn">Start Scanning</button>
+                <button id="cancel-btn" class="btn">Cancel Scanning</button>
+                <div id="reader"></div>
+              </div>
+            <script src="https://unpkg.com/html5-qrcode"></script>
+            <script src="{% static 'js/scan-qrcode.js' %}" defer></script>
+
+
+            <!-- </div> -->
+          </div><!-- End Scan QrCode Card -->
+
+
+          <!-- Start Explore Card -->
+          <div class="explore-card">
+            <div class="explore-card-content">
+              <h2>Discover Our Latest Collection</h2>
+              <button class="explore-btn" onclick="window.location.href='/products-2'">
+                Explore Products <span>→</span>
+              </button>
+            </div>
+          </div>
+          <!-- End Explore Card -->
+
+
+          <!-- Recent Activity -->
+          <div class="card overflow-auto">
+
+            {% comment %} <div class="filter">
+              <button style="border: 0px solid black; background-color: white; " id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="bi bi-three-dots"></i></button>
+              <ul>
+
+                <div class="dropdown-menu">
+                  <li class="dropdown-header text-start"><h6>Filter</h6></li>
+                  <li><a class="dropdown-item" id="#" >Today</a></li>
+                  <li><a class="dropdown-item" href="#">This Month</a></li>
+                  <li><a class="dropdown-item" href="#">This Year</a></li>
+                </div>
+
+              </ul>
+            </div> {% endcomment %}
+
+            <div class="card-body">
+              <h5 class="card-title">Recent Activity <span>| Today</span></h5>
+
+              <div class="activity">
+                {% for act in recent_activities %}
+                  <div class="activity-item d-flex">
+                    <div class="activite-label">{{ act.time }}</div>
+                    <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
+                    <div class="activity-content">
+                      {{ act.product_name }} got sold {{ act.time }}.
+                    </div>
+                  </div>
+                {% empty %}
+                  <div class="activity-item d-flex">
+                    <div class="activite-label">Now</div>
+                    <i class='bi bi-circle-fill activity-badge text-muted align-self-start'></i>
+                    <div class="activity-content">
+                      No sales yet today.
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+              
+
+            </div>
+          </div><!-- End Recent Activity -->
+
+        </div><!-- End Right side columns -->
+
+      </div>
+    </section>
+
+  </main><!-- End #main -->
+
+
+
+
   {% elif user_type == 'Admin' %}
   <main id="main" class="main">
 

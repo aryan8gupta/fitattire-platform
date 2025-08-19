@@ -1564,49 +1564,170 @@ def add_products_2(request):
             dupatta_side = request.POST.get("dupatta_side")  # from hidden input
 
             # Handle images
+            # saved_second_image_url = None
             saved_main_image_url = None
-            saved_second_image_url = None
             saved_all_colors_single_url = None
 
+            def file_to_base64(image_file):
+                # Reset pointer in case file has been read already
+                image_file.seek(0)
+                return "data:image/png;base64," + base64.b64encode(image_file.read()).decode("utf-8")
+
+            # Step 1: Generate garment description (main mannequin)
+            def generate_garment_prompt(image_b64):
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": (
+                                        "Describe this garment clearly in a short paragraph. "
+                                        "Focus on garment type, fabric, structure, silhouette, length, "
+                                        "design elements, colors, and overall fashion style. "
+                                        "Keep it natural, keyword-rich, and not overly detailed."
+                                    ),
+                                },
+                                {"type": "image_url", "image_url": {"url": image_b64}},
+                            ],
+                        }
+                    ],
+                )
+                return response.choices[0].message.content.strip()
+
+
+            # Step 2: Generate embroidery details (close-up)
+            def generate_embroidery_prompt(image_b64, part):
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": (
+                                        f"Describe the embroidery work specifically for the garment part: {part}. "
+                                        "Provide detailed bullet points. Do NOT summarize or shorten. "
+                                        "Focus on: stitching technique, thread type, colors, motifs, patterns, "
+                                        "placement on garment, and texture. "
+                                        "Explicitly mention if there are rectangular panels, floral motifs, "
+                                        "geometric designs, neckline concentration, or scattered motifs. "
+                                        "Be as specific and descriptive as possible, keeping accuracy >95%."
+                                    ),
+                                },
+                                {"type": "image_url", "image_url": {"url": image_b64}},
+                            ],
+                        }
+                    ],
+                )
+
+                description = response.choices[0].message.content.strip()
+                return f"### {part} Embroidery\n\n{description}"
+
+
+
+            # Garment Image
             main_image_file = request.FILES.get('main_image')
             if main_image_file:
                 saved_main_image_url = upload_image_to_azure(main_image_file, blob_name="garment")
+                
+                main_image_b64 = file_to_base64(main_image_file)
+                garment_prompt = generate_garment_prompt(main_image_b64)
 
-            second_image_file = request.FILES.get('second_image')
-            if second_image_file:
-                saved_second_image_url = upload_image_to_azure(second_image_file, blob_name="garment")
+            # Closeup Image
+            # second_image_file = request.FILES.get('second_image')
+            # if second_image_file:
+            #     saved_second_image_url = upload_image_to_azure(second_image_file, blob_name="garment")
 
+            #     second_image_b64 = file_to_base64(second_image_file)
+            #     embroidery_prompt = generate_embroidery_prompt(second_image_b64)
+
+            # Single Image of all Colors
             all_colors_single_file = request.FILES.get('all_colors_single')
             if all_colors_single_file:
                 saved_all_colors_single_url = upload_image_to_azure(all_colors_single_file, blob_name="garment")
-
-            # Multiple color images (keep in memory for processing, do NOT upload yet)
-            # color_images_files = request.FILES.getlist('color_images[]')
-            # color_images_list = []
-            # for f in color_images_files:
-            #     img = Image.open(f).convert("RGBA")
-            #     color_images_list.append(img)
-
-            # collage_url = create_collage(color_images_list, "images/collage-1.jpg", users_shop_logo)
-
+            
+            # Multiple Colors Images
             color_images_files = request.FILES.getlist('color_images[]')
             color_images_urls = []
-
             for f in color_images_files:
                 # Open image in memory
                 img = Image.open(f).convert("RGBA")
                 
-                # Save to in-memory buffer
                 img_bytes = BytesIO()
                 img.save(img_bytes, format='PNG')  # or 'JPEG' if preferred
                 img_bytes.seek(0)
                 
-                # Upload to Azure
                 azure_url = upload_image_to_azure(img_bytes, blob_name="tempfiles")  # you can customize blob_name
                 color_images_urls.append(azure_url)
 
+            # Collage Image
+            collage_url = create_collage(color_images_urls, users_shop_logo)
 
-            print(saved_main_image_url)
+            # === Embroidery Images with parts ===
+            embroidery_files = request.FILES.getlist('embroidery_images[]')
+            embroidery_parts = request.POST.getlist('embroidery_parts[]')
+
+            embroidery_data = []
+            for idx, f in enumerate(embroidery_files):
+                try:
+                    part = embroidery_parts[idx] if idx < len(embroidery_parts) else None
+                    if not part:
+                        continue  # skip if no dropdown value selected
+
+                    # Upload embroidery image
+                    azure_url = upload_image_to_azure(f, blob_name="tempfiles")
+
+                    # Convert to base64 if you want to describe
+                    embroidery_b64 = file_to_base64(f)
+                    embroidery_prompt = generate_embroidery_prompt(embroidery_b64, part)
+
+                    embroidery_data.append({
+                        "url": azure_url,
+                        "part": part,
+                        "description": embroidery_prompt
+                    })
+                except Exception as e:
+                    logger.error(f"❌ Failed to process embroidery image {f.name}: {e}")
+
+
+            # Final Prompt Making
+            base_instruction = (
+                f"Create a tall Female with white skin, wearing {product_name}. "
+                "The outfit should include the following specific details:\n"
+                f"- Dupatta on {dupatta_side}\n"
+                "- Place model in an elegant decor background\n"
+                "- Render in high quality, full body\n\n"
+            )
+
+            # Merge all embroidery descriptions into one
+            embroidery_descriptions = ""
+            if embroidery_data:
+                embroidery_descriptions = "### Embroidery Details:\n"
+                for e in embroidery_data:
+                    embroidery_descriptions += f"**{e['part']} Embroidery:**\n{e['description'].strip()}\n\n"
+
+
+            # Merge garment + embroidery descriptions
+            if garment_prompt and embroidery_descriptions:
+                final_prompt = (
+                    base_instruction
+                    + "### Garment Details:\n"
+                    + garment_prompt.strip()
+                    + "\n\n### Embroidery Details:\n"
+                    + embroidery_descriptions.strip()
+                )
+            elif garment_prompt:
+                final_prompt = base_instruction + "### Garment Details:\n" + garment_prompt.strip()
+            elif embroidery_descriptions:
+                final_prompt = base_instruction + "### Embroidery Details:\n" + embroidery_descriptions.strip()
+            else:
+                final_prompt = base_instruction + "No garment details available."
+
+            print("Final Prompt:\n", final_prompt)
 
             product_dict = {
                 "product_name": product_name,
@@ -1615,11 +1736,12 @@ def add_products_2(request):
                 "sizes": sizes,
                 "selling_price": selling_price,
                 "dupatta_side": dupatta_side,
+                "prompt": final_prompt,
                 "dummy_image": saved_main_image_url,
-                "dummy_closeup_image": saved_second_image_url,
+                # "dummy_closeup_image": saved_second_image_url,
                 "all_colors_image": saved_all_colors_single_url,
-                "multiple_colors_images": color_images_urls,
-                # "collage_image": collage_url,
+                "collage_image": collage_url,
+                "embroidery": embroidery_data,
                 "user_id": user_id
             }
 
@@ -2968,7 +3090,11 @@ def users_products(request):
     user_type = data.get('user_type')
     user_name = data.get('first_name')
 
-    shop_owners_details = list(DB.users.find({'user_type': 'Shop Owners'}))
+    # shop_owners_details = list(DB.users.find({'user_type': 'Shop Owners'}))
+    shop_owners_details = list(DB.users.find({
+        'user_type': { '$in': ['Shop Owners', 'Shop_Owners_2'] }
+    }))
+
     for shop in shop_owners_details:
         shop['id'] = str(shop['_id'])  # rename
         del shop['_id']  # optional: remove the original
@@ -3020,11 +3146,11 @@ def users_signup(request):
                 users_lastname = request.POST.get("LastName")
                 users_shop_name = request.POST.get("ShopName")
                 users_shop_address = request.POST.get("ShopAddress")
-                users_shop_logo = request.FILES['LogoImage']
+                users_shop_logo = request.FILES.get('LogoImage')
                 users_garments_type = request.POST.get("GarmentsType")
                 users_phone_number = request.POST.get("PhoneNumber")
                 instagram_link = request.POST.get("instagram_url")
-                users_status_value = request.POST.get("StatusValue")
+                # users_status_value = request.POST.get("StatusValue")
                 users_password = request.POST.get("Password")
 
                 shop_logo_url = None
@@ -3037,15 +3163,15 @@ def users_signup(request):
 	                "first_name": users_firstname,
 	                "last_name": users_lastname,
 	                "mobile": users_phone_number,
-	                "status": users_status_value,
+	                # "status": users_status_value,
 	                "garments_type": users_garments_type,
 	                "shop_name": users_shop_name,
 	                "shop_address": users_shop_address,
 	                "shop_logo": shop_logo_url,
 	                "email": users_email_lower,
 	                "instagram_url": instagram_link,
-                    "plan_type": "Free Plan",
-                    "credits_given": 50,
+                    "plan_type": "Plus Plan",
+                    "credits_given": 100,
                     "credits_used": 0,
 	                "password": generate_password(users_password),
 	                "user_type": 'Shop Owners',

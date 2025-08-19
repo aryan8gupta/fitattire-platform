@@ -1,105 +1,206 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Shop Product Details</title>
+    <title>FitAttire</title>
+    <!-- Favicons -->
+    <link href="{% static 'img/logo.png' %}" rel="icon">
+    <link href="{% static 'img/logo.png' %}" rel="apple-touch-icon">
     <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #222;
+            margin-bottom: 25px;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-        table, th, td {
-            border: 1px solid #ddd;
+
+        thead {
+            background: #007bff;
+            color: white;
         }
+
         th, td {
-            padding: 10px;
+            padding: 14px 16px;
             text-align: left;
             vertical-align: top;
         }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        tr:hover {
+            background: #eef5ff;
+        }
+
         img {
-            max-width: 150px;
-            height: auto;
-            display: block;
-            margin-bottom: 5px;
+            max-width: 130px;   /* restrict width */
+            height: 200px;      /* fixed taller height */
+            object-fit: contain;  /* crops nicely without distortion */
+            border-radius: 6px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
-        .images-container {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        .download-btn {
+
+        .download-btn, .copy-btn, .upload-btn {
             display: inline-block;
-            padding: 5px 10px;
-            font-size: 12px;
+            padding: 6px 12px;
+            font-size: 13px;
             background: #007bff;
             color: white;
             text-decoration: none;
-            border-radius: 4px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
         }
-        .download-btn:hover {
+
+        .download-btn:hover, .copy-btn:hover, .upload-btn:hover {
             background: #0056b3;
         }
+
+        .prompt-container {
+            display: flex;
+            align-items: flex-start; /* text top aligned */
+            gap: 10px;
+        }
+
+        .prompt-text {
+            flex-shrink: 0;
+            max-width: 500px; /* fixed width */
+            font-size: 14px;
+            color: #444;
+            background: #f8f9fa;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            word-break: break-word;
+            white-space: normal; /* ensures wrapping */
+            line-height: 1.4;
+        }
+
+        .upload-btn {
+            background: #28a745;
+        }
+
+        .upload-btn:hover {
+            background: #1e7e34;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .uploaded-preview {
+            margin-top: 10px;
+        }
+
+        .uploaded-preview img {
+            max-width: 130px;
+            height: 180px;
+            object-fit: contain;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
     </style>
 </head>
 <body>
     <h1>Shop Product Details</h1>
     
-    <table>
-        <thead>
-            <tr>
-                <th>Product Name</th>
-                <th>Product ID</th>
-                <th>Fabric</th>
-                <th>Sizes</th>
-                <th>Selling Price</th>
-                <th>Dupatta Side</th>
-                <th>Dummy Image</th>
-                <th>Dummy Closeup Image</th>
-                <th>All Colors Image</th>
-                <th>Multiple Colors Images</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for product in shop_product_details %}
-            <tr>
-                <td>{{ product.product_name }}</td>
-                <td>{{ product.product_id }}</td>
-                <td>{{ product.fabric }}</td>
-                <td>{{ product.sizes }}</td>
-                <td>{{ product.selling_price }}</td>
-                <td>{{ product.dupatta_side }}</td>
-                <td>
-                    {% if product.dummy_image %}
-                        <img src="{{ product.dummy_image }}" alt="Dummy Image">
-                        <a href="{% url 'download_product_image' %}?url={{ product.dummy_image|urlencode }}" class="download-btn">Download</a>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if product.dummy_closeup_image %}
-                        <img src="{{ product.dummy_closeup_image }}" alt="Dummy Closeup Image">
-                        <a href="{% url 'download_product_image' %}?url={{ product.dummy_closeup_image|urlencode }}" class="download-btn">Download</a>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if product.all_colors_image %}
-                        <img src="{{ product.all_colors_image }}" alt="All Colors Image">
-                        <a href="{% url 'download_product_image' %}?url={{ product.all_colors_image|urlencode }}" class="download-btn">Download</a>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if product.multiple_colors_images %}
-                        <div class="images-container">
-                        {% for img_url in product.multiple_colors_images %}
-                            <div>
-                                <img src="{{ img_url }}" alt="Multiple Colors Image">
-                                <a href="{% url 'download_product_image' %}?url={{ img_url|urlencode }}" class="download-btn">Download</a>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Prompt</th>
+                        <th>Dummy Image</th>
+                        <th>Dummy Closeup Image</th>
+                        <th>Upload Model Image</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in shop_product_details %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <div class="prompt-container">
+                                <div class="prompt-text">{{product.prompt}}</div>
+                                <button class="copy-btn" type="button" onclick="copyPrompt(this)">Copy</button>
                             </div>
-                        {% endfor %}
-                        </div>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    <
+                        </td>
+                        <td>
+                            {% if product.dummy_image %}
+                                <img src="{{ product.dummy_image }}" alt="Dummy Image">
+                                <a href="{% url 'download_product_image' %}?url={{ product.dummy_image|urlencode }}" class="download-btn">Download</a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if product.dummy_closeup_image %}
+                                <img src="{{ product.dummy_closeup_image }}" alt="Dummy Closeup Image">
+                                <a href="{% url 'download_product_image' %}?url={{ product.dummy_closeup_image|urlencode }}" class="download-btn">Download</a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <label for="upload-{{ forloop.counter }}" class="upload-btn">Upload Image</label>
+                            <input type="file" id="upload-{{ forloop.counter }}" name="uploaded_image_{{ forloop.counter }}" accept="image/*" onchange="previewImage(event, {{ forloop.counter }})">
+                            
+                            <div class="uploaded-preview" id="preview-{{ forloop.counter }}"></div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center;">
+            <button type="submit" class="upload-btn">Submit All</button>
+        </div>
+    </form>
+
+    <script>
+        function copyPrompt(button) {
+            const promptText = button.previousElementSibling.innerText;
+            navigator.clipboard.writeText(promptText).then(() => {
+                button.innerText = "Copied!";
+                setTimeout(() => { button.innerText = "Copy"; }, 2000);
+            });
+        }
+
+        function previewImage(event, id) {
+            const previewDiv = document.getElementById(`preview-${id}`);
+            previewDiv.innerHTML = "";
+            
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement("img");
+                    img.src = e.target.result;
+                    previewDiv.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -20,12 +20,7 @@ urlpatterns = [
     path('product-display/<str:qr_id>/', views.product_display),
     path('invoice/<str:invoice_id>/', views.invoice),
 
-    path(
-    'download-product-image/',
-    views.download_product_image,
-    name='download_product_image'  # ✅ name added
-    ),
-
+    path('download-product-image/', views.download_product_image, name='download_product_image'),
 
     path('download-images/', views.download_images_zip, name='download_images'),
     path('download-videos/', views.download_videos_zip, name='download_videos'),

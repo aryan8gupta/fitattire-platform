@@ -174,7 +174,6 @@
       </li><!-- End Stock Left Nav -->
 
       <li class="nav-item">
-
         <!-- <button id="1" onclick="nav_blue_tag(this.id)"> -->
           <a class="nav-link collapsed" id="1" onclick="navBlueTag(this.id)" data-bs-target="#tables-nav" data-bs-toggle="collapse" href="/employee/">
             <i class="bi bi-bar-chart"></i><span>Employees</span><i class="ms-auto"></i>
@@ -230,7 +229,31 @@
       
 
       
-      
+      {% elif user_type == 'Shop_Owners_2' %}
+      <li class="nav-item">
+        <a class="nav-link collapsed" data-bs-target="#tables-nav" data-bs-toggle="collapse" href="/dashboard/">
+          <i class="bi bi-grid"></i>
+          <span>Dashboard</span>
+        </a>
+      </li><!-- End Dashboard Nav -->
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" data-bs-target="#charts-nav" data-bs-toggle="collapse" href="/add-products-2/">
+          <i class="bi bi-plus"></i><span>ADD Products-2</span><i class="ms-auto"></i>
+        </a>
+      </li><!-- End Add Products-2 Left Nav -->
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" style="cursor: pointer;" data-toggle="modal" data-target="#exampleModalCenter">
+          <i class="bi bi-box-arrow-right mx-1"></i>
+          <span class="text-dark mx-1">Sign Out</span>
+        </a>
+      </li><!-- End SignOut Page Nav -->
+
+
+
+
+
       {% elif user_type == 'Admin' %}
       <li class="nav-item">
         <a class="nav-link collapsed" href="/dashboard/">
