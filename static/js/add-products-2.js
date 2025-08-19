@@ -988,8 +988,9 @@ if (submitBtn) {
     })
       .then(res => res.json())
       .then(data => {
-        if (data.uploaded_urls === "uploaded") {
-          alert("Product added successfully!");
+        if (data.status === "processing") {
+          alert(data.message || "Product is being processed in background.");
+
 
           // Reset previews
           const placeholder = "https://fitattirestorage.blob.core.windows.net/fitattire-assets/add-product_placeholder-image.png";
