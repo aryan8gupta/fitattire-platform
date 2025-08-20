@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block contain %}
+
+    <style>
+        .status-red { background-color: #f8d7da; color: #721c24; }
+        .status-orange { background-color: #fff3cd; color: #856404; }
+        .status-green { background-color: #d4edda; color: #155724; }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid #ccc; /* optional: visible border around scroll area */
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+        
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc; /* 👈 this keeps cell borders */
+            white-space: nowrap;
+        }
+        
+
+        #searchInput {
+            width: 300px;
+            padding: 8px;
+            margin: 20px 0;
+        }
+
+        img.thumb {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+
+        /* .modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 999;
+        }
+          
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        } */
+        .delete-icon {
+            pointer-events: all;
+            transition: transform 0.2s ease;
+          }
+          
+          .delete-icon-wrapper {
+            display: inline-block;
+            cursor: pointer;
+          }
+          
+          .delete-icon:hover {
+            fill: #c0392b;
+            transform: scale(1.1);
+            transition: 0.2s;
+          }
+          
+    </style>
+
+    <main id="main" class="main">
+
+        <h2>📦 In-Stock Products</h2>
+    
+        <input type="text" id="searchInput" placeholder="Search by Product Name or ID">
+        <a
+            href="https://fitattire.shop/product-list/{{shop_name}}/{{users_id}}/"
+            target="_blank"
+            class="mt-3"
+        >
+            Website Link
+        </a>
+    
+        <div class="table-container">
+            <table id="stockTable">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Dummy Image</th>
+                    <th>Collage Image</th>
+                    <th>Product Name</th>
+                    <th>Product ID</th>
+                    <th>Fabric</th>
+                    <th>Sizes</th>
+                    <th>Selling Price</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="productTableBody">
+                    {% for product in products %}
+                    <tr class="product-row"
+                        data-name="{{ product.product_name|lower }}"
+                        data-id="{{ product.product_id|lower }}"
+                        data-product-id="{{ product.id }}">
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <img class="thumb" src="{{ product.dummy_image|default:'#' }}" alt="Image">
+                        </td>
+                        <td>
+                            <img class="thumb" src="{{ product.collage_image|default:'#' }}" alt="Image">
+                        </td>
+                        <td>{{ product.product_name }}</td>
+                        <td>{{ product.product_id }}</td>
+                        <td>{{ product.fabric }}</td>
+                        <td>{{ product.sizes }}</td>
+                        <td>{{ product.selling_price }}</td>
+                        <td style="text-align: center;">
+                            <a class="nav-li" style="cursor: pointer;" data-toggle="modal" data-target="#deleteModal" data-product-id="{{ product._id.$oid }}">
+                                <div class="delete-icon-wrapper">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        data-id="{{ product._id.$oid }}"
+                                        viewBox="0 0 24 24"
+                                        class="delete-icon"
+                                        style="width: 24px; height: 24px; cursor: pointer; fill: #e74c3c;">
+                                        <path d="M16 9v10H8V9h8M14.5 3h-5l-1 1H5v2h14V4h-4.5l-1-1z"/>
+                                    </svg>
+                                </div>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+              <div class="modal-content border-2 border-dark">
+                
+                <!-- Modal Body -->
+                <div class="modal-body text-center py-4">
+                    <h4 class="mb-3">Are you sure you want to <br> Delete this Product ?</h4>
+                  
+                  <!-- Action Buttons -->
+                  <div class="d-flex justify-content-center flex-wrap gap-2">
+                    <button type="button" class="btn custom-btn mx-2" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn custom-btn mx-2" id="confirmDelete">Yes</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+        
+    </main>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {    
+        
+            const searchInput = document.getElementById('searchInput');
+            const rows = document.querySelectorAll('.product-row'); 
+        
+            searchInput.addEventListener('input', () => {
+                const value = searchInput.value.toLowerCase();
+                rows.forEach(row => {
+                    const name = row.dataset.name;
+                    const id = row.dataset.id;
+                    row.style.display = name.includes(value) || id.includes(value) ? '' : 'none';
+                });
+            });
+        
+            const deleteModal = document.getElementById("deleteModal");
+            const confirmDeleteButton = document.getElementById("confirmDelete");
+            // Add a span in your H4 like: <h4 class="mb-3">Are you sure you want to delete Product ID <span id="modalProductId"></span>?</h4>
+            const modalProductIdSpan = document.getElementById("modalProductId"); 
+        
+            let currentDeleteId = null; 
+        
+            // Use Bootstrap's 'show.bs.modal' event to populate the modal content
+            // This event fires just before the modal is shown.
+            if (deleteModal) { // Check if the modal element exists
+                $('#deleteModal').on('show.bs.modal', function (event) {
+                    // Button that triggered the modal
+                    var button = $(event.relatedTarget); 
+                    // Extract info from data-* attributes of the clicked button/link
+                    currentDeleteId = button.data('product-id'); 
+        
+                    // Update the modal's content
+                    if (modalProductIdSpan) {
+                        modalProductIdSpan.textContent = currentDeleteId;
+                    } else {
+                        // If you don't want a span, you could update the entire H4 text
+                        // Example: $(this).find('.modal-body h4').text(`Are you sure you want to delete Product ID ${currentDeleteId}?`);
+                    }
+                });
+            }
+        
+        
+            // Listen for the 'Yes' button click within the modal
+            if (confirmDeleteButton) { 
+                confirmDeleteButton.addEventListener("click", () => {
+        
+                    if (!currentDeleteId) {
+                        console.error("Error: currentDeleteId is null when 'Yes' button was clicked.");
+                        if (typeof jQuery !== 'undefined' && typeof $.fn.modal !== 'undefined') {
+                            $('#deleteModal').modal('hide');
+                        }
+                        return; 
+                    }
+        
+                    fetch(`/delete-product-2/${currentDeleteId}/`, {
+                        method: "DELETE",
+                        headers: {
+                            "X-CSRFToken": getCSRFToken(),
+                            "Content-Type": "application/json"
+                        }
+                    })
+                    .then(res => {
+                        if (res.ok) {
+                            const rowToRemove = document.querySelector(`tr[data-product-id="${currentDeleteId}"]`);
+                            if (rowToRemove) {
+                                rowToRemove.remove();
+                            } else {
+                                console.warn(`Row with data-product-id="${currentDeleteId}" not found for removal.`);
+                            }
+                            alert("Product deleted successfully.");
+                        } else {
+                            res.json().then(errorData => {
+                                console.error("Error deleting product:", errorData);
+                                alert(`Error deleting product: ${errorData.message || 'Unknown error'}`);
+                            }).catch(() => {
+                                console.error("Error deleting product, unable to parse response.", res);
+                                alert("Error deleting product. Please try again.");
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Fetch failed entirely (network error or unhandled promise rejection):", err);
+                        alert("Failed to delete product. Please check your network connection.");
+                    })
+                    .finally(() => {
+                        if (typeof jQuery !== 'undefined' && typeof $.fn.modal !== 'undefined') {
+                            $('#deleteModal').modal('hide');
+                        }
+                        currentDeleteId = null; 
+                    });
+                });
+            } else {
+                console.error("Confirm Delete button not found! Check HTML ID.");
+            }
+        
+            function getCSRFToken() {
+                const cookieValue = document.cookie
+                    .split('; ')
+                    .find(row => row.startsWith('csrftoken='));
+                const csrfToken = cookieValue ? cookieValue.split('=')[1] : '';
+                return csrfToken;
+            }
+        });
+    </script>
+        
+{% endblock %}

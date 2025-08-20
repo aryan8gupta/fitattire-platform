@@ -1815,6 +1815,42 @@ def in_stock_products(request):
     })
 
 
+def in_stock_products_2(request):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
+
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+
+    user_email = data.get('email')
+    user_record = DB.users.find_one({"email": user_email})
+
+    users_shop_name = user_record['shop_name']
+    shop_name = users_shop_name.lower().replace(" ", "-")
+
+    users_id = str(user_record['_id'])
+
+    products = list(DB.products_2.find({"user_id": users_id}).sort("sets_available", 1))
+    for p in products:
+        p["_id"] = str(p["_id"])
+        p["id"] = p["_id"]
+        print(f"Product ID in view:", p["_id"])
+
+    return render(request, 'in_stock_2.html',  {
+        'dashboard': dashboard,
+        'user_type': user_type,
+        'first_name': user_name,
+        'shop_name': shop_name,
+        'users_id': users_id,
+        "products": products
+    })
+
+
 
 def products_sold_view(request):
     valid = False
@@ -3212,6 +3248,24 @@ def delete_product(request, product_id):
         return JsonResponse({'error': 'Product not found'}, status=404)
 
 
+@csrf_exempt
+def delete_product_2(request, product_id):
+    if request.method != 'DELETE':
+        return JsonResponse({'error': 'Only DELETE requests allowed'}, status=405)
+
+    try:
+        # Ensure valid ObjectId
+        obj_id = ObjectId(product_id)
+    except Exception:
+        return JsonResponse({'error': 'Invalid product ID'}, status=400)
+
+    result = DB.products_2.delete_one({'_id': obj_id})
+    
+    if result.deleted_count == 1:
+        return JsonResponse({'message': 'Product deleted successfully'}, status=200)
+    else:
+        return JsonResponse({'error': 'Product not found'}, status=404)
+
 
 def delete(request):
     try:
@@ -3327,7 +3381,16 @@ def login(request):
                     # ✅ Store JWT token
                     jwt_token = generate_token(user_dict)
                     response = HttpResponseRedirect('/dashboard')
-                    response.set_cookie("t", jwt_token)
+                    
+                    response.set_cookie(
+                        "t",
+                        jwt_token,
+                        httponly=True,        # Prevent JS access
+                        secure=True,          # Only send over HTTPS
+                        samesite="Lax",       # Safe default
+                        max_age=60*60*12      # 12 hours in seconds
+                    )
+
                     DB.users.find_one_and_update({"email": email}, {"$set": {"token": jwt_token}})
 
                     # request.session['encryptionPassword'] = login_password
@@ -3344,45 +3407,6 @@ def login(request):
         messages.warning(request, "Invalid ID or Password")
         logger.error("Failed system of logging in.")
         return render(request, 'login.html')
-
-
-
-# @csrf_exempt
-# def login(request):
-#     try:
-#         if request.method == 'POST':
-#             email = request.POST.get("email")
-#             login_password = request.POST.get("password")
-
-#             user_doc = DB.users.find_one({"email": email})
-#             if user_doc:
-#                 userBytes = login_password.encode('utf-8')
-#                 doc_pass = user_doc['password']
-#                 result = bcrypt.checkpw(userBytes, doc_pass)
-#                 if result:
-#                     email = user_doc.get("email")
-#                     user_type = user_doc.get("user_type")
-#                     first_name = user_doc.get("first_name")
-#                     user_dict = {
-#                         "email": email,
-#                         "user_type": user_type,
-#                         "first_name": first_name,
-#                     } 
-#                     jwt_token = generate_token(user_dict)
-#                     response = HttpResponseRedirect('/dashboard')
-#                     response.set_cookie("t", jwt_token)
-#                     user_doc = DB.users.find_one_and_update({"email": email}, {"$set":{"token":jwt_token}})
-#                     return response
-#                 else:
-#                     raise Exception
-#             else:
-#                 raise Exception
-
-#         return render(request, 'login.html', {})
-#     except:
-#         messages.warning(request, "Invalid ID or Password")
-#         logger.error("Failed System of logging in .")
-#         return render(request, 'login.html')
 
 
 def logout(request):

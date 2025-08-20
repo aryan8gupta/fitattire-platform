@@ -41,6 +41,7 @@ urlpatterns = [
     path('upload', views.upload_image),
     path('upscale/', views.upscale_image),
     path('in-stock/', views.in_stock_products),
+    path('in-stock-2/', views.in_stock_products_2),
     path('products-sold/', views.products_sold_view),
 
 
@@ -73,6 +74,7 @@ urlpatterns = [
     # ----------------------------------->
     
     path('delete-product/<str:product_id>/', views.delete_product),
+    path('delete-product-2/<str:product_id>/', views.delete_product_2),
     path('delete/', views.delete),
 
     path('detail/', views.detail),
