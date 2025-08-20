@@ -252,13 +252,13 @@ const submitBtn = document.querySelector(".submit-add-products-btn");
 if (submitBtn) {
   submitBtn.addEventListener("click", function () {
 
-    productData.product_name = document.getElementById('product-name').value;
-    productData.product_id = document.getElementById('product-id').value;
-    productData.product_fabric = document.getElementById('product-fabric').value;
-    productData.product_sizes = document.getElementById('product-sizes').value;
-    productData.product_selling_price = document.getElementById('selling-price').value;
+    product_name = document.getElementById('product-name').value;
+    product_id = document.getElementById('product-id').value;
+    product_fabric = document.getElementById('product-fabric').value;
+    product_sizes = document.getElementById('product-sizes').value;
+    product_selling_price = document.getElementById('selling-price').value;
 
-    if (!productData.product_name || !productData.product_id || !productData.product_fabric || !productData.product_sizes || !productData.product_selling_price === 0) {
+    if (!product_name || !product_id || !product_fabric || !product_sizes || !product_selling_price === 0) {
       alert("Please fill all the main product fields before adding variants.");
       return;
     }
