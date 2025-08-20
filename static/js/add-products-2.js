@@ -258,7 +258,7 @@ if (submitBtn) {
     product_sizes = document.getElementById('product-sizes').value;
     product_selling_price = document.getElementById('selling-price').value;
 
-    if (!product_name || !product_id || !product_fabric || !product_sizes || !product_selling_price === 0) {
+    if (!product_name || !product_id || !product_fabric || !product_sizes || !product_selling_price) {
       alert("Please fill all the main product fields before adding variants.");
       return;
     }
