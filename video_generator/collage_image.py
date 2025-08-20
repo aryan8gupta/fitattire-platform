@@ -3,9 +3,19 @@ import requests
 from io import BytesIO
 import math
 from Inventify.utils.blob_utils import upload_image_to_azure
+import os
+from Inventify.settings import BASE_DIR
 
 
-FONT_PATH = "library/fonts/DejaVuSans-Bold.ttf"  # Your font file path
+font_path = os.path.join(BASE_DIR, 'static/assets/fonts/DejaVuSans-Bold.ttf')
+
+THEMES = [
+    {"bg": (174, 189, 189), "font": "black", "border": "white"},  # grey bg
+    {"bg": (255, 228, 196), "font": "black", "border": "brown"},  # bisque
+    {"bg": (70, 130, 180), "font": "white", "border": "yellow"},  # steel blue
+    {"bg": (240, 248, 255), "font": "black", "border": "navy"},   # alice blue
+    {"bg": (47, 79, 79), "font": "white", "border": "cyan"},      # dark slate gray
+]
 
 def load_image(path_or_url):
     try:
@@ -28,8 +38,13 @@ def load_image(path_or_url):
 
 def create_collage(image_urls, watermark_logo_path):
     canvas_width, canvas_height = 1080, 1080
-    # background_color = (210, 180, 140, 255)
-    background_color = (174, 189, 189)
+
+    # Pick a random theme
+    theme = random.choice(THEMES)
+    background_color = theme["bg"]
+    font_color = theme["font"]
+    border_color = theme["border"]
+
     collage = Image.new("RGBA", (canvas_width, canvas_height), background_color)
     draw = ImageDraw.Draw(collage)
 
@@ -37,17 +52,14 @@ def create_collage(image_urls, watermark_logo_path):
     max_cols = 3
     spacing = 20
     grid_top_margin = 40
-    text_area_height = 150  # Reserve more space for text/button
+    text_area_height = 150
 
-    # Determine rows needed
     rows = math.ceil(num_images / max_cols)
-
-    # Default box width for 3 columns
     box_width = (canvas_width - (max_cols + 1) * spacing) // max_cols
 
-    # Determine box height dynamically
+    # Box height based on number of images
     if num_images <= 3:
-        box_height = int((canvas_height - grid_top_margin - text_area_height - (rows + 1) * spacing) * 0.85)
+        box_height = int(box_width * 2.2)   # Bigger boxes for <=3 images
     elif 4 <= num_images <= 6:
         box_height = int(box_width * 1.2)
     else:
@@ -55,22 +67,28 @@ def create_collage(image_urls, watermark_logo_path):
         box_height = available_height // rows
 
     grid_height = rows * box_height + (rows + 1) * spacing
-
     grid_y = grid_top_margin
-
-    # Fix grid width to not exceed canvas
     actual_cols = min(num_images, max_cols)
     grid_width = actual_cols * box_width + (actual_cols + 1) * spacing
-    extra_margin = 15  
+
+    extra_margin = 15
     grid_border_thickness = 4
+
+    # If fewer than max_cols (1 or 2 images), center the grid and border
+        # If fewer than max_cols (1 or 2 images), center the grid and border
+    if num_images < max_cols:
+        grid_x_start = (canvas_width - grid_width) // 2
+    else:
+        grid_x_start = spacing
+
+    # Clamp right edge so it never exceeds canvas_width - extra_margin
     grid_border_rect = [
-        spacing - grid_border_thickness,
+        grid_x_start - grid_border_thickness,
         grid_y - grid_border_thickness,
-        min(spacing + grid_width + grid_border_thickness - 1, canvas_width - 1 - extra_margin),
+        min(grid_x_start + grid_width + grid_border_thickness - 1, canvas_width - 1 - extra_margin),
         grid_y + grid_height + grid_border_thickness - 1,
     ]
-    draw.rectangle(grid_border_rect, outline="white", width=grid_border_thickness)
-
+    draw.rectangle(grid_border_rect, outline=border_color, width=grid_border_thickness)
 
     # Font
     base_font_size = 30
@@ -80,26 +98,37 @@ def create_collage(image_urls, watermark_logo_path):
     except OSError:
         font_large = ImageFont.load_default()
 
-    # Paste images row by row
+    # Paste images
     for idx, img_url in enumerate(image_urls):
         img = load_image(img_url)
-        img.thumbnail((box_width - 8, box_height - 8), Image.LANCZOS)
+
+        # Resize image properly to fit into box
+        img_ratio = img.width / img.height
+        box_ratio = (box_width - 8) / (box_height - 8)
+
+        if img_ratio > box_ratio:
+            new_width = box_width - 8
+            new_height = int(new_width / img_ratio)
+        else:
+            new_height = box_height - 8
+            new_width = int(new_height * img_ratio)
+
+        img = img.resize((new_width, new_height), Image.LANCZOS)
 
         row = idx // max_cols
         col = idx % max_cols
 
-        # Center last row if incomplete
         if row == rows - 1 and num_images % max_cols != 0:
             last_row_count = num_images % max_cols
             total_last_row_width = last_row_count * box_width + (last_row_count + 1) * spacing
             start_x = (canvas_width - total_last_row_width) // 2 + spacing
             box_x = start_x + col * (box_width + spacing)
         else:
-            box_x = spacing + col * (box_width + spacing)
+            box_x = grid_x_start + col * (box_width + spacing)
 
         box_y = grid_y + row * (box_height + spacing)
 
-        # Black border box
+        # Outer + inner box
         box = Image.new("RGBA", (box_width, box_height), (0, 0, 0, 255))
         inner_box = Image.new("RGBA", (box_width - 4, box_height - 4), (255, 255, 255, 255))
         box.paste(inner_box, (2, 2))
@@ -116,12 +145,12 @@ def create_collage(image_urls, watermark_logo_path):
     watermark_position = (canvas_width - watermark_width - 20, canvas_height - watermark_height - 20)
     collage.paste(watermark, watermark_position, watermark)
 
-    # Texts
+    # Text
     text_y_start = grid_y + grid_height + 20
     avail_text = f"Available in {num_images} colours"
     avail_text_width = draw.textlength(avail_text, font=font_large)
     avail_text_x = (canvas_width - avail_text_width) // 2
-    draw.text((avail_text_x, text_y_start), avail_text, font=font_large, fill="black")
+    draw.text((avail_text_x, text_y_start), avail_text, font=font_large, fill=font_color)
 
     order_text = "ORDER NOW"
     order_text_width = draw.textlength(order_text, font=font_large)

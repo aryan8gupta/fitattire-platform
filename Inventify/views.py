@@ -1580,72 +1580,72 @@ def add_products_2(request):
             # ===== Background Task =====
             def background_task():
                 try:
-                    def file_to_base64(image_bytes):
-                        return "data:image/png;base64," + base64.b64encode(image_bytes).decode("utf-8")
+                    # def file_to_base64(image_bytes):
+                    #     return "data:image/png;base64," + base64.b64encode(image_bytes).decode("utf-8")
 
-                    # Step 1: Garment description
-                    def generate_garment_prompt(image_b64):
-                        response = client.chat.completions.create(
-                            model="gpt-4o-mini",
-                            messages=[
-                                {
-                                    "role": "user",
-                                    "content": [
-                                        {
-                                            "type": "text",
-                                            "text": (
-                                                "Describe this garment clearly in a short paragraph. "
-                                                "Focus on garment type, fabric, structure, silhouette, length, "
-                                                "design elements, colors, and overall fashion style. "
-                                                "Keep it natural, keyword-rich, and not overly detailed."
-                                            ),
-                                        },
-                                        {"type": "image_url", "image_url": {"url": image_b64}},
-                                    ],
-                                }
-                            ],
-                        )
-                        return response.choices[0].message.content.strip()
+                    # # Step 1: Garment description
+                    # def generate_garment_prompt(image_b64):
+                    #     response = client.chat.completions.create(
+                    #         model="gpt-4o-mini",
+                    #         messages=[
+                    #             {
+                    #                 "role": "user",
+                    #                 "content": [
+                    #                     {
+                    #                         "type": "text",
+                    #                         "text": (
+                    #                             "Describe this garment clearly in a short paragraph. "
+                    #                             "Focus on garment type, fabric, structure, silhouette, length, "
+                    #                             "design elements, colors, and overall fashion style. "
+                    #                             "Keep it natural, keyword-rich, and not overly detailed."
+                    #                         ),
+                    #                     },
+                    #                     {"type": "image_url", "image_url": {"url": image_b64}},
+                    #                 ],
+                    #             }
+                    #         ],
+                    #     )
+                    #     return response.choices[0].message.content.strip()
 
-                    # Step 2: Embroidery details
-                    def generate_embroidery_prompt(image_b64, part):
-                        response = client.chat.completions.create(
-                            model="gpt-4o-mini",
-                            messages=[
-                                {
-                                    "role": "user",
-                                    "content": [
-                                        {
-                                            "type": "text",
-                                            "text": (
-                                                f"Describe the embroidery work specifically for the garment part: {part}. "
-                                                "Provide detailed bullet points. Do NOT summarize or shorten. "
-                                                "Focus on: stitching technique, thread type, colors, motifs, patterns, "
-                                                "placement on garment, and texture. "
-                                                "Explicitly mention if there are rectangular panels, floral motifs, "
-                                                "geometric designs, neckline concentration, or scattered motifs. "
-                                                "Be as specific and descriptive as possible, keeping accuracy >95%."
-                                            ),
-                                        },
-                                        {"type": "image_url", "image_url": {"url": image_b64}},
-                                    ],
-                                }
-                            ],
-                        )
-                        description = response.choices[0].message.content.strip()
-                        return f"### {part} Embroidery\n\n{description}"
+                    # # Step 2: Embroidery details
+                    # def generate_embroidery_prompt(image_b64, part):
+                    #     response = client.chat.completions.create(
+                    #         model="gpt-4o-mini",
+                    #         messages=[
+                    #             {
+                    #                 "role": "user",
+                    #                 "content": [
+                    #                     {
+                    #                         "type": "text",
+                    #                         "text": (
+                    #                             f"Describe the embroidery work specifically for the garment part: {part}. "
+                    #                             "Provide detailed bullet points. Do NOT summarize or shorten. "
+                    #                             "Focus on: stitching technique, thread type, colors, motifs, patterns, "
+                    #                             "placement on garment, and texture. "
+                    #                             "Explicitly mention if there are rectangular panels, floral motifs, "
+                    #                             "geometric designs, neckline concentration, or scattered motifs. "
+                    #                             "Be as specific and descriptive as possible, keeping accuracy >95%."
+                    #                         ),
+                    #                     },
+                    #                     {"type": "image_url", "image_url": {"url": image_b64}},
+                    #                 ],
+                    #             }
+                    #         ],
+                    #     )
+                    #     description = response.choices[0].message.content.strip()
+                    #     return f"### {part} Embroidery\n\n{description}"
 
                     # --- Handle Images ---
                     saved_main_image_url = None
                     saved_all_colors_single_url = None
-                    garment_prompt = None
+                    # garment_prompt = None
 
                     if main_image_bytes:
                         main_image_io = BytesIO(main_image_bytes)
                         main_image_io.name = "main_image.png"
                         saved_main_image_url = upload_image_to_azure(main_image_io, blob_name="garment")
-                        main_image_b64 = file_to_base64(main_image_bytes)
-                        garment_prompt = generate_garment_prompt(main_image_b64)
+                        # main_image_b64 = file_to_base64(main_image_bytes)
+                        # garment_prompt = generate_garment_prompt(main_image_b64)
 
                     if all_colors_single_bytes:
                         all_colors_io = BytesIO(all_colors_single_bytes)
@@ -1676,45 +1676,48 @@ def add_products_2(request):
                             emb_io = BytesIO(emb_bytes)
                             emb_io.name = f"embroidery_{idx}.png"
                             azure_url = upload_image_to_azure(emb_io, blob_name="tempfiles")
-                            embroidery_b64 = file_to_base64(emb_bytes)
-                            embroidery_prompt = generate_embroidery_prompt(embroidery_b64, part)
+                            # embroidery_b64 = file_to_base64(emb_bytes)
+                            # embroidery_prompt = generate_embroidery_prompt(embroidery_b64, part)
 
                             embroidery_data.append({
                                 "url": azure_url,
                                 "part": part,
-                                "description": embroidery_prompt
+                                # "description": embroidery_prompt
                             })
                         except Exception as e:
                             logger.error(f"❌ Failed to process embroidery image {idx}: {e}")
 
                     # Final Prompt
-                    base_instruction = (
-                        f"Create a tall Female with white skin, wearing {product_name}. "
-                        f"- Dupatta on {dupatta_side}\n"
-                        "- Place model in an elegant decor background\n"
-                        "- Render in high quality, full body\n\n"
+                    final_prompt = (
+                        "I am sending you the ladies suit mannequin image and secondi image is the top kurti embroidery part. The top kurti neckline embroidery part should be exactly same, no changes, no adding any stuff. Generate a full-body image of a beautiful South Asian Nepali female model with fair skin, natural features, and an elegant look. She should have a confident smile, standing naturally on the ground in front of a Nepal tourist destination background. Her size must be proportionate to the background (not larger than the location). Make the image high-resolution, photorealistic, and best quality, so the fabric textures, embroidery threads, and model’s features appear sharp, realistic, and detailed. It should look real, and give best quality image. - and I am giving 2 images one mannequin and one embroidery neckline closeup."
                     )
+                    # base_instruction = (
+                    #     f"Create a tall Female with white skin, wearing {product_name}. "
+                    #     f"- Dupatta on {dupatta_side}\n"
+                    #     "- Place model in an elegant decor background\n"
+                    #     "- Render in high quality, full body\n\n"
+                    # )
 
-                    embroidery_descriptions = ""
-                    if embroidery_data:
-                        embroidery_descriptions = "### Embroidery Details:\n"
-                        for e in embroidery_data:
-                            embroidery_descriptions += f"**{e['part']} Embroidery:**\n{e['description'].strip()}\n\n"
+                    # embroidery_descriptions = ""
+                    # if embroidery_data:
+                    #     embroidery_descriptions = "### Embroidery Details:\n"
+                    #     for e in embroidery_data:
+                    #         embroidery_descriptions += f"**{e['part']} Embroidery:**\n{e['description'].strip()}\n\n"
 
-                    if garment_prompt and embroidery_descriptions:
-                        final_prompt = (
-                            base_instruction
-                            + "### Garment Details:\n"
-                            + garment_prompt.strip()
-                            + "\n\n### Embroidery Details:\n"
-                            + embroidery_descriptions.strip()
-                        )
-                    elif garment_prompt:
-                        final_prompt = base_instruction + "### Garment Details:\n" + garment_prompt.strip()
-                    elif embroidery_descriptions:
-                        final_prompt = base_instruction + "### Embroidery Details:\n" + embroidery_descriptions.strip()
-                    else:
-                        final_prompt = base_instruction + "No garment details available."
+                    # if garment_prompt and embroidery_descriptions:
+                    #     final_prompt = (
+                    #         base_instruction
+                    #         + "### Garment Details:\n"
+                    #         + garment_prompt.strip()
+                    #         + "\n\n### Embroidery Details:\n"
+                    #         + embroidery_descriptions.strip()
+                    #     )
+                    # elif garment_prompt:
+                    #     final_prompt = base_instruction + "### Garment Details:\n" + garment_prompt.strip()
+                    # elif embroidery_descriptions:
+                    #     final_prompt = base_instruction + "### Embroidery Details:\n" + embroidery_descriptions.strip()
+                    # else:
+                    #     final_prompt = base_instruction + "No garment details available."
 
                     # Insert into DB
                     product_dict = {
@@ -1727,6 +1730,7 @@ def add_products_2(request):
                         "prompt": final_prompt,
                         "dummy_image": saved_main_image_url,
                         "all_colors_image": saved_all_colors_single_url,
+                        "Multiple_colors_image": color_images_urls,
                         "collage_image": collage_url,
                         "embroidery": embroidery_data,
                         "user_id": user_id
@@ -1835,11 +1839,13 @@ def in_stock_products_2(request):
 
     users_id = str(user_record['_id'])
 
-    products = list(DB.products_2.find({"user_id": users_id}).sort("sets_available", 1))
+    products = list(
+        DB.products_2.find({"user_id": users_id}).sort("_id", -1)  # newest first
+    )
+
     for p in products:
         p["_id"] = str(p["_id"])
         p["id"] = p["_id"]
-        print(f"Product ID in view:", p["_id"])
 
     return render(request, 'in_stock_2.html',  {
         'dashboard': dashboard,

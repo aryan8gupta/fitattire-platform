@@ -7,7 +7,7 @@ import random
 from Inventify.utils.blob_utils import upload_image_to_azure, download_and_decrypt_image_from_azure  # your custom utility
 
 import os
-from Inventify.base import BASE_DIR
+from Inventify.settings import BASE_DIR
 
 import re
 import uuid

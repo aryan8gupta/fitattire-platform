@@ -7,7 +7,7 @@ from Inventify.utils.blob_utils import upload_video_to_azure
 import random
 
 import os
-from Inventify.base import BASE_DIR
+from Inventify.settings import BASE_DIR
 
 import requests
 import tempfile
