@@ -5,9 +5,10 @@ import math
 from Inventify.utils.blob_utils import upload_image_to_azure
 import os
 from Inventify.settings import BASE_DIR
+import random
 
 
-font_path = os.path.join(BASE_DIR, 'static/assets/fonts/DejaVuSans-Bold.ttf')
+FONT_PATH = os.path.join(BASE_DIR, 'static/assets/fonts/DejaVuSans-Bold.ttf')
 
 THEMES = [
     {"bg": (174, 189, 189), "font": "black", "border": "white"},  # grey bg
@@ -15,6 +16,12 @@ THEMES = [
     {"bg": (70, 130, 180), "font": "white", "border": "yellow"},  # steel blue
     {"bg": (240, 248, 255), "font": "black", "border": "navy"},   # alice blue
     {"bg": (47, 79, 79), "font": "white", "border": "cyan"},      # dark slate gray
+
+    {"bg": (25, 25, 112), "font": "white", "border": "gold"},      # midnight blue
+    {"bg": (72, 61, 139), "font": "white", "border": "violet"},    # dark slate blue
+    {"bg": (0, 100, 0), "font": "white", "border": "lime"},        # dark green
+    {"bg": (105, 105, 105), "font": "white", "border": "orange"},  # dim gray
+    {"bg": (139, 0, 0), "font": "white", "border": "yellow"},      # dark red
 ]
 
 def load_image(path_or_url):

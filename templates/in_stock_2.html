@@ -78,13 +78,13 @@
         <h2>📦 In-Stock Products</h2>
     
         <input type="text" id="searchInput" placeholder="Search by Product Name or ID">
-        <a
+        {% comment %} <a
             href="https://fitattire.shop/product-list/{{shop_name}}/{{users_id}}/"
             target="_blank"
             class="mt-3"
         >
             Website Link
-        </a>
+        </a> {% endcomment %}
     
         <div class="table-container">
             <table id="stockTable">
@@ -113,6 +113,8 @@
                         </td>
                         <td>
                             <img class="thumb" src="{{ product.collage_image|default:'#' }}" alt="Image">
+                            <br>
+                            <a href="/update-images-2/{{ product.id }}/" class="btn btn-sm btn-primary mt-2">Update Image</a>
                         </td>
                         <td>{{ product.product_name }}</td>
                         <td>{{ product.product_id }}</td>

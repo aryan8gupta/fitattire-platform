@@ -1857,6 +1857,73 @@ def in_stock_products_2(request):
     })
 
 
+@csrf_exempt
+def update_instock_2(request, product_id):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    if not valid:
+        return redirect("/login")
+    
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+
+    # fetch product
+    product = DB.products_2.find_one({"_id": ObjectId(product_id)})
+    if not product:
+        return HttpResponse("Product not found", status=404)
+
+    # fetch shop logo if you need for collage
+    user_email = data.get('email')
+    user_record = DB.users.find_one({"email": user_email})
+    users_shop_logo = user_record.get("shop_logo") if user_record else None
+
+    if request.method == "POST":
+        # get uploaded files
+        color_images_files = list(request.FILES.getlist("images"))
+
+        color_images_bytes = [f.read() for f in color_images_files]
+        color_images_urls = []
+
+        for idx, img_bytes in enumerate(color_images_bytes):
+            img_io = BytesIO(img_bytes)
+            img_io.name = f"color_{idx}.png"
+
+            # convert to PNG
+            img_obj = Image.open(img_io).convert("RGBA")
+            temp_bytes = BytesIO()
+            img_obj.save(temp_bytes, format="PNG")
+            temp_bytes.seek(0)
+
+            # upload to Azure
+            azure_url = upload_image_to_azure(temp_bytes, blob_name="tempfiles")
+            color_images_urls.append(azure_url)
+
+        # create collage if needed
+        collage_url = create_collage(color_images_urls, users_shop_logo)
+
+        # update DB: save both multiple image URLs & collage
+        DB.products_2.update_one(
+            {"_id": ObjectId(product_id)},
+            {
+                "$set": {
+                    "collage_image": collage_url  # overwrite single collage field too
+                }
+            }
+        )
+
+        return redirect("in_stock_products_2")
+
+    product["_id"] = str(product["_id"])
+    return render(request, 'update_instock_2.html',  {
+        'dashboard': dashboard,
+        'user_type': user_type,
+        'first_name': user_name,
+        "product": product
+    })
+
+    
 
 def products_sold_view(request):
     valid = False

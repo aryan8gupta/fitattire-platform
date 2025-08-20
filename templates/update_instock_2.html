@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block contain %}
+
+<style>
+    .preview-img {
+        width: 100px;
+        height: 100px;
+        object-fit: contain;
+        margin: 5px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+    }
+
+    .spinner-border {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.15em;
+        margin-left: 8px;
+    }
+</style>
+
+<main id="main" class="main">
+    <h2>Update Images for: {{ product.product_name }}</h2>
+    
+    <form method="POST" enctype="multipart/form-data" id="updateForm">
+        {% csrf_token %}
+        <label class="btn btn-secondary">
+            Upload Multiple Color Images
+            <input type="file" id="imageInput" name="images" accept="image/*" multiple hidden>
+        </label>
+        <div id="previewContainer" class="mt-3 d-flex flex-wrap"></div>
+
+        <button type="submit" id="saveBtn" class="btn btn-success mt-3">
+            Save Images
+        </button>
+    </form>
+
+    {% if product.collage_images %}
+    <h4 class="mt-4">Existing Images</h4>
+    <div class="d-flex flex-wrap">
+        {% for img in product.collage_images %}
+        <img src="{{ img }}" class="preview-img">
+        {% endfor %}
+    </div>
+    {% endif %}
+</main>
+
+<script>
+    const input = document.getElementById("imageInput");
+    const previewContainer = document.getElementById("previewContainer");
+    const form = document.getElementById("updateForm");
+    const saveBtn = document.getElementById("saveBtn");
+
+    // Preview images before upload
+    input.addEventListener("change", () => {
+        previewContainer.innerHTML = "";
+        Array.from(input.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.createElement("img");
+                img.src = e.target.result;
+                img.className = "preview-img";
+                previewContainer.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+
+    // Handle form submit: show spinner + disable button
+    form.addEventListener("submit", () => {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `
+            Saving Images 
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        `;
+    });
+</script>
+
+{% endblock %}
