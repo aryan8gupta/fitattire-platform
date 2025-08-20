@@ -120,10 +120,10 @@
                         <td>{{ product.sizes }}</td>
                         <td>{{ product.selling_price }}</td>
                         <td style="text-align: center;">
-                            <a class="nav-li" style="cursor: pointer;" data-toggle="modal" data-target="#deleteModal" data-product-id="{{ product._id.$oid }}">
+                            <a class="nav-li" style="cursor: pointer;" data-toggle="modal" data-target="#deleteModal" data-product-id="{{ product.id }}">
                                 <div class="delete-icon-wrapper">
                                     <svg xmlns="http://www.w3.org/2000/svg"
-                                        data-id="{{ product._id.$oid }}"
+                                        data-id="{{ product.id }}"
                                         viewBox="0 0 24 24"
                                         class="delete-icon"
                                         style="width: 24px; height: 24px; cursor: pointer; fill: #e74c3c;">
