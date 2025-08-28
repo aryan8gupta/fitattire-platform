@@ -20,6 +20,7 @@ urlpatterns = [
     path('product-display/<str:qr_id>/', views.product_display),
     path('invoice/<str:invoice_id>/', views.invoice),
 
+    path('download_post/<str:post_id>/', views.download_post_images_zip, name='download_post_images_zip'),
     path('download-product-image/', views.download_product_image, name='download_product_image'),
 
     path('download-images/', views.download_images_zip, name='download_images'),
@@ -69,6 +70,8 @@ urlpatterns = [
     path('shops-add/', views.shops_add),
     path('users-details/', views.users_details),
     path('users-products/', views.users_products),
+    path("products-posting/<str:shop_id>/", views.products_posting),
+    path("instagram-post/<str:shop_id>/", views.instagram_post_view, name="instagram_post"),
     path('shop-products-details/<str:shop_id>/', views.shop_products_details),
     path('admin-only-user_signup-5famtsp89f1/', views.users_signup),
     # ----------------------------------->
@@ -80,6 +83,7 @@ urlpatterns = [
     path('detail/', views.detail),
     path('update/', views.update),
     path('update-images-2/<str:product_id>/', views.update_instock_2, name="update_images_2"),
+    path('update-info-2/<str:product_id>/', views.update_instock_info_2, name="update_info_2"),
     path('app-settings/', views.app_settings),
     path('subscription/', views.subscription),
     path('subscription-upgrade/', views.subs_upgrade),

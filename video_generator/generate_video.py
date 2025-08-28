@@ -1061,3 +1061,23 @@ def start_video_generation_2(video_groups, video_output_path, users_shop_address
 
     except Exception as e:
         print("[CRITICAL] Video generation failed in background:", e)
+
+
+
+# 5th video part starts ------------------>
+
+# def start_video_generation_3(video_groups, video_output_path, users_shop_address, users_shop_name):
+#     try:
+#         print("[INFO] Background video generation started...")
+#         local_video_path = create_reel(video_groups, video_output_path, users_shop_address, users_shop_name)
+#         print("6571")
+#         if local_video_path:
+#             print("[SUCCESS] Video saved locally at:", local_video_path)
+#             return local_video_path
+
+#         else:
+#             print("[ERROR] No video path returned.")
+#             return None
+
+#     except Exception as e:
+#         print("[CRITICAL] Video generation failed in background:", e)

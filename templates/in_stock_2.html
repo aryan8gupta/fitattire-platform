@@ -32,29 +32,18 @@
             padding: 8px;
             margin: 20px 0;
         }
-
         img.thumb {
-            width: 60px;
-            height: 60px;
+            width: 120px;
+            height: 150px;
             object-fit: contain;
             border-radius: 6px;
         }
-
-        /* .modal {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 999;
+        img.thumb2 {
+            width: 160px;
+            height: 160px;
+            object-fit: contain;
+            border-radius: 6px;
         }
-          
-        .modal-content {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-        } */
         .delete-icon {
             pointer-events: all;
             transition: transform 0.2s ease;
@@ -91,6 +80,7 @@
                 <thead>
                 <tr>
                     <th>#</th>
+                    <th>Model Image</th>
                     <th>Dummy Image</th>
                     <th>Collage Image</th>
                     <th>Product Name</th>
@@ -109,10 +99,21 @@
                         data-product-id="{{ product.id }}">
                         <td>{{ forloop.counter }}</td>
                         <td>
-                            <img class="thumb" src="{{ product.dummy_image|default:'#' }}" alt="Image">
+                            {% if product.model_image %}
+                                {% comment %} <div class="uploaded-preview"> {% endcomment %}
+                                    <img class="thumb2" src="{{ product.model_image }}" alt="Model Image">
+                                {% comment %} </div> {% endcomment %}
+                            {% else %}
+                                <div class="uploaded-preview text-gray-500 italic">
+                                    No Model Image
+                                </div>
+                            {% endif %}
                         </td>
                         <td>
-                            <img class="thumb" src="{{ product.collage_image|default:'#' }}" alt="Image">
+                            <img class="thumb" src="{{ product.dummy_image|default:'#' }}" alt="Dummy Image">
+                        </td>
+                        <td>
+                            <img class="thumb" src="{{ product.collage_image|default:'#' }}" alt="Collage Image">
                             <br>
                             <a href="/update-images-2/{{ product.id }}/" class="btn btn-sm btn-primary mt-2">Update Image</a>
                         </td>
@@ -122,6 +123,21 @@
                         <td>{{ product.sizes }}</td>
                         <td>{{ product.selling_price }}</td>
                         <td style="text-align: center;">
+                            <!-- Edit Icon -->
+                            <a href="/update-info-2/{{ product.id }}/" class="nav-li" style="cursor: pointer; margin-right: 10px;">
+                                <div class="edit-icon-wrapper" style="display: inline-block;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" 
+                                        viewBox="0 0 24 24" 
+                                        class="edit-icon"
+                                        style="width: 24px; height: 24px; cursor: pointer; fill: #3498db;">
+                                        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 
+                                                7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 
+                                                0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                                    </svg>
+                                </div>
+                            </a>
+
+                            <!-- Delete Icon -->
                             <a class="nav-li" style="cursor: pointer;" data-toggle="modal" data-target="#deleteModal" data-product-id="{{ product.id }}">
                                 <div class="delete-icon-wrapper">
                                     <svg xmlns="http://www.w3.org/2000/svg"

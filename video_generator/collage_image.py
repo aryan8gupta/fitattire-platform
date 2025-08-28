@@ -175,7 +175,7 @@ def create_collage(image_urls, watermark_logo_path):
     img_bytes.seek(0)
 
     # Upload to Azure
-    azure_url = upload_image_to_azure(img_bytes, blob_name="tempfiles")
+    azure_url = upload_image_to_azure(img_bytes, blob_name="collage")
     print(f"Collage uploaded to Azure: {azure_url}")
     return azure_url
 

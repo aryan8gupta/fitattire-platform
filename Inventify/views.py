@@ -20,7 +20,7 @@ from django.views.decorators.csrf import csrf_exempt
 from Inventify.deployment import DB, JWT_SECRET_KEY, MEDIA_ROOT
 
 from .models import YourModel
-from video_generator.generate_text_photos import create_dynamic_photo_with_auto_closeup_1, create_dynamic_photo_with_auto_closeup_2, create_offer_photo_with_right_image, create_offer_photo_with_right_image_2
+from video_generator.generate_text_photos import create_dynamic_photo_with_auto_closeup_1, create_dynamic_photo_with_auto_closeup_2, create_dynamic_photo_with_auto_closeup_3, create_offer_photo_with_right_image_2
 from video_generator.instagram_post_test import post_to_instagram, post_azure_video_to_instagram, post_carousel_to_instagram
 from video_generator.generate_video import start_video_generation, start_video_generation_2
 from video_generator.send_whatsapp import send_invoice_whatsapp_message
@@ -34,16 +34,18 @@ from io import BytesIO
 import zipfile
 import threading
 import uuid
+import io
 import os
 import re
 import requests
 import base64
 import json
+from urllib.parse import urlparse
 import time
 import random
 import string
 from django.http import JsonResponse
-from Inventify.utils.blob_utils import upload_image_to_azure, upload_audio_to_azure, download_and_decrypt_image_from_azure
+from Inventify.utils.blob_utils import upload_image_to_azure, delete_blob_from_azure, upload_audio_to_azure
 
 from openai import OpenAI
 import secrets
@@ -71,7 +73,6 @@ client = OpenAI(api_key=my_var_2)
 PINCEL_API_URL = "https://pincel.app/api/clothes-swap"
 my_var_1 = os.getenv('New_Pincel_API_Key', 'Default Value')
 PINCEL_API_KEY = my_var_1
-
 
 PICSART_API_KEY = "eyJraWQiOiI5NzIxYmUzNi1iMjcwLTQ5ZDUtOTc1Ni05ZDU5N2M4NmIwNTEiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhdXRoLXNlcnZpY2UtYjU2NGRmNmUtZDA3OC00NjEzLTk1MWEtZmE0ZjZjM2JkNDA4IiwiYXVkIjoiNDkxNzQzNTgxMDAxMTAxIiwibmJmIjoxNzU0MDQ3NjIwLCJzY29wZSI6WyJiMmItYXBpLmdlbl9haSIsImIyYi1hcGkuaW1hZ2VfYXBpIl0sImlzcyI6Imh0dHBzOi8vYXBpLnBpY3NhcnQuY29tL3Rva2VuLXNlcnZpY2UiLCJvd25lcklkIjoiNDkxNzQzNTgxMDAxMTAxIiwiaWF0IjoxNzU0MDQ3NjE5LCJqdGkiOiIwNjQ5NGM5ZC0xZmU3LTQ1YjMtYmJiZS1iMmEwZjM2MzgyM2QifQ.JBrobUONLeYkOntj8V_g8_RVKcJUYoJWhTDc1wJO4QEiEHqC1N3fTgBDwJsohjtm2Yxh-OdgFv8YHBc5Lysr4_-kru1v_ZwNOx4sbs_0b5Y4MGqcB9M4cgySLoBoosJ00e7i7Dsc7cQcCKOx_qUMDhtK8Jlg6XHAhz4jJPLfFq6dlcJTv7lP3fN3MI3iiw8RB29gy8K2CKkiweMXavG-i5PhU23fz1MQ-X_1AF_HgEUItUmQEa9UWVedsiclP6oHGsNEAXrriqcz2m3adYeJBroVnAkzRCG1QdUyzxDlvMxPaDKNLKbIpDBwodCsEWoycMKlSXmvvEH6J44ksTN1oQ"
 
@@ -1650,9 +1651,11 @@ def add_products_2(request):
                     if all_colors_single_bytes:
                         all_colors_io = BytesIO(all_colors_single_bytes)
                         all_colors_io.name = "all_colors.png"
-                        saved_all_colors_single_url = upload_image_to_azure(all_colors_io, blob_name="garment")
+                        saved_all_colors_single_url = upload_image_to_azure(all_colors_io, blob_name="tempfiles")
 
                     color_images_urls = []
+                    temp_blob_paths = []
+
                     for idx, img_bytes in enumerate(color_images_bytes):
                         img_io = BytesIO(img_bytes)
                         img_io.name = f"color_{idx}.png"
@@ -1663,7 +1666,23 @@ def add_products_2(request):
                         azure_url = upload_image_to_azure(temp_bytes, blob_name="tempfiles")
                         color_images_urls.append(azure_url)
 
+                         # Extract blob path from URL (everything after container name)
+                        parsed = urlparse(azure_url)
+                        # path looks like: /fitattire-assets/output/tempfiles/tempfiles-103.jpg
+                        blob_path = parsed.path.split("fitattire-assets/")[1]
+                        temp_blob_paths.append(blob_path)
+
+
                     collage_url = create_collage(color_images_urls, users_shop_logo)
+
+                    # Delete all temporary blobs
+                    for blob_path in temp_blob_paths:
+                        try:
+                            delete_blob_from_azure(blob_path)
+                            logger.info(f"Deleted temp blob: {blob_path}")
+                        except Exception as e:
+                            logger.info(f"Failed to delete {blob_path}: {e}")
+
 
                     # === Embroidery Images with parts ===
                     embroidery_data = []
@@ -1675,7 +1694,7 @@ def add_products_2(request):
 
                             emb_io = BytesIO(emb_bytes)
                             emb_io.name = f"embroidery_{idx}.png"
-                            azure_url = upload_image_to_azure(emb_io, blob_name="tempfiles")
+                            azure_url = upload_image_to_azure(emb_io, blob_name="embroidery")
                             # embroidery_b64 = file_to_base64(emb_bytes)
                             # embroidery_prompt = generate_embroidery_prompt(embroidery_b64, part)
 
@@ -1689,7 +1708,16 @@ def add_products_2(request):
 
                     # Final Prompt
                     final_prompt = (
-                        "I am sending you the ladies suit mannequin image and secondi image is the top kurti embroidery part. The top kurti neckline embroidery part should be exactly same, no changes, no adding any stuff. Generate a full-body image of a beautiful South Asian Nepali female model with fair skin, natural features, and an elegant look. She should have a confident smile, standing naturally on the ground in front of a Nepal tourist destination background. Her size must be proportionate to the background (not larger than the location). Make the image high-resolution, photorealistic, and best quality, so the fabric textures, embroidery threads, and model’s features appear sharp, realistic, and detailed. It should look real, and give best quality image. - and I am giving 2 images one mannequin and one embroidery neckline closeup."
+                        "I am sending you the ladies suit mannequin image and second image is the top kurti embroidery part. "
+                        "The top kurti neckline embroidery part should be exactly same, no changes, no adding any stuff. "
+                        "Generate a full-body image of a beautiful South Asian Young Nepali female models with fair skin, natural features, and an elegant look and have sharp features. "
+                        "She should have a confident smile, standing naturally on the ground in front of a Nepal tourist destination background. "
+                        "Her size must be proportionate to the background (not larger than the location). "
+                        "Make the image high-resolution, photorealistic, and best quality, so the fabric textures, embroidery threads, and model's features appear sharp, realistic, and detailed. "
+                        "It should look real, and give best quality image. - and I am giving 2 images one mannequin and one embroidery neckline closeup. "
+                        "Give a full body image till toes and give a different pose rather than standing straight. "
+                        "And the embroidery has 3 colours in it -> yellow, green, silver. "
+                        "So please try to give the embroidery to be 100% exact on the model image."
                     )
                     # base_instruction = (
                     #     f"Create a tall Female with white skin, wearing {product_name}. "
@@ -1880,43 +1908,94 @@ def update_instock_2(request, product_id):
     users_shop_logo = user_record.get("shop_logo") if user_record else None
 
     if request.method == "POST":
-        # get uploaded files
-        color_images_files = list(request.FILES.getlist("images"))
+        def background_task():
+            try:
+                color_images_files = list(request.FILES.getlist("images"))
 
-        color_images_bytes = [f.read() for f in color_images_files]
-        color_images_urls = []
+                color_images_bytes = [f.read() for f in color_images_files]
+                color_images_urls = []
 
-        for idx, img_bytes in enumerate(color_images_bytes):
-            img_io = BytesIO(img_bytes)
-            img_io.name = f"color_{idx}.png"
+                for idx, img_bytes in enumerate(color_images_bytes):
+                    img_io = BytesIO(img_bytes)
+                    img_io.name = f"color_{idx}.png"
 
-            # convert to PNG
-            img_obj = Image.open(img_io).convert("RGBA")
-            temp_bytes = BytesIO()
-            img_obj.save(temp_bytes, format="PNG")
-            temp_bytes.seek(0)
+                    # convert to PNG
+                    img_obj = Image.open(img_io).convert("RGBA")
+                    temp_bytes = BytesIO()
+                    img_obj.save(temp_bytes, format="PNG")
+                    temp_bytes.seek(0)
 
-            # upload to Azure
-            azure_url = upload_image_to_azure(temp_bytes, blob_name="tempfiles")
-            color_images_urls.append(azure_url)
+                    # upload to Azure
+                    azure_url = upload_image_to_azure(temp_bytes, blob_name="tempfiles")
+                    color_images_urls.append(azure_url)
 
-        # create collage if needed
-        collage_url = create_collage(color_images_urls, users_shop_logo)
+                # create collage if needed
+                collage_url = create_collage(color_images_urls, users_shop_logo)
 
-        # update DB: save both multiple image URLs & collage
-        DB.products_2.update_one(
-            {"_id": ObjectId(product_id)},
-            {
-                "$set": {
-                    "collage_image": collage_url  # overwrite single collage field too
-                }
-            }
-        )
+                # update DB: save both multiple image URLs & collage
+                DB.products_2.update_one(
+                    {"_id": ObjectId(product_id)},
+                    {
+                        "$set": {
+                            "collage_image": collage_url  # overwrite single collage field too
+                        }
+                    }
+                )
+            except Exception as e:
+                logger.error(f"[ERROR] Background task failed: {e}", exc_info=True)
+        
+        thread2 = threading.Thread(target=background_task)
+        thread2.daemon = True
+        thread2.start()
+        logger.info("[INFO] update_instock_2 thread-2 started.")
 
         return redirect("in_stock_products_2")
 
     product["_id"] = str(product["_id"])
     return render(request, 'update_instock_2.html',  {
+        'dashboard': dashboard,
+        'user_type': user_type,
+        'first_name': user_name,
+        "product": product
+    })
+
+    
+
+@csrf_exempt
+def update_instock_info_2(request, product_id):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    if not valid:
+        return redirect("/login")
+    
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+
+    product = DB.products_2.find_one({"_id": ObjectId(product_id)})
+    if not product:
+        return HttpResponse("Product not found", status=404)
+    
+    if request.method == "POST":
+        updated_data = {
+            "product_name": request.POST.get("product_name"),
+            "product_id": request.POST.get("product_id"),
+            "fabric": request.POST.get("fabric"),
+            "sizes": request.POST.get("sizes"),
+            "selling_price": request.POST.get("selling_price"),
+        }
+
+        DB.products_2.update_one(
+            {"_id": ObjectId(product_id)},
+            {"$set": updated_data}
+        )
+
+        return redirect("in_stock_products_2")
+
+    product["_id"] = str(product["_id"])
+    
+    return render(request, 'update_info_2.html',  {
         'dashboard': dashboard,
         'user_type': user_type,
         'first_name': user_name,
@@ -2695,6 +2774,43 @@ def download_product_image(request):
     return response
 
 
+def download_post_images_zip(request, post_id):
+    # Fetch the specific Instagram post from DB
+    post = DB.ig_post.find_one({"_id": ObjectId(post_id)})
+    if not post:
+        return HttpResponse("Post not found", status=404)
+
+    model_images = post.get("model_images", [])
+    collage_images = post.get("collage_images", [])
+
+    # Prepare zip in memory
+    zip_buffer = BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+        # Interleave model + collage images
+        for i in range(max(len(model_images), len(collage_images))):
+            if i < len(model_images):
+                try:
+                    response = requests.get(model_images[i])
+                    if response.status_code == 200:
+                        ext = model_images[i].split(".")[-1].split("?")[0]
+                        zip_file.writestr(f"model_{i+1}.{ext}", response.content)
+                except Exception as e:
+                    print(f"Error downloading {model_images[i]}: {e}")
+
+            if i < len(collage_images):
+                try:
+                    response = requests.get(collage_images[i])
+                    if response.status_code == 200:
+                        ext = collage_images[i].split(".")[-1].split("?")[0]
+                        zip_file.writestr(f"collage_{i+1}.{ext}", response.content)
+                except Exception as e:
+                    print(f"Error downloading {collage_images[i]}: {e}")
+
+    zip_buffer.seek(0)
+    response = HttpResponse(zip_buffer.read(), content_type='application/zip')
+    response['Content-Disposition'] = f'attachment; filename="post_{post_id}_images.zip"'
+    return response
+
 
 def download_images_zip(request):
     valid = False
@@ -3209,7 +3325,7 @@ def users_products(request):
 													   dashboard, 'user_type': user_type, 'first_name': user_name, 'shop_owners_details': shop_owners_details})
 
 
-def shop_products_details(request, shop_id):
+def products_posting(request, shop_id):
     valid = False
     data = {}
     if request.COOKIES.get('t'):
@@ -3220,12 +3336,289 @@ def shop_products_details(request, shop_id):
 	
     user_type = data.get('user_type')
     user_name = data.get('first_name')
-    shop = list(DB.products_2.find({'user_id': shop_id}))
 
-    return render(request, 'shop_products_details.html', { 'dashboard': 
-													   dashboard, 'user_type': user_type, 'first_name': user_name, 'shop_product_details': shop})
+    return render(request, 'products_posting.html', { 'dashboard': 
+													   dashboard, 'user_type': user_type, 'first_name': user_name, 'user_id': shop_id})
 
+
+def instagram_post_view(request, shop_id):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
+	
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+
+    shop_products = list(
+        DB.ig_post.find({'user_id': shop_id}).sort('_id', -1)   # newest first
+    )
+
+    for product in shop_products:
+        product['id'] = str(product['_id'])
+        del product['_id']
+
+    return render(request, 'instagram_post.html', { 'dashboard': 
+													   dashboard, 'user_type': user_type, 'first_name': user_name, 'product_record': shop_products})
+
+
+
+@csrf_exempt
+def shop_products_details(request, shop_id):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
     
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+
+    if request.method == "POST":
+        user_record = DB.users.find_one({"_id": ObjectId(shop_id)})
+        users_id = shop_id
+        users_shop_logo = user_record.get("shop_logo") if user_record else None
+        users_shop_name = user_record.get("shop_name") if user_record else None
+        users_shop_address = user_record.get("shop_address") if user_record else None
+        users_shop_whatsapp = user_record.get("mobile") if user_record else None
+
+        generated_urls = []
+        main_images_url = []
+
+        uploaded_files = {}
+
+        # Copy uploaded files into memory
+        for k, v in request.FILES.items():
+            uploaded_files[k] = {
+                "name": v.name,
+                "content": v.read(),   # read full file into memory
+            }
+
+        post_data = request.POST.copy()
+
+        def background_task_carousel(uploaded_files, post_data):
+            try:
+                # ---- Step 1: Upload images and update DB ----
+                for key, file in uploaded_files.items():
+
+                    if key.startswith("uploaded_image_"):
+                        counter = key.replace("uploaded_image_", "")
+
+                        product_mongodb_id = request.POST.get(f"product_id_{counter}")
+                        product_record = DB.products_2.find_one({"_id": ObjectId(product_mongodb_id)})
+
+                        all_color_image = product_record.get("all_colors_image") if product_record else None
+
+                        # Texts
+                        product_id = product_record.get("product_id") if product_record else None
+                        product_name = product_record.get("product_name") if product_record else None
+                        product_fabric = product_record.get("fabric") if product_record else None
+                        product_sizes = product_record.get("sizes") if product_record else None
+                        product_selling_price = product_record.get("selling_price") if product_record else None
+
+                        # Wrap content into BytesIO so Azure uploader can use it
+                        file_like = io.BytesIO(file["content"])
+                        file_like.name = file["name"]  # mimic file attribute
+
+                        saved_image_url = upload_image_to_azure(file_like, blob_name="generated_models")
+                        print("✅ Uploaded to Azure:", saved_image_url)
+
+                        main_images_url.append(saved_image_url)
+
+                        DB.products_2.update_one(
+                            {"_id": ObjectId(product_mongodb_id)},
+                            {
+                                "$set": {
+                                    "model_image": saved_image_url,
+                                    "carousel_posted": False,
+                                    "reel_created": False
+                                }
+                            }
+                        )
+
+                        image_url_3 = create_dynamic_photo_with_auto_closeup_3(
+                            big_image_path=saved_image_url,
+                            logo_path=users_shop_logo,
+                            texts=[
+                                f"ID: {product_id} ",
+                                f"Name: {product_name} ",
+                                f"Fabric: {product_fabric} ",
+                                f"Sizes: {product_sizes} ",
+                                f"Price: {product_selling_price} ",
+                            ],
+                            output_path="generated",
+                            garment_image_path=all_color_image,
+                        )
+                        generated_urls.append(image_url_3)
+
+                # save uploaded images record
+                image_dict = {
+                    "user_id": users_id,
+                    "image_urls": generated_urls,
+                    "is_downloaded": False,
+                    "created_at": localtime(timezone.now()).strftime("%d-%m-%Y")
+                }
+                DB.images_download.insert_one(image_dict)
+
+                # ---- Step 2: Fetch 4 products for carousel ----
+                products = list(DB.products_2.find({
+                    "user_id": users_id,
+                    "model_image": {"$exists": True},
+                    "collage_image": {"$exists": True},
+                    "carousel_posted": False
+                }))
+
+                if len(products) < 4:
+                    logger.info("[INFO] Not enough products for carousel posting")
+                    return
+
+                # Batch products into groups of 4
+                for i in range(0, len(products), 4):
+                    batch = products[i:i+4]
+                    if len(batch) < 4:
+                        break  # skip incomplete batch
+
+                    generated_urls2 = []
+                    for product in batch:
+                        generated_urls2.append(product["model_image"])
+                        generated_urls2.append(product["collage_image"])
+
+                    product_name = batch[0].get("product_name", "Fashion Product")
+                    category = batch[0].get("category", "Indian Ladies Suits")
+                    gender = batch[0].get("gender", "Female")
+                    product_fabric = batch[0].get("fabric", "")
+                    product_sizes = batch[0].get("sizes", "")
+                    total_price = batch[0].get("selling_price", "")
+
+                    # ---- Captions (response1) ----
+                    response1 = client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": (
+                                    "You are a creative Instagram marketer who writes short, catchy captions for fashion carousels.\n"
+                                    "Very important: Always use line breaks (\\n) between each section, never in one paragraph.\n"
+                                    "Style: Based on given examples. Always include shop address & WhatsApp, make it look professional, with emojis.\n"
+                                    "Adapt tone depending on whether shop is in Nepal or India.\n"
+                                    "At the end, add exactly 4–6 trending, relevant hashtags (mix of location, product, and shop-specific).\n"
+                                    "Examples: #kmfashionnepal #nepalfashion #delhifashion #indianethnicwear #wholesalefashion."
+                                )
+                            },
+                            {
+                                "role": "user",
+                                "content": f"""
+                                    Write an Instagram caption for a carousel:
+                                    Use exactly 1 line per instruction, separated with \\n.
+                                    - Product: {product_name}
+                                    - Category: {category}
+                                    - Gender: {gender}
+                                    - Fabric: {product_fabric}
+                                    - Sizes: {product_sizes}
+                                    - Price: ₹{total_price}
+                                    - Shop Name: {users_shop_name}
+                                    - Address: {users_shop_address}
+                                    - WhatsApp: {users_shop_whatsapp}
+
+
+                                    Follow this format:
+                                    Line 1: Attention grabbing (✨ New Arrival ✨ OR Premium Ethnic Suits 🏔️, etc.,)
+                                    Line 2: Short stylish description with emojis
+                                    Line 3–4: Address & WhatsApp number
+                                    Line 5: Call-to-action (Follow for daily updates)
+                                    Line 6: Trendy Hashtags (4–6) 
+                                """
+                            }
+                        ]
+                    )
+                    caption1 = response1.choices[0].message.content.strip()
+
+                    # ---- Comments (response2) ----
+                    response2 = client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": (
+                                    "Generate 7 short Instagram comments for a carousel fashion post. "
+                                    "Each comment must be max 3–4 words, casual, fun, natural, and different. "
+                                    "Mix in emojis for variety. "
+                                    "Return in JSON format: {\"comments\": [\"...\", \"...\"]}"
+                                )
+                            },
+                            {
+                                "role": "user",
+                                "content": f"Write 7 comments for this product: {product_name} - ₹{total_price}."
+                            }
+                        ],
+                        response_format={"type": "json_object"}   # ✅ correct value
+                    )
+
+                    # Parse JSON safely
+                    comments_obj = json.loads(response2.choices[0].message.content)
+                    comments = comments_obj.get("comments", [])
+
+                    # ---- Songs ----
+                    songs = [
+                        "Jhoome Jo Pathaan", "Kesariya", "krishna flute", "Excuses - AP Dhillon", "Doobey",
+                        "Bijlee Bijlee", "madhaniya", "Srivalli", "Naatu Naatu", "Tere Vaaste",
+                        "Ram Siya Ram", "Lutt Putt Gaya", "O Maahi", "helo mare", "Jamal Kudu",
+                        "Param Sundari", "Paani Paani", "Bachpan Ka Pyaar", "Not Ramaiya Vastavaiya", "Kaavaalaa",
+                        "Tauba Tauba", "Big Dawgs", "Millionaire", "Marziyan", "O re piya",
+                        "Chaleya", "Heeriye", "Besharam Rang", "Tu Hain Toh", "maya maya instrumental", "Chuttamalle",
+                        "Kutu Ma Kutu", "Galbandi", "Resham Firiri", "Prakash Saput - Any latest track", "Melina Rai - Any trending track"
+                    ]
+                    random_song = random.choice(songs)
+
+                    # Insert batch into DB
+                    DB.ig_post.insert_one({
+                        "model_images": [p["model_image"] for p in batch],
+                        "collage_images": [p["collage_image"] for p in batch],
+                        "ig_songs": random_song,
+                        "ig_captions": caption1,
+                        "ig_comments": comments,   # 👈 now stored as list
+                        "user_id": users_id,
+                    })
+
+                    # Mark products as carousel_posted
+                    for p in batch:
+                        DB.products_2.update_one({"_id": p["_id"]}, {"$set": {"carousel_posted": True}})
+
+                    logger.info("[INFO] Carousel batch inserted into DB successfully")
+
+            except Exception as e:
+                logger.error(f"Error in background_task_carousel: {e}", exc_info=True)
+
+        # Run background thread
+        thread_carousel = threading.Thread(target=background_task_carousel, args=(uploaded_files, post_data))
+        thread_carousel.daemon = True
+        thread_carousel.start()
+        logger.info("[INFO] Instagram carousel posting thread started.")
+        
+        return render(request, 'products_posting.html', { 'dashboard': 
+													   dashboard, 'user_type': user_type, 'first_name': user_name, 'user_id': shop_id})
+
+
+
+    shop = list(DB.products_2.find({'user_id': shop_id}))
+    for product in shop:
+        product['id'] = str(product['_id'])
+        del product['_id']
+
+    return render(request, 'shop_products_details.html', {
+        'dashboard': dashboard,
+        'user_type': user_type,
+        'first_name': user_name,
+        'shop_product_details': shop
+    })
+
+
+
 
 @csrf_exempt
 def users_signup(request):

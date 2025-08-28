@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block contain %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 12px;
+            text-align: center;
+            vertical-align: top;
+        }
+        img {
+            max-width: 120px;
+            border-radius: 6px;
+            margin: 5px;
+        }
+        .download-btn {
+            padding: 8px 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .download-btn:hover {
+            background: #0056b3;
+        }
+        .text-section {
+            text-align: left;
+            white-space: pre-line; /* keeps line breaks */
+        }
+    </style>
+
+    <main id="main" class="main">
+        <h2>Products</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Actions</th>
+                    <th>Navigate</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        Update Products
+                    </td>
+
+                    <td>
+                        <button><a href="/shop-products-details/{{ user_id }}/">Go To The Page</a></button>
+                    </td>
+                <tr>
+                <tr>
+                    <td>
+                        Posting
+                    </td>
+
+                    <td>
+                        <button><a href="/instagram-post/{{ user_id }}/"> Go To The Page</a></button>
+                    </td>
+                <tr>
+
+                </tr>
+            </tbody>
+        </table>
+        
+    </main>
+
+{% endblock %}

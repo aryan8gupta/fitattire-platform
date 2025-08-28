@@ -125,20 +125,20 @@ def post_carousel_to_instagram(image_list, caption):
         creation_id = carousel_result['id']
 
         # ✅ Publish the carousel post
-        publish_url = f"https://graph.facebook.com/v22.0/{INSTAGRAM_BUSINESS_ACCOUNT_ID}/media_publish"
-        publish_payload = {
-            'creation_id': creation_id,
-            'access_token': ACCESS_TOKEN
-        }
-        publish_response = requests.post(publish_url, data=publish_payload)
-        publish_result = publish_response.json()
-        print("✅ Publish Response:", publish_result)
+        # publish_url = f"https://graph.facebook.com/v22.0/{INSTAGRAM_BUSINESS_ACCOUNT_ID}/media_publish"
+        # publish_payload = {
+        #     'creation_id': creation_id,
+        #     'access_token': ACCESS_TOKEN
+        # }
+        # publish_response = requests.post(publish_url, data=publish_payload)
+        # publish_result = publish_response.json()
+        # print("✅ Publish Response:", publish_result)
 
-        return {
-            "status": "success",
-            "carousel_creation_id": creation_id,
-            "publish_response": publish_result
-        }
+        # return {
+        #     "status": "success",
+        #     "carousel_creation_id": creation_id,
+        #     "publish_response": publish_result
+        # }
 
     resized_image_urls = []
     for i, url in enumerate(image_list):

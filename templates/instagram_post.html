@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block contain %}
+    <style>
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid #ccc; /* optional: visible border around scroll area */
+        }
+        table {
+            width: 150%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc; /* 👈 this keeps cell borders */
+            vertical-align: top;
+        }
+        img {
+            max-width: 120px;
+            max-height: 100px;
+            border-radius: 6px;
+            margin: 5px;
+        }
+        .download-btn {
+            padding: 8px 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .download-btn:hover {
+            background: #0056b3;
+        }
+
+        .caption-box {
+            display: flex;
+            flex-direction: column; /* stack text and button */
+            align-items: flex-start; /* left align */
+            gap: 6px;
+            min-width: 200px;
+        }
+        .caption-text {
+            white-space: pre-wrap; /* keeps new lines but wraps long text */
+            word-wrap: break-word; /* breaks very long words */
+        }
+        .copy-btn {
+            padding: 6px 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        .comments-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+            min-width: 250px;
+        }
+        .comment-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f9f9f9;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .comment-text {
+            flex: 1;
+            color: #333;
+        }
+        .copy-btn-2 {
+            background: #218838;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .copy-btn-2:hover {
+            background: #d1d1d1;
+        }
+
+    </style>
+
+    <main id="main" class="main">
+        <h2>Instagram Carousel Post Planner</h2>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>S.No.</th>
+                    <th>Model Images</th>
+                    <th>Collage Images</th>
+                    <th>Download</th>
+                    <th>Song Selection</th>
+                    <th>Captions</th>
+                    <th>Comments</th>
+                </tr>
+                </thead>
+                <tbody>
+                    {% for post in product_record %}
+                        <tr>
+                            <!-- Serial Number -->
+                            <td>{{ forloop.counter }}</td>
+
+                            <!-- Model Images -->
+                            <td>
+                                {% for img in post.model_images %}
+                                    <img src="{{ img }}" alt="Model {{ forloop.counter }}">
+                                {% endfor %}
+                            </td>
+
+                            <!-- Collage Images -->
+                            <td>
+                                {% for img in post.collage_images %}
+                                    <img src="{{ img }}" alt="Collage {{ forloop.counter }}">
+                                {% endfor %}
+                            </td>
+
+                            <!-- Download Button -->
+                            <td>
+                                <a href="{% url 'download_post_images_zip' post.id %}" class="download-btn">Download</a>
+                            </td>
+
+                            <!-- Song -->
+                            <td>
+                                {{ post.ig_songs }}
+                            </td>
+
+                            <!-- Caption -->
+                            <td class="text-section">
+                                <div class="caption-box">
+                                    <div class="caption-text">{{ post.ig_captions|linebreaksbr }}</div>
+                                    <button class="copy-btn" onclick="copyCaption(this)">Copy</button>
+                                </div>
+                            </td>
+
+                            <!-- Comments -->
+                            <td>
+                                <div class="comments-section">
+                                    {% for comment in post.ig_comments %}
+                                        <div class="comment-row">
+                                        <span class="comment-text">{{ comment }}</span>
+                                        <button class="copy-btn-2" onclick="copyToClipboard('{{ comment }}')">📋</button>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </td>
+
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7">No Instagram posts found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied: " + text);
+            }).catch(err => {
+                console.error("Failed to copy:", err);
+            });
+        }
+
+        function copyCaption(button) {
+            const captionText = button.parentElement.querySelector(".caption-text").innerText;
+
+            navigator.clipboard.writeText(captionText).then(() => {
+                button.innerText = "Copied!";
+                setTimeout(() => button.innerText = "Copy", 1500);
+            }).catch(err => {
+                alert("Failed to copy text: " + err);
+            });
+        }
+
+        async function downloadImages(button) {
+            const row = button.closest("tr");
+            const models = Array.from(row.querySelectorAll("td:nth-child(2) img")).map(img => img.src);
+            const collages = Array.from(row.querySelectorAll("td:nth-child(3) img")).map(img => img.src);
+
+            let orderedImages = [];
+            for (let i = 0; i < Math.max(models.length, collages.length); i++) {
+                if (models[i]) orderedImages.push(models[i]);
+                if (collages[i]) orderedImages.push(collages[i]);
+            }
+
+            const zip = new JSZip();
+
+            for (let i = 0; i < orderedImages.length; i++) {
+                const imgUrl = orderedImages[i];
+                const imgData = await fetch(imgUrl)
+                    .then(res => res.blob())
+                    .catch(err => { console.error("Failed to fetch", imgUrl, err); });
+
+                if (imgData) {
+                    zip.file(`image_${i + 1}.jpg`, imgData);
+                }
+            }
+
+            zip.generateAsync({ type: "blob" }).then(content => {
+                saveAs(content, "images.zip");
+            });
+        }
+
+    </script>
+
+{% endblock %}

@@ -535,6 +535,128 @@ def create_dynamic_photo_with_auto_closeup_2(
     return azure_url  # <-- return the blob URL
 
 
+
+# New Image Creation for Client
+def create_dynamic_photo_with_auto_closeup_3(
+        big_image_path,
+        logo_path,
+        texts,
+        output_path,
+        garment_image_path,
+        canvas_size=(1100, 900),
+        logo_size=(200, 100),
+    ):
+
+    big_img_pil = load_image_from_path_or_url(big_image_path)
+    big_img_np = np.array(big_img_pil)
+
+    logo_img_pil = load_image_from_path_or_url(logo_path)
+    logo_img_np = np.array(logo_img_pil)
+
+    background_img_pil = load_image_from_path_or_url('https://fitattirestorage.blob.core.windows.net/fitattire-assets/background4.jpg')
+    background_img_np = np.array(background_img_pil)
+
+
+    W, H = canvas_size
+
+    bg = ImageClip(background_img_np).resize((W, H)).set_duration(0.1)
+
+    # Logo clip (resized bigger)
+    logo = ImageClip(logo_img_np).resize(newsize=logo_size).set_position((20, 20))
+
+    text_clips = []
+    line_y_offset = 150  # Start just below the logo
+    text_block_width = 260
+
+    for line in texts:
+        text_img = create_text_image_with_line_spacing(
+            line,
+            fontsize=25,
+            box_size=(text_block_width, 140),
+            color="black",
+            align="left",
+            padding=2,
+            wrapped_line_spacing=12  # You can increase to 12, 15 if needed
+        )
+
+        text_clip = ImageClip(np.array(text_img)).set_position((20, line_y_offset))
+        text_clips.append(text_clip)
+        line_y_offset += 80  # 60 (height) + 10 spacing
+
+    fixed_big_width = 570
+    fixed_big_height = 900
+    fixed_garment_width = 250
+
+    big_img = ImageClip(big_img_np)
+    original_w, original_h = big_img.w, big_img.h
+
+    # Threshold for "large" images (you can adjust this)
+    large_image_threshold = 3000  # width or height bigger than this triggers cropping
+
+    if original_w > large_image_threshold or original_h > large_image_threshold:
+        # Large image - fill frame + crop center
+        scale_w = fixed_big_width / original_w
+        scale_h = fixed_big_height / original_h
+        scale = max(scale_w, scale_h)  # cover whole frame
+        
+        big_img = big_img.resize(scale)
+        big_img = big_img.crop(
+            x_center=big_img.w // 2, 
+            y_center=big_img.h // 2,
+            width=fixed_big_width, 
+            height=fixed_big_height
+        )
+    else:
+        # Smaller image - fit inside frame without cropping
+        scale_w = fixed_big_width / original_w
+        scale_h = fixed_big_height / original_h
+        scale = min(scale_w, scale_h)  # fit inside frame
+        
+        big_img = big_img.resize(scale)
+
+    big_img_clip = big_img.resize((fixed_big_width, fixed_big_height))
+
+    # big_img_x = W - fixed_big_width * 2
+    big_img_x = W - fixed_garment_width - fixed_big_width
+    big_img_clip = big_img_clip.set_position((big_img_x, (H - fixed_big_height) // 2))
+
+    # ==== Optional Garment Image ====
+    garment_clip = None
+    if garment_image_path:
+        garment_pil = load_image_from_path_or_url(garment_image_path)
+        garment_np = np.array(garment_pil)
+        garment_clip = ImageClip(garment_np)
+
+        garment_clip = garment_clip.resize((fixed_garment_width, fixed_big_height))
+
+        # Position garment on right side, vertically centered
+        garment_clip = garment_clip.set_position((
+            W - fixed_garment_width,  # 20 px padding from right edge
+            (H - fixed_big_height) // 2
+        ))
+
+    # Composite all elements
+    all_clips = [bg, big_img_clip, logo] + text_clips
+    if garment_clip:
+        all_clips.append(garment_clip)
+    final = CompositeVideoClip(all_clips, size=(W, H))  
+
+    # Get numpy frame
+    frame = final.get_frame(t=0)
+    img = Image.fromarray(frame)
+
+
+    # Save to in-memory buffer
+    img_bytes = BytesIO()
+    img.save(img_bytes, format='PNG')
+    img_bytes.seek(0)
+
+    # Upload using existing blobs.py utility
+    azure_url = upload_image_to_azure(img_bytes, blob_name=output_path)
+
+    return azure_url  # <-- return the blob URL
+
+
 # New function ----------------------------------------->
 def create_offer_photo_with_right_image(
     big_image_path,

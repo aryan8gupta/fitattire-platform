@@ -3,6 +3,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>FitAttire</title>
     <!-- Favicons -->
     <link href="{% static 'img/logo.png' %}" rel="icon">
@@ -22,13 +23,20 @@
             margin-bottom: 25px;
         }
 
-        table {
+        .table-container {
             width: 100%;
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
+        }
+
+        .table-container table {
+            width: 100%;
+            min-width: 1200px; /* force table wider than small screens */
             border-collapse: collapse;
             background: white;
             border-radius: 10px;
-            overflow: hidden;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            table-layout: auto; /* allow natural column width */
         }
 
         thead {
@@ -72,19 +80,18 @@
             transition: background 0.3s ease;
         }
 
-        .download-btn:hover, .copy-btn:hover, .upload-btn:hover {
+        .download-btn:hover, .copy-btn:hover {
             background: #0056b3;
         }
 
         .prompt-container {
-            display: flex;
+            display: block;
             align-items: flex-start; /* text top aligned */
             gap: 10px;
         }
 
         .prompt-text {
-            flex-shrink: 0;
-            max-width: 500px; /* fixed width */
+            max-width: 400px; 
             font-size: 14px;
             color: #444;
             background: #f8f9fa;
@@ -92,7 +99,7 @@
             border-radius: 6px;
             border: 1px solid #ddd;
             word-break: break-word;
-            white-space: normal; /* ensures wrapping */
+            white-space: normal;
             line-height: 1.4;
         }
 
@@ -118,6 +125,72 @@
             object-fit: contain;
             border-radius: 6px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .copy-btn {
+            margin-top: 6px;
+        }
+        .upload-btn.disabled-label {
+            opacity: 0.5;
+            pointer-events: none; /* prevents clicking */
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            /* Make the table itself wider so scroll increases */
+            .table-container table {
+                min-width: 800px; /* bigger than before, adjust as needed */
+            }
+
+            /* Make prompt column take more space */
+            .prompt-text {
+                min-width: 200px;   /* adjust this value to control prompt width */
+                font-size: 10px;    /* keep readable text */
+            }
+
+            /* Scale down product images */
+            img {
+                max-width: 90px;
+                height: 140px;
+            }
+
+            td:last-child .upload-btn {
+                font-size: 10px;
+                padding: 4px 6px;
+                max-width: 80px;   /* smaller width */
+                white-space: nowrap;
+            }
+
+            /* Uploaded preview images */
+            .uploaded-preview img {
+                max-width: 80px;
+                height: 130px;
+            }
+
+            /* Buttons slightly bigger and full width inside cell */
+            .download-btn, .copy-btn, .upload-btn {
+                font-size: 12px;
+                padding: 8px 10px;
+                width: 100%;             /* span across the cell */
+                text-align: center;
+                margin-top: 4px;
+            }
+
+            /* Stack embroidery items tighter */
+            .embroidery-item {
+                margin-bottom: 6px;
+            }
+
+            /* Reduce table cell padding for compact view */
+            th, td {
+                padding: 8px 10px;
+            }
+
+            /* Center align header text so it looks cleaner */
+            thead th {
+                font-size: 13px;
+                text-align: center;
+            }
+
         }
 
     </style>
@@ -146,13 +219,15 @@
                         <td>
                             <div class="prompt-container">
                                 <div class="prompt-text">{{product.prompt}}</div>
-                                <button class="copy-btn" type="button" onclick="copyPrompt(this)">Copy</button>
                             </div>
+                            <button class="copy-btn" type="button" onclick="copyPrompt(this)">Copy</button>
                         </td>
                         <td>
                             {% if product.dummy_image %}
-                                <img src="{{ product.dummy_image }}" alt="Dummy Image">
-                                <a href="{% url 'download_product_image' %}?url={{ product.dummy_image|urlencode }}" class="download-btn">Download</a>
+                                <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                                    <img src="{{ product.dummy_image }}" alt="Dummy Image">
+                                    <a href="{% url 'download_product_image' %}?url={{ product.dummy_image|urlencode }}" class="download-btn">Download</a>
+                                </div>
                             {% endif %}
                         </td>
                         <td>
@@ -173,15 +248,29 @@
 
                         <td>
                             {% if product.collage_image %}
-                                <img src="{{ product.collage_image }}" alt="Collage Image">
-                                <a href="{% url 'download_product_image' %}?url={{ product.collage_image|urlencode }}" class="download-btn">Download</a>
+                                <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                                    <img src="{{ product.collage_image }}" alt="Collage Image">
+                                    <a href="{% url 'download_product_image' %}?url={{ product.collage_image|urlencode }}" class="download-btn">Download</a>
+                                </div>
                             {% endif %}
                         </td>
                         <td>
-                            <label for="upload-{{ forloop.counter }}" class="upload-btn">Upload Image</label>
-                            <input type="file" id="upload-{{ forloop.counter }}" name="uploaded_image_{{ forloop.counter }}" accept="image/*" onchange="previewImage(event, {{ forloop.counter }})">
-                            
+                            <label for="upload-{{ forloop.counter }}" class="upload-btn 
+                            {% if product.model_image %}disabled-label{% endif %}">Upload Image</label>
+
+                            <input type="file" 
+                                id="upload-{{ forloop.counter }}" 
+                                name="uploaded_image_{{ forloop.counter }}" 
+                                data-product-id="{{ product.id }}"
+                                accept="image/*" 
+                                onchange="previewImage(event, {{ forloop.counter }})"
+                                {% if product.model_image %}disabled{% endif %} >
+
                             <div class="uploaded-preview" id="preview-{{ forloop.counter }}"></div>
+
+                            <!-- Hidden field to map counter → real product id -->
+                            <input type="hidden" name="product_id_{{ forloop.counter }}" value="{{ product.id }}">
+
                         </td>
                     </tr>
                     {% endfor %}

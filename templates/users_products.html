@@ -49,7 +49,7 @@
             </thead>
             <tbody>
               {% for shops in shop_owners_details %}
-                <tr onclick="window.location.href='/shop-products-details/{{ shops.id }}/'" style="cursor: pointer;">
+                <tr onclick="window.location.href='/products-posting/{{ shops.id }}/'" style="cursor: pointer;">
                   <th scope="row">{{shops.shop_name}}</th>
                   <td>{{shops.shop_address}}</td>
                   <td>{{shops.mobile}}</td>

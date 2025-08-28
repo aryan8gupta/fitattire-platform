@@ -109,6 +109,13 @@ def upload_image_to_azure(file_input, blob_name=None):
         filename = get_next_azure_filename(container_client, 'shop_logo', 'jpg', 'shop_logo')
     elif (blob_name == "tempfiles"):
         filename = get_next_azure_filename(container_client, 'tempfiles', 'jpg', 'tempfiles')
+    
+    elif (blob_name == "collage"):
+        filename = get_next_azure_filename(container_client, 'collage_image', 'jpg', 'collage')
+    elif (blob_name == "generated_models"):
+        filename = get_next_azure_filename(container_client, 'generated_models', 'jpg', 'generated_models')
+    elif (blob_name == "embroidery"):
+        filename = get_next_azure_filename(container_client, 'embroidery_image', 'jpg', 'embroidery')
 
     blob_name = f"output/{filename}"
 
@@ -135,26 +142,42 @@ def upload_image_to_azure(file_input, blob_name=None):
                 )
             )
 
-    else:  # Assume file-like object (e.g., BytesIO)
+    else:  # Assume file-like object (e.g., InMemoryUploadedFile, BytesIO, TemporaryUploadedFile)
         try:
-            file_name = file_input.name
-        except AttributeError:
-            file_name = "generated_image.png"  # fallback
+            file_name = getattr(file_input, "name", "generated_image.png")
+        except Exception:
+            file_name = "generated_image.png"
 
         content_type, _ = mimetypes.guess_type(file_name)
         content_type = content_type or "application/octet-stream"
 
         final_blob_name = blob_name or f"{uuid.uuid4()}_{file_name}"
-
         blob_client = container_client.get_blob_client(final_blob_name)
-        blob_client.upload_blob(
-            file_input,
-            overwrite=True,
-            content_settings=ContentSettings(
-                content_type=content_type,
-                content_disposition="inline"
+
+        # Handle TemporaryUploadedFile separately
+        if hasattr(file_input, "temporary_file_path"):
+            with open(file_input.temporary_file_path(), "rb") as f:
+                blob_client.upload_blob(
+                    f,
+                    overwrite=True,
+                    content_settings=ContentSettings(
+                        content_type=content_type,
+                        content_disposition="inline"
+                    )
+                )
+        else:
+            # Reset pointer if possible (for InMemoryUploadedFile / BytesIO)
+            if hasattr(file_input, "seek"):
+                file_input.seek(0)
+
+            blob_client.upload_blob(
+                file_input,
+                overwrite=True,
+                content_settings=ContentSettings(
+                    content_type=content_type,
+                    content_disposition="inline"
+                )
             )
-        )
 
     # Return full blob URL
     return f"{settings.AZURE_BLOB_URL}/{final_blob_name}"

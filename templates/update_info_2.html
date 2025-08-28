@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block contain %}
+    <style>
+        .update-form {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .update-form .form-group {
+            margin-bottom: 15px;
+        }
+
+        .update-form label {
+            font-weight: 600;
+        }
+    </style>
+
+    <main id="main" class="main">
+
+        <h2>✏️ Update Product Info</h2>
+
+        <!-- Form -->
+        <form method="POST" action="" class="update-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="product_name">Product Name</label>
+                <input type="text" id="product_name" name="product_name"
+                    class="form-control"
+                    value="{{ product.product_name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="product_id">Product ID</label>
+                <input type="text" id="product_id" name="product_id"
+                    class="form-control"
+                    value="{{ product.product_id }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fabric">Fabric</label>
+                <input type="text" id="fabric" name="fabric"
+                    class="form-control"
+                    value="{{ product.fabric|default:'' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="sizes">Sizes</label>
+                <input type="text" id="sizes" name="sizes"
+                    class="form-control"
+                    value="{{ product.sizes|default:'' }}">
+                <small class="form-text text-muted">Example: S, M, L, XL</small>
+            </div>
+
+            <div class="form-group">
+                <label for="selling_price">Selling Price (₹)</label>
+                <input type="number" id="selling_price" name="selling_price"
+                    class="form-control"
+                    value="{{ product.selling_price|default:'0' }}" min="0" step="1" required>
+            </div>
+
+            <div class="form-group mt-3">
+                <button type="submit" class="btn btn-success">💾 Save Changes</button>
+                <a href="/instock-products-2/" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+
+    </main>
+
+{% endblock %}
