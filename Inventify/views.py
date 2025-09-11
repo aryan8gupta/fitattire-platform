@@ -1793,6 +1793,111 @@ def add_products_2(request):
         })
 
 
+
+@csrf_exempt
+def add_products_3(request):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
+
+    user_type = data.get('user_type')
+    user_email = data.get('email')
+    user_name = data.get('first_name')
+    user_doc = DB.users.find_one({"email": user_email})
+    user_id = str(user_doc["_id"])
+
+    if request.method == 'POST':
+        try:
+            # ===== Collect fields first (safe to pass to thread) =====
+            product_name = request.POST.get("product_name")
+            product_id = request.POST.get("product_id")
+            fabric = request.POST.get("fabric")
+            selling_price = request.POST.get("selling_price")
+
+            # ===== Read file bytes immediately =====
+            main_image_file = request.FILES.get('main_image')
+            main_image_bytes = main_image_file.read() if main_image_file else None
+
+            all_colors_single_file = request.FILES.get('all_colors_single')
+            all_colors_single_bytes = all_colors_single_file.read() if all_colors_single_file else None
+
+            # ===== Background Task =====
+            def background_task():
+                try:
+                    saved_main_image_url = None
+                    saved_all_colors_single_url = None
+                    # garment_prompt = None
+
+                    if main_image_bytes:
+                        main_image_io = BytesIO(main_image_bytes)
+                        main_image_io.name = "main_image.png"
+                        saved_main_image_url = upload_image_to_azure(main_image_io, blob_name="garment")
+
+                    if all_colors_single_bytes:
+                        all_colors_io = BytesIO(all_colors_single_bytes)
+                        all_colors_io.name = "all_colors.png"
+                        saved_all_colors_single_url = upload_image_to_azure(all_colors_io, blob_name="tempfiles")
+
+                    # Final Prompt
+                    final_prompt = (
+                        "I am sending you the ladies suit mannequin image and second image is the top kurti embroidery part. "
+                        "The top kurti neckline embroidery part should be exactly same, no changes, no adding any stuff. "
+                        "Generate a full-body image of a beautiful South Asian Young Nepali female models with fair skin, natural features, and an elegant look and have sharp features. "
+                        "She should have a confident smile, standing naturally on the ground in front of a Nepal tourist destination background. "
+                        "Her size must be proportionate to the background (not larger than the location). "
+                        "Make the image high-resolution, photorealistic, and best quality, so the fabric textures, embroidery threads, and model's features appear sharp, realistic, and detailed. "
+                        "It should look real, and give best quality image. - and I am giving 2 images one mannequin and one embroidery neckline closeup. "
+                        "Give a full body image till toes and give a different pose rather than standing straight. "
+                        "And the embroidery has 3 colours in it -> yellow, green, silver. "
+                        "So please try to give the embroidery to be 100% exact on the model image."
+                    )
+
+                    # Insert into DB
+                    product_dict = {
+                        "product_name": product_name,
+                        "product_id": product_id,
+                        "fabric": fabric,
+                        "selling_price": selling_price,
+                        "prompt": final_prompt,
+                        "dummy_image": saved_main_image_url,
+                        "all_colors_image": saved_all_colors_single_url,
+                        "user_id": user_id
+                    }
+
+                    DB.products_2.insert_one(product_dict)
+                    logger.info("✅ Product inserted successfully into DB (background).")
+
+                except Exception as e:
+                    logger.critical(f"❌ Unhandled Exception in background_task: {e}", exc_info=True)
+
+            # ===== Launch background thread =====
+            thread = threading.Thread(target=background_task)
+            thread.daemon = True
+            thread.start()
+
+            # ===== Respond immediately =====
+            return JsonResponse({
+                'status': 'processing',
+                'message': f'Product {product_name} is being processed in background'
+            })
+
+        except Exception as e:
+            logger.critical(f"❌ Unhandled Exception in add_products_2: {e}", exc_info=True)
+            return JsonResponse({'error': 'Something went wrong', 'details': str(e)}, status=500)
+
+    else:
+        return render(request, "add_products_3.html", {
+            "dashboard": dashboard,
+            "user_type": user_type,
+            "first_name": user_name
+        })
+
+
+
 def in_stock_products(request):
     valid = False
     data = {}
@@ -1996,6 +2101,112 @@ def update_instock_info_2(request, product_id):
     product["_id"] = str(product["_id"])
     
     return render(request, 'update_info_2.html',  {
+        'dashboard': dashboard,
+        'user_type': user_type,
+        'first_name': user_name,
+        "product": product
+    })
+
+
+
+def in_stock_products_3(request):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
+
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+
+    user_email = data.get('email')
+    user_record = DB.users.find_one({"email": user_email})
+
+    users_shop_name = user_record['shop_name']
+    shop_name = users_shop_name.lower().replace(" ", "-")
+
+    users_id = str(user_record['_id'])
+
+    products = list(
+        DB.products_2.find({"user_id": users_id}).sort("_id", -1)  # newest first
+    )
+
+    for p in products:
+        p["_id"] = str(p["_id"])
+        p["id"] = p["_id"]
+
+    return render(request, 'in_stock_3.html',  {
+        'dashboard': dashboard,
+        'user_type': user_type,
+        'first_name': user_name,
+        'shop_name': shop_name,
+        'users_id': users_id,
+        "products": products
+    })
+
+
+
+@csrf_exempt
+def update_instock_info_3(request, product_id):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    if not valid:
+        return redirect("/login")
+    
+    user_type = data.get('user_type')
+    user_name = data.get('first_name')
+
+    product = DB.products_2.find_one({"_id": ObjectId(product_id)})
+    if not product:
+        return HttpResponse("Product not found", status=404)
+    
+    if request.method == "POST":
+        # --- Update product fields ---
+        updated_data = {
+            "product_name": request.POST.get("product_name"),
+            "product_id": request.POST.get("product_id"),
+            "fabric": request.POST.get("fabric"),
+            "selling_price": request.POST.get("selling_price"),
+        }
+
+        # --- Handle all_colors_single upload ---
+        all_colors_single_file = request.FILES.get("all_colors_single")
+        if all_colors_single_file:
+            try:
+                img_bytes = all_colors_single_file.read()
+                img_io = BytesIO(img_bytes)
+                img_io.name = "all_colors.png"
+
+                # Convert to PNG for consistency
+                img_obj = Image.open(img_io).convert("RGBA")
+                temp_bytes = BytesIO()
+                img_obj.save(temp_bytes, format="PNG")
+                temp_bytes.seek(0)
+
+                # Upload to Azure
+                saved_all_colors_url = upload_image_to_azure(temp_bytes, blob_name="tempfiles")
+
+                # Save Azure URL into DB field
+                updated_data["all_colors_image"] = saved_all_colors_url
+
+            except Exception as e:
+                logger.error(f"[ERROR] Failed to upload all_colors_single: {e}", exc_info=True)
+
+        # --- Update DB ---
+        DB.products_2.update_one(
+            {"_id": ObjectId(product_id)},
+            {"$set": updated_data}
+        )
+
+        return redirect("in_stock_products_3")
+
+    product["_id"] = str(product["_id"])
+    
+    return render(request, 'update_info_3.html',  {
         'dashboard': dashboard,
         'user_type': user_type,
         'first_name': user_name,
@@ -2727,8 +2938,6 @@ def dashboard(request):
             { "$limit": 5 }
         ]
 
-
-
         top_selling = list(DB.products_sold.aggregate(pipeline))
         for product in top_selling:
             product["product_name"] = product.get("product_name", "")
@@ -3313,7 +3522,7 @@ def users_products(request):
 
     # shop_owners_details = list(DB.users.find({'user_type': 'Shop Owners'}))
     shop_owners_details = list(DB.users.find({
-        'user_type': { '$in': ['Shop Owners', 'Shop_Owners_2'] }
+        'user_type': { '$in': ['Shop Owners', 'Shop_Owners_2', 'Shop_Owners_3'] }
     }))
 
     for shop in shop_owners_details:
@@ -3378,6 +3587,9 @@ def shop_products_details(request, shop_id):
     
     user_type = data.get('user_type')
     user_name = data.get('first_name')
+
+    user_record = DB.users.find_one({"_id": ObjectId(shop_id)})
+    users_type = user_record.get("user_type") if user_record else None
 
     if request.method == "POST":
         user_record = DB.users.find_one({"_id": ObjectId(shop_id)})
@@ -3469,7 +3681,6 @@ def shop_products_details(request, shop_id):
                 products = list(DB.products_2.find({
                     "user_id": users_id,
                     "model_image": {"$exists": True},
-                    "collage_image": {"$exists": True},
                     "carousel_posted": False
                 }))
 
@@ -3483,16 +3694,16 @@ def shop_products_details(request, shop_id):
                     if len(batch) < 4:
                         break  # skip incomplete batch
 
-                    generated_urls2 = []
-                    for product in batch:
-                        generated_urls2.append(product["model_image"])
-                        generated_urls2.append(product["collage_image"])
+                    # generated_urls2 = []
+                    # for product in batch:
+                    #     generated_urls2.append(product["model_image"])
+                    #     generated_urls2.append(product["collage_image"])
 
                     product_name = batch[0].get("product_name", "Fashion Product")
                     category = batch[0].get("category", "Indian Ladies Suits")
                     gender = batch[0].get("gender", "Female")
                     product_fabric = batch[0].get("fabric", "")
-                    product_sizes = batch[0].get("sizes", "")
+                    product_sizes = batch[0].get("sizes", "No Sizes")
                     total_price = batch[0].get("selling_price", "")
 
                     # ---- Captions (response1) ----
@@ -3567,7 +3778,7 @@ def shop_products_details(request, shop_id):
                     songs = [
                         "Jhoome Jo Pathaan", "Kesariya", "krishna flute", "Excuses - AP Dhillon", "Doobey",
                         "Bijlee Bijlee", "madhaniya", "Srivalli", "Naatu Naatu", "Tere Vaaste",
-                        "Ram Siya Ram", "Lutt Putt Gaya", "O Maahi", "helo mare", "Jamal Kudu",
+                        "Ram Siya Ram", "O Maahi", "helo mare", "Jamal Kudu",
                         "Param Sundari", "Paani Paani", "Bachpan Ka Pyaar", "Not Ramaiya Vastavaiya", "Kaavaalaa",
                         "Tauba Tauba", "Big Dawgs", "Millionaire", "Marziyan", "O re piya",
                         "Chaleya", "Heeriye", "Besharam Rang", "Tu Hain Toh", "maya maya instrumental", "Chuttamalle",
@@ -3575,15 +3786,26 @@ def shop_products_details(request, shop_id):
                     ]
                     random_song = random.choice(songs)
 
-                    # Insert batch into DB
-                    DB.ig_post.insert_one({
-                        "model_images": [p["model_image"] for p in batch],
-                        "collage_images": [p["collage_image"] for p in batch],
-                        "ig_songs": random_song,
-                        "ig_captions": caption1,
-                        "ig_comments": comments,   # 👈 now stored as list
-                        "user_id": users_id,
-                    })
+                    if users_type == "Shop_Owners_2":
+                        # Insert batch into DB
+                        DB.ig_post.insert_one({
+                            "model_images": [p["model_image"] for p in batch],
+                            "collage_images": [p["collage_image"] for p in batch],
+                            "ig_songs": random_song,
+                            "ig_captions": caption1,
+                            "ig_comments": comments,   # 👈 now stored as list
+                            "user_id": users_id,
+                        })
+                    elif users_type == "Shop_Owners_3":
+                        # Insert batch into DB
+                        DB.ig_post.insert_one({
+                            "model_images": [p["model_image"] for p in batch],
+                            "all_colors_images": [p["all_colors_image"] for p in batch],
+                            "ig_songs": random_song,
+                            "ig_captions": caption1,
+                            "ig_comments": comments,   # 👈 now stored as list
+                            "user_id": users_id,
+                        })
 
                     # Mark products as carousel_posted
                     for p in batch:
@@ -3614,7 +3836,8 @@ def shop_products_details(request, shop_id):
         'dashboard': dashboard,
         'user_type': user_type,
         'first_name': user_name,
-        'shop_product_details': shop
+        'shop_product_details': shop,
+        'user_type': users_type
     })
 
 

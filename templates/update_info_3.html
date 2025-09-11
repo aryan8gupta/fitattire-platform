@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block contain %}
+<style>
+    /* image preview / uploader */
+    .preview-img {
+        width: 100px;
+        height: 100px;
+        object-fit: contain;
+        margin: 5px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+    }
+
+    .spinner-border {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.15em;
+        margin-left: 8px;
+    }
+
+    /* product update card */
+    .update-form {
+        max-width: 700px;
+        margin: 20px auto;
+        padding: 20px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .update-form .form-group {
+        margin-bottom: 15px;
+    }
+
+    .update-form label {
+        font-weight: 600;
+    }
+</style>
+
+<main id="main" class="main">
+    <div class="update-form">
+
+        <h2>✏️ Update Product & Image — {{ product.product_name }}</h2>
+
+        <!-- SINGLE combined form (product fields + single image) -->
+        <form id="combinedForm" method="POST" action="" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Image uploader (single file only) -->
+            <div class="form-group">
+                <label class="btn btn-secondary">
+                    Upload Single Color Image
+                    <input type="file" id="singleImageInput" name="all_colors_single" accept="image/*" hidden>
+                </label>
+                <div id="singlePreviewContainer" class="mt-3 d-flex flex-wrap"></div>
+
+            </div>
+
+            <!-- Product fields -->
+            <div class="form-group">
+                <label for="product_name">Product Name</label>
+                <input type="text" id="product_name" name="product_name"
+                    class="form-control"
+                    value="{{ product.product_name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="product_id">Product ID</label>
+                <input type="text" id="product_id" name="product_id"
+                    class="form-control"
+                    value="{{ product.product_id }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fabric">Fabric</label>
+                <input type="text" id="fabric" name="fabric"
+                    class="form-control"
+                    value="{{ product.fabric|default:'' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="selling_price">Selling Price (₹)</label>
+                <input type="number" id="selling_price" name="selling_price"
+                    class="form-control"
+                    value="{{ product.selling_price|default:'0' }}" min="0" step="1" required>
+            </div>
+
+            <div class="form-group mt-3">
+                <button type="submit" id="saveBtn" class="btn btn-success">💾 Save Changes</button>
+                <a href="/instock-products-2/" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script>
+    const singleInput = document.getElementById("singleImageInput");
+    const singlePreviewContainer = document.getElementById("singlePreviewContainer");
+    const combinedForm = document.getElementById("combinedForm");
+    const saveBtn = document.getElementById("saveBtn");
+
+    // Preview single image before upload
+    singleInput.addEventListener("change", () => {
+        singlePreviewContainer.innerHTML = "";
+        const file = singleInput.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = document.createElement("img");
+            img.src = e.target.result;
+            img.className = "preview-img";
+            singlePreviewContainer.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // Submit handler: optional client-side check + spinner
+    combinedForm.addEventListener("submit", (e) => {
+        // If you require an image to be selected, uncomment this block:
+        // if (!singleInput.files || !singleInput.files[0]) {
+        //     e.preventDefault();
+        //     alert("Please choose one image to upload.");
+        //     return;
+        // }
+
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `
+            Saving Changes
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        `;
+    });
+</script>
+
+{% endblock %}
+

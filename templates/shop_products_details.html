@@ -207,8 +207,13 @@
                         <th>ID</th>
                         <th>Prompt</th>
                         <th>Dummy Image</th>
-                        <th>Embroidery Image</th>
-                        <th>Collage Image</th>
+                        {% if user_type == 'Shop_Owners_2' %}
+                            <th>Embroidery Image</th>
+                            <th>Collage Image</th>
+                        {% endif %}
+                        {% if user_type == 'Shop_Owners_3' %}
+                            <th>Single Color Image</th>
+                        {% endif %}
                         <th>Upload Model Image</th>
                     </tr>
                 </thead>
@@ -230,30 +235,41 @@
                                 </div>
                             {% endif %}
                         </td>
-                        <td>
-                            {% if product.embroidery %}
-                                <div class="embroidery-list">
-                                    {% for emb in product.embroidery %}
-                                        <div class="embroidery-item" style="margin-bottom:10px;">
-                                            <p><strong>{{ emb.part }}</strong></p>
-                                            <img src="{{ emb.url }}" alt="{{ emb.part }}" style="max-width:120px; display:block; margin-bottom:5px;">
-                                            <a href="{% url 'download_product_image' %}?url={{ emb.url|urlencode }}" class="download-btn">Download</a>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            {% else %}
-                                <em>No embroidery images</em>
-                            {% endif %}
-                        </td>
+                        {% if user_type == 'Shop_Owners_2' %}
+                            <td>
+                                {% if product.embroidery %}
+                                    <div class="embroidery-list">
+                                        {% for emb in product.embroidery %}
+                                            <div class="embroidery-item" style="margin-bottom:10px;">
+                                                <p><strong>{{ emb.part }}</strong></p>
+                                                <img src="{{ emb.url }}" alt="{{ emb.part }}" style="max-width:120px; display:block; margin-bottom:5px;">
+                                                <a href="{% url 'download_product_image' %}?url={{ emb.url|urlencode }}" class="download-btn">Download</a>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <em>No embroidery images</em>
+                                {% endif %}
+                            </td>
 
-                        <td>
-                            {% if product.collage_image %}
-                                <div style="display: flex; flex-direction: column; align-items: flex-start;">
-                                    <img src="{{ product.collage_image }}" alt="Collage Image">
-                                    <a href="{% url 'download_product_image' %}?url={{ product.collage_image|urlencode }}" class="download-btn">Download</a>
-                                </div>
-                            {% endif %}
-                        </td>
+                            <td>
+                                {% if product.collage_image %}
+                                    <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                                        <img src="{{ product.collage_image }}" alt="Collage Image">
+                                        <a href="{% url 'download_product_image' %}?url={{ product.collage_image|urlencode }}" class="download-btn">Download</a>
+                                    </div>
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                        {% if user_type == 'Shop_Owners_3' %}
+                            <td>
+                                {% if product.all_colors_image %}
+                                    <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                                        <img src="{{ product.all_colors_image }}" alt="All Colors Image">
+                                    </div>
+                                {% endif %}
+                            </td>
+                        {% endif %}
                         <td>
                             <label for="upload-{{ forloop.counter }}" class="upload-btn 
                             {% if product.model_image %}disabled-label{% endif %}">Upload Image</label>

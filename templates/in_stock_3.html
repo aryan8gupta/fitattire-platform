@@ -82,11 +82,10 @@
                     <th>S.No.</th>
                     <th>Model Image</th>
                     <th>Dummy Image</th>
-                    <th>Collage Image</th>
+                    <th>Multiple Colors Image</th>
                     <th>Product Name</th>
                     <th>Product ID</th>
                     <th>Fabric</th>
-                    <th>Sizes</th>
                     <th>Selling Price</th>
                     <th>Actions</th>
                 </tr>
@@ -113,18 +112,15 @@
                             <img class="thumb" src="{{ product.dummy_image|default:'#' }}" alt="Dummy Image">
                         </td>
                         <td>
-                            <img class="thumb" src="{{ product.collage_image|default:'#' }}" alt="Collage Image">
-                            <br>
-                            <a href="/update-images-2/{{ product.id }}/" class="btn btn-sm btn-primary mt-2">Update Image</a>
+                            <img class="thumb" src="{{ product.all_colors_image|default:'#' }}" alt="Collage Image">
                         </td>
                         <td>{{ product.product_name }}</td>
                         <td>{{ product.product_id }}</td>
                         <td>{{ product.fabric }}</td>
-                        <td>{{ product.sizes }}</td>
                         <td>{{ product.selling_price }}</td>
                         <td style="text-align: center;">
                             <!-- Edit Icon -->
-                            <a href="/update-info-2/{{ product.id }}/" class="nav-li" style="cursor: pointer; margin-right: 10px;">
+                            <a href="/update-info-3/{{ product.id }}/" class="nav-li" style="cursor: pointer; margin-right: 10px;">
                                 <div class="edit-icon-wrapper" style="display: inline-block;">
                                     <svg xmlns="http://www.w3.org/2000/svg" 
                                         viewBox="0 0 24 24" 

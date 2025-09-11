@@ -39,10 +39,12 @@ urlpatterns = [
 
     path('add-products/', views.add_products),
     path('add-products-2/', views.add_products_2),
+    path('add-products-3/', views.add_products_3),
     path('upload', views.upload_image),
     path('upscale/', views.upscale_image),
     path('in-stock/', views.in_stock_products),
     path('in-stock-2/', views.in_stock_products_2, name="in_stock_products_2"),
+    path('in-stock-3/', views.in_stock_products_3, name="in_stock_products_3"),
     path('products-sold/', views.products_sold_view),
 
 
@@ -84,6 +86,7 @@ urlpatterns = [
     path('update/', views.update),
     path('update-images-2/<str:product_id>/', views.update_instock_2, name="update_images_2"),
     path('update-info-2/<str:product_id>/', views.update_instock_info_2, name="update_info_2"),
+    path('update-info-3/<str:product_id>/', views.update_instock_info_3, name="update_info_3"),
     path('app-settings/', views.app_settings),
     path('subscription/', views.subscription),
     path('subscription-upgrade/', views.subs_upgrade),
