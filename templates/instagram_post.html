@@ -126,9 +126,15 @@
 
                             <!-- Collage Images -->
                             <td>
-                                {% for img in post.collage_images %}
-                                    <img src="{{ img }}" alt="Collage {{ forloop.counter }}">
-                                {% endfor %}
+                                {% if shop_type == 'Shop_Owners_2' %}
+                                    {% for img in post.collage_images %}
+                                        <img src="{{ img }}" alt="Collage {{ forloop.counter }}">
+                                    {% endfor %}
+                                {% elif shop_type == 'Shop_Owners_3' %}
+                                    {% for img in post.all_colors_images %}
+                                        <img src="{{ img }}" alt="All Colors Image {{ forloop.counter }}">
+                                    {% endfor %}
+                                {% endif %}
                             </td>
 
                             <!-- Download Button -->

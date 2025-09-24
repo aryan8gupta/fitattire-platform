@@ -25,6 +25,7 @@ from video_generator.instagram_post_test import post_to_instagram, post_azure_vi
 from video_generator.generate_video import start_video_generation, start_video_generation_2
 from video_generator.send_whatsapp import send_invoice_whatsapp_message
 from video_generator.collage_image import create_collage
+from video_generator.collage_image_2 import create_saree_catalog_single_image
 
 # from Inventify.utils.encryption import derive_aes_key, decrypt_field_if_needed
 # from Inventify.utils.kms_utils import encrypt_with_kms, decrypt_with_kms
@@ -2984,19 +2985,36 @@ def download_product_image(request):
 
 
 def download_post_images_zip(request, post_id):
+    valid = False
+    data = {}
+    if request.COOKIES.get('t'):
+        valid, data = verify_token(request.COOKIES['t'])
+    dashboard = None
+    if valid:
+        dashboard = 'dashboard'
+
     # Fetch the specific Instagram post from DB
     post = DB.ig_post.find_one({"_id": ObjectId(post_id)})
     if not post:
         return HttpResponse("Post not found", status=404)
 
+    user_record = DB.users.find_one({"_id": ObjectId(post.get("user_id"))})
+    users_shop_type = user_record.get("user_type") if user_record else None
+    
+    user_type = data.get('user_type')
+
     model_images = post.get("model_images", [])
-    collage_images = post.get("collage_images", [])
+
+    if users_shop_type == 'Shop_Owners_2':
+        support_images = post.get("collage_images", [])
+    elif users_shop_type == 'Shop_Owners_3':
+        support_images = post.get("all_colors_images", [])
 
     # Prepare zip in memory
     zip_buffer = BytesIO()
     with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
         # Interleave model + collage images
-        for i in range(max(len(model_images), len(collage_images))):
+        for i in range(max(len(model_images), len(support_images))):
             if i < len(model_images):
                 try:
                     response = requests.get(model_images[i])
@@ -3006,14 +3024,14 @@ def download_post_images_zip(request, post_id):
                 except Exception as e:
                     print(f"Error downloading {model_images[i]}: {e}")
 
-            if i < len(collage_images):
+            if i < len(support_images):
                 try:
-                    response = requests.get(collage_images[i])
+                    response = requests.get(support_images[i])
                     if response.status_code == 200:
-                        ext = collage_images[i].split(".")[-1].split("?")[0]
+                        ext = support_images[i].split(".")[-1].split("?")[0]
                         zip_file.writestr(f"collage_{i+1}.{ext}", response.content)
                 except Exception as e:
-                    print(f"Error downloading {collage_images[i]}: {e}")
+                    print(f"Error downloading {support_images[i]}: {e}")
 
     zip_buffer.seek(0)
     response = HttpResponse(zip_buffer.read(), content_type='application/zip')
@@ -3565,13 +3583,16 @@ def instagram_post_view(request, shop_id):
     shop_products = list(
         DB.ig_post.find({'user_id': shop_id}).sort('_id', -1)   # newest first
     )
+    
+    user_record = DB.users.find_one({"_id": ObjectId(shop_id)})
+    users_shop_type = user_record.get("user_type") if user_record else None
 
     for product in shop_products:
         product['id'] = str(product['_id'])
         del product['_id']
 
     return render(request, 'instagram_post.html', { 'dashboard': 
-													   dashboard, 'user_type': user_type, 'first_name': user_name, 'product_record': shop_products})
+													   dashboard, 'user_type': user_type, 'shop_type': users_shop_type, 'first_name': user_name, 'product_record': shop_products})
 
 
 
@@ -3652,21 +3673,32 @@ def shop_products_details(request, shop_id):
                                 }
                             }
                         )
+                        if users_type == "Shop_Owners_2":
+                            image_url_3 = create_dynamic_photo_with_auto_closeup_3(
+                                big_image_path=saved_image_url,
+                                logo_path=users_shop_logo,
+                                texts=[
+                                    f"ID: {product_id} ",
+                                    f"Name: {product_name} ",
+                                    f"Fabric: {product_fabric} ",
+                                    f"Sizes: {product_sizes} ",
+                                    f"Price: {product_selling_price} ",
+                                ],
+                                output_path="generated",
+                                garment_image_path=all_color_image,
+                            )
+                            generated_urls.append(image_url_3)
 
-                        image_url_3 = create_dynamic_photo_with_auto_closeup_3(
-                            big_image_path=saved_image_url,
-                            logo_path=users_shop_logo,
-                            texts=[
-                                f"ID: {product_id} ",
-                                f"Name: {product_name} ",
-                                f"Fabric: {product_fabric} ",
-                                f"Sizes: {product_sizes} ",
-                                f"Price: {product_selling_price} ",
-                            ],
-                            output_path="generated",
-                            garment_image_path=all_color_image,
-                        )
-                        generated_urls.append(image_url_3)
+                        elif users_type == "Shop_Owners_3":
+                            image_url_4 = create_saree_catalog_single_image(
+                                hero_path = saved_image_url, 
+                                colour_image = all_color_image, 
+                                fabric= product_fabric, 
+                                code=product_id, 
+                                price=f"Rs. {product_selling_price}",
+                                sharpen=True
+                            )
+                            generated_urls.append(image_url_4)
 
                 # save uploaded images record
                 image_dict = {
