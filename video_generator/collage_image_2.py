@@ -5,8 +5,6 @@ import math, random
 from Inventify.utils.blob_utils import upload_image_to_azure
 from Inventify.settings import BASE_DIR
 import os
-import random
-
 
 FONT_PATH = os.path.join(BASE_DIR, 'static/assets/fonts/DejaVuSans-Bold.ttf')
 
@@ -73,6 +71,50 @@ THEMES = [
         "logo_color": "black", "border_color": "gray", "label_text": "black"
     }
 ]
+
+
+# === Compatibility helper for text measurement ===
+def measured_text_size(draw, text, font):
+    """
+    Return (width, height) for text with given draw object and font,
+    trying multiple APIs for compatibility across Pillow versions.
+    """
+    # 1) Prefer draw.textbbox (available in newer Pillow)
+    try:
+        bbox = draw.textbbox((0, 0), text, font=font)
+        return bbox[2] - bbox[0], bbox[3] - bbox[1]
+    except Exception:
+        pass
+
+    # 2) Older Pillow versions may have draw.textsize
+    try:
+        return draw.textsize(text, font=font)
+    except Exception:
+        pass
+
+    # 3) Font's own bbox (newer API)
+    try:
+        bbox = font.getbbox(text)
+        return bbox[2] - bbox[0], bbox[3] - bbox[1]
+    except Exception:
+        pass
+
+    # 4) Older font.getsize
+    try:
+        return font.getsize(text)
+    except Exception:
+        pass
+
+    # 5) Fallback to mask
+    try:
+        mask = font.getmask(text)
+        return mask.size
+    except Exception:
+        pass
+
+    # 6) Give up
+    return (0, 0)
+
 
 # === HERO IMAGE ===
 def prepare_hero(path, max_height=1536, sharpen=True):
@@ -149,12 +191,12 @@ def create_saree_catalog_single_image(hero_path, colour_image, fabric, code, pri
         font_header = ImageFont.truetype(FONT_PATH, 42)
         font_footer = ImageFont.truetype(FONT_PATH, 50)
         font_label = ImageFont.truetype(FONT_PATH, 28)
-    except:
+    except Exception:
         font_logo = font_header = font_footer = font_label = ImageFont.load_default()
 
     # Logo
     logo_text = "KM Sarees"
-    lw, lh = draw.textsize(logo_text, font=font_logo)
+    lw, lh = measured_text_size(draw, logo_text, font_logo)
     draw.text(((canvas_width - lw) // 2, 10), logo_text, fill=theme["logo_color"], font=font_logo)
 
     # Paste Hero (left)
@@ -173,23 +215,23 @@ def create_saree_catalog_single_image(hero_path, colour_image, fabric, code, pri
     draw.rectangle([single_x - 3, single_y - 3, single_x + single_width + 3, single_y + single_height + 3],
                    outline=theme["border_color"], width=2)
 
-    # # Label under single image
+    # # Label under single image (commented out but compatibility-ready)
     # label_text = "Shade / Variant"
-    # tw, th = draw.textsize(label_text, font=font_label)
+    # tw, th = measured_text_size(draw, label_text, font_label)
     # draw.text((single_x + single_width // 2 - tw // 2, single_y + single_height + 8),
     #           label_text, fill=theme["label_text"], font=font_label)
 
     # Header
     header_text = f"Fabric: {fabric}   |   Code: {code}   |   Price: {price}"
     draw.rectangle([0, 70, canvas_width, 140], fill=theme["header_bg"])
-    tw, th = draw.textsize(header_text, font=font_header)
+    tw, th = measured_text_size(draw, header_text, font_header)
     draw.text(((canvas_width - tw) // 2, 105 - th // 2),
               header_text, fill=theme["header_text"], font=font_header)
 
     # Footer
     footer_text = f"Available in Premium Colours"
     draw.rectangle([0, canvas_height - 120, canvas_width, canvas_height], fill=theme["footer_bg"])
-    tw, th = draw.textsize(footer_text, font=font_footer)
+    tw, th = measured_text_size(draw, footer_text, font_footer)
     draw.text(((canvas_width - tw) // 2, canvas_height - 80),
               footer_text, fill=theme["footer_text"], font=font_footer)
 
@@ -202,7 +244,6 @@ def create_saree_catalog_single_image(hero_path, colour_image, fabric, code, pri
         new_height = int(collage.height * scale)
         collage = collage.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
-
     img_bytes = BytesIO()
     collage.convert("RGB").save(img_bytes, format='JPEG')
     img_bytes.seek(0)
@@ -213,7 +254,6 @@ def create_saree_catalog_single_image(hero_path, colour_image, fabric, code, pri
     return azure_url
 
 
-
 # # === Example usage ===
 # if __name__ == "__main__":
 #     hero_img = "images/hero-1.png"
@@ -222,4 +262,3 @@ def create_saree_catalog_single_image(hero_path, colour_image, fabric, code, pri
 #                          fabric="Jackord", code="KAV-05", price="Rs. 4350",
 #                          output_path="saree_catalog-single-1.png",
 #                          sharpen=True)
-
